@@ -1,0 +1,16 @@
+#root {
+  min-height: 100vh;
+}
+
+body {
+  margin: 0;
+  font-family: theme('fontFamily.sans');
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.app-container {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
