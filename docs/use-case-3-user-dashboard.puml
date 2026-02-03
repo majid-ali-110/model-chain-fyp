@@ -1,0 +1,62 @@
+@startuml User Dashboard & Sandbox
+
+title ModelChain - User Dashboard & Sandbox
+
+skinparam actorStyle awesome
+skinparam backgroundColor white
+
+actor "User" as User
+
+package "User Profile & Dashboard" {
+  usecase "View Dashboard" as UC32
+  usecase "View Profile" as UC33
+  usecase "Edit Profile" as UC34
+  usecase "View Purchased Models" as UC35
+  usecase "View Usage Statistics" as UC36
+  usecase "View Recommendations" as UC37
+  usecase "Manage Settings" as UC38
+  usecase "View Notifications" as UC39
+  usecase "Mark Notifications Read" as UC40
+  usecase "View Activity History" as UC41
+}
+
+package "Sandbox & Model Testing" {
+  usecase "Access Sandbox" as UC24
+  usecase "Load Model in Sandbox" as UC25
+  usecase "Configure Input Parameters" as UC26
+  usecase "Run Model Inference" as UC27
+  usecase "View Model Output" as UC28
+  usecase "Compare Model Performance" as UC29
+  usecase "Save Test Results" as UC30
+  usecase "Share Test Configuration" as UC31
+}
+
+User --> UC32
+User --> UC33
+User --> UC34
+User --> UC35
+User --> UC36
+User --> UC37
+User --> UC38
+User --> UC39
+User --> UC40
+User --> UC41
+
+User --> UC24
+User --> UC25
+User --> UC26
+User --> UC27
+User --> UC28
+User --> UC29
+User --> UC30
+User --> UC31
+
+UC27 --> UC28 : produces
+
+note right of UC24
+  Test models before
+  purchasing with
+  sample data
+end note
+
+@enduml

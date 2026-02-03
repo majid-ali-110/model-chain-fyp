@@ -2,7 +2,7 @@
 export const ROUTES = {
   // Public routes
   HOME: '/',
-  LOGIN: '/login',
+  CONNECT_WALLET: '/connect-wallet',
   REGISTER: '/register',
   FORGOT_PASSWORD: '/forgot-password',
   
@@ -66,7 +66,7 @@ export const ROUTE_CONFIG = {
   // Public routes - no authentication required
   PUBLIC_ROUTES: [
     ROUTES.HOME,
-    ROUTES.LOGIN,
+    ROUTES.CONNECT_WALLET,
     ROUTES.REGISTER,
     ROUTES.FORGOT_PASSWORD,
     ROUTES.MARKETPLACE,

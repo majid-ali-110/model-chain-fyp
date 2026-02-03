@@ -1,0 +1,59 @@
+@startuml Marketplace & Model Discovery
+
+title ModelChain - Marketplace & Model Discovery
+
+skinparam actorStyle awesome
+skinparam backgroundColor white
+
+actor "Visitor" as Visitor
+actor "User" as User
+actor "Blockchain" as BC <<External>>
+actor "IPFS" as IPFS <<External>>
+
+package "Browse & Search" {
+  usecase "Browse Models" as UC11
+  usecase "Search Models" as UC12
+  usecase "Filter by Category" as UC13
+  usecase "Filter by Price" as UC14
+  usecase "Filter by Rating" as UC15
+  usecase "Sort Models" as UC16
+}
+
+package "Model Details" {
+  usecase "View Model Details" as UC17
+  usecase "View Model Metadata" as UC18
+  usecase "View Model Reviews" as UC19
+  usecase "View Model License" as UC22
+  usecase "Check Model Compatibility" as UC23
+}
+
+package "Purchase & Download" {
+  usecase "Purchase Model Access" as UC20
+  usecase "Download Model Files" as UC21
+}
+
+Visitor --> UC11
+Visitor --> UC12
+Visitor --> UC13
+Visitor --> UC14
+Visitor --> UC15
+Visitor --> UC16
+Visitor --> UC17
+
+User --> UC18
+User --> UC19
+User --> UC20
+User --> UC21
+User --> UC22
+User --> UC23
+
+UC20 ..> BC : executes payment
+UC20 --> UC21 : <<includes>>
+UC21 ..> IPFS : downloads from
+
+note right of UC20
+  Payment in POL tokens
+  via smart contract
+end note
+
+@enduml

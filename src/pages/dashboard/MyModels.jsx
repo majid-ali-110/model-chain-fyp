@@ -5,46 +5,25 @@ import Badge from '../../components/ui/Badge';
 import Button from '../../components/ui/Button';
 import Dropdown from '../../components/ui/Dropdown';
 import Modal from '../../components/ui/Modal';
-import { PlusIcon, EllipsisVerticalIcon, PencilIcon, TrashIcon } from '@heroicons/react/24/outline';
+import { useWallet } from '../../contexts/WalletContext';
+import { PlusIcon, EllipsisVerticalIcon, PencilIcon, TrashIcon, CubeIcon } from '@heroicons/react/24/outline';
 
 const MyModels = () => {
   const [selectedModel, setSelectedModel] = useState(null);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const { chainId, isConnected } = useWallet();
 
+  // Get network currency based on chainId
+  const getNetworkCurrency = (chainId) => {
+    const polygonChains = ['137', '80002', '80001'];
+    return polygonChains.includes(chainId) ? 'POL' : 'ETH';
+  };
+
+  const currency = getNetworkCurrency(chainId);
+
+  // Models would come from ModelRegistry contract in production
   const models = [
-    {
-      id: 1,
-      name: 'GPT-4 Clone',
-      description: 'Advanced language model for text generation',
-      status: 'active',
-      downloads: 456,
-      earnings: '2.3 ETH',
-      rating: 4.8,
-      lastUpdated: '2024-01-15',
-      category: 'Language'
-    },
-    {
-      id: 2,
-      name: 'Image Classifier Pro',
-      description: 'High-accuracy image classification model',
-      status: 'pending',
-      downloads: 123,
-      earnings: '0.8 ETH',
-      rating: 4.6,
-      lastUpdated: '2024-01-12',
-      category: 'Computer Vision'
-    },
-    {
-      id: 3,
-      name: 'Audio Processor',
-      description: 'Real-time audio processing and enhancement',
-      status: 'draft',
-      downloads: 0,
-      earnings: '0 ETH',
-      rating: 0,
-      lastUpdated: '2024-01-10',
-      category: 'Audio'
-    }
+    // Empty - will be populated from blockchain
   ];
 
   const getStatusColor = (status) => {
@@ -63,7 +42,6 @@ const MyModels = () => {
 
   const confirmDelete = () => {
     // TODO: Implement delete logic
-    console.log('Deleting model:', selectedModel?.id);
     setShowDeleteModal(false);
     setSelectedModel(null);
   };
@@ -84,7 +62,21 @@ const MyModels = () => {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
-        {models.map(model => (
+        {models.length === 0 ? (
+          <Card className="col-span-full">
+            <Card.Content className="text-center py-12">
+              <CubeIcon className="h-16 w-16 mx-auto mb-4 text-secondary-400" />
+              <h3 className="text-lg font-medium text-secondary-900 mb-2">No models yet</h3>
+              <p className="text-secondary-600 mb-4">Get started by uploading your first AI model</p>
+              <Link to="/developer/upload">
+                <Button>
+                  <PlusIcon className="h-4 w-4" />
+                  Upload Your First Model
+                </Button>
+              </Link>
+            </Card.Content>
+          </Card>
+        ) : models.map(model => (
           <Card key={model.id}>
             <Card.Header>
               <div className="flex items-start justify-between">
@@ -102,7 +94,7 @@ const MyModels = () => {
                     {
                       label: 'Edit',
                       icon: PencilIcon,
-                      onClick: () => console.log('Edit', model.id)
+                      onClick: () => {}
                     },
                     {
                       label: 'Delete',

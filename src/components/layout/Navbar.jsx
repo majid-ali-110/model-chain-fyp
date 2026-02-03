@@ -21,32 +21,104 @@ import Button from '../ui/Button';
 import Dropdown from '../ui/Dropdown';
 import Avatar from '../ui/Avatar';
 import Badge from '../ui/Badge';
+import WalletConnectModal from '../wallet/WalletConnectModal';
+import OnboardingModal from '../onboarding/OnboardingModal';
 import { useNotification } from '../../contexts/NotificationContext';
+import { useWallet } from '../../contexts/WalletContext';
+import { useAuth } from '../../contexts/AuthContext';
 
 const Navbar = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
+  const [showWalletModal, setShowWalletModal] = useState(false);
+  const [showOnboarding, setShowOnboarding] = useState(false);
+  const [isRegistering, setIsRegistering] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
-  const { showSuccess } = useNotification();
+  const { showSuccess, showError } = useNotification();
+  const { 
+    connected, 
+    address, 
+    balance, 
+    profile, 
+    chainId,
+    disconnectWallet, 
+    connectWallet, 
+    connecting,
+    needsOnboarding,
+    registerUser,
+    setNeedsOnboarding
+  } = useWallet();
+  const { isAuthenticated, user: authUser, logout } = useAuth();
 
-  // Mock user and wallet data - replace with actual context
+  // Show onboarding when user connects and needs it
+  useEffect(() => {
+    if (connected && needsOnboarding && !showOnboarding) {
+      setShowOnboarding(true);
+    }
+  }, [connected, needsOnboarding]);
+
+  // Handle onboarding completion
+  const handleOnboardingComplete = async (profileData) => {
+    setIsRegistering(true);
+    try {
+      const result = await registerUser(profileData);
+      if (result.success) {
+        showSuccess('Profile created successfully!', {
+          title: 'Welcome to ModelChain',
+          duration: 5000,
+        });
+        setShowOnboarding(false);
+        setNeedsOnboarding(false);
+        
+        // Navigate based on role
+        if (profileData.role === 'developer') {
+          navigate('/developer/my-models');
+        } else if (profileData.role === 'validator') {
+          navigate('/validator/dashboard');
+        } else {
+          navigate('/marketplace');
+        }
+      }
+    } catch (error) {
+      showError(error.message || 'Failed to create profile');
+    } finally {
+      setIsRegistering(false);
+    }
+  };
+
+  // User data from contexts
   const user = {
-    name: 'Alex Johnson',
-    email: 'alex@modelchain.dev',
-    avatar: null,
-    isAuthenticated: true,
-    role: 'developer',
+    name: profile?.displayName || authUser?.displayName || 'User',
+    email: profile?.email || authUser?.email || '',
+    avatar: profile?.avatar || null,
+    isAuthenticated: connected && profile,
+    role: profile?.primaryRole || profile?.role || 'user',
     reputation: 'Verified'
   };
 
+  // Get network info based on chainId
+  const getNetworkInfo = (chainId) => {
+    const networks = {
+      '1': { name: 'Ethereum', currency: 'ETH' },
+      '137': { name: 'Polygon', currency: 'POL' },
+      '80002': { name: 'Polygon Amoy', currency: 'POL' },
+      '11155111': { name: 'Sepolia', currency: 'ETH' },
+      '31337': { name: 'Localhost', currency: 'ETH' },
+    };
+    return networks[chainId] || { name: 'Unknown', currency: 'ETH' };
+  };
+
+  const networkInfo = getNetworkInfo(chainId);
+
   const wallet = {
-    isConnected: true,
-    address: '0x742d35...b5d2F3',
-    balance: '12.457',
-    network: 'Ethereum',
-    ensName: 'alexdev.eth'
+    isConnected: connected,
+    address: address ? `${address.slice(0, 6)}...${address.slice(-4)}` : '',
+    balance: balance || '0',
+    network: networkInfo.name,
+    currency: networkInfo.currency,
+    ensName: null
   };
 
   // Handle scroll effect
@@ -112,74 +184,40 @@ const Navbar = () => {
     { name: 'Sign out', href: '#', icon: ArrowRightOnRectangleIcon },
   ];
 
-  // Mock notifications data
-  const notifications = [
-    {
-      id: 1,
-      title: 'New Model Approved',
-      message: 'Your AI model "GPT-Vision-Plus" has been approved!',
-      time: '5 min ago',
-      unread: true,
-      type: 'success',
-      icon: CubeIcon
-    },
-    {
-      id: 2,
-      title: 'Governance Proposal',
-      message: 'New proposal "Reduce Platform Fees" is now live for voting.',
-      time: '1 hour ago',
-      unread: true,
-      type: 'info',
-      icon: ShieldCheckIcon
-    },
-    {
-      id: 3,
-      title: 'Transaction Complete',
-      message: 'You earned 2.5 ETH from model downloads.',
-      time: '3 hours ago',
-      unread: false,
-      type: 'success',
-      icon: WalletIcon
-    },
-    {
-      id: 4,
-      title: 'Model Update Available',
-      message: 'Update available for "Audio Synthesizer X".',
-      time: '1 day ago',
-      unread: false,
-      type: 'info',
-      icon: DocumentTextIcon
-    }
-  ];
-
-  const unreadCount = notifications.filter(n => n.unread).length;
+  // Notifications - empty until notification system is connected to blockchain events
+  const notifications = [];
+  const unreadCount = 0;
 
   const handleWalletConnect = () => {
-    // Mock wallet connection - replace with actual wallet logic
-    console.log('Connecting wallet...');
+    setShowWalletModal(true);
   };
 
   const handleWalletDisconnect = () => {
-    // Mock wallet disconnection
-    console.log('Disconnecting wallet...');
+    disconnectWallet();
+    logout();
+    showSuccess('Wallet disconnected successfully', {
+      title: 'Disconnected',
+      duration: 3000,
+    });
   };
 
   const handleSignOut = () => {
-    // Clear any auth tokens/data
+    // In wallet-only auth, sign out means disconnect wallet
+    disconnectWallet();
+    
+    // Clear any cached data
     localStorage.removeItem('authToken');
     localStorage.removeItem('user');
     
     // Show success notification
-    showSuccess('You have been signed out successfully', {
-      title: 'Signed Out',
+    showSuccess('Wallet disconnected successfully', {
+      title: 'Disconnected',
       duration: 3000,
       glow: true
     });
     
-    // Redirect to home page after a short delay
-    setTimeout(() => {
-      navigate('/');
-    }, 500);
+    // Redirect to home page
+    navigate('/');
   };
 
   const formatAddress = (address) => {
@@ -239,7 +277,6 @@ const Navbar = () => {
                     className="w-full h-full object-contain transition-all duration-500 group-hover:scale-110 group-hover:rotate-12 group-hover:drop-shadow-[0_0_20px_rgba(6,182,212,0.6)]"
                     onError={(e) => {
                       e.target.style.display = 'none';
-                      console.log('Logo failed to load from:', e.target.src);
                     }}
                   />
                 </div>
@@ -315,7 +352,7 @@ const Navbar = () => {
                         {wallet.ensName || formatAddress(wallet.address)}
                       </p>
                       <p className="text-sm text-dark-text-muted">
-                        {wallet.balance} ETH • {wallet.network}
+                        {parseFloat(wallet.balance).toFixed(4)} {wallet.currency} • {wallet.network}
                       </p>
                     </div>
                     <Dropdown.Item onClick={() => navigate('/wallet')}>
@@ -406,7 +443,6 @@ const Navbar = () => {
                                 notification.unread && 'bg-cyan-500/5'
                               )}
                               onClick={() => {
-                                console.log('Notification clicked:', notification.id);
                                 setShowNotifications(false);
                               }}
                             >
@@ -518,7 +554,6 @@ const Navbar = () => {
                                 color: active ? '#f0f6fc' : '#c9d1d9'
                               }}
                               onClick={() => {
-                                console.log('🔴 Sign out clicked');
                                 handleSignOut();
                               }}
                             >
@@ -540,9 +575,7 @@ const Navbar = () => {
                               backgroundColor: active ? '#161b22' : 'transparent',
                               color: active ? '#f0f6fc' : '#c9d1d9'
                             }}
-                            onClick={() => {
-                              console.log('🟢 Link clicked:', item.name, '→', item.href);
-                            }}
+                            
                           >
                             <Icon className="h-4 w-4 mr-2 flex-shrink-0" />
                             <span>{item.name}</span>
@@ -555,17 +588,40 @@ const Navbar = () => {
               </>
             ) : (
               <div className="flex items-center space-x-3">
-                <Button variant="ghost" size="sm" onClick={() => navigate('/login')}>
-                  Sign in
-                </Button>
-                <Button variant="primary" size="sm" onClick={() => navigate('/register')}>
-                  Sign up
+                <Button 
+                  variant="primary" 
+                  size="sm" 
+                  onClick={handleWalletConnect}
+                  className="flex items-center gap-2"
+                >
+                  <WalletIcon className="h-4 w-4" />
+                  Connect Wallet
                 </Button>
               </div>
             )}
           </div>
         </div>
       </div>
+
+      {/* Wallet Connect Modal */}
+      <WalletConnectModal
+        isOpen={showWalletModal}
+        onClose={() => setShowWalletModal(false)}
+        onConnect={connectWallet}
+        isConnecting={connecting}
+      />
+
+      {/* Onboarding Modal */}
+      <OnboardingModal
+        isOpen={showOnboarding}
+        onClose={() => {
+          setShowOnboarding(false);
+          setNeedsOnboarding(false);
+        }}
+        onComplete={handleOnboardingComplete}
+        walletAddress={address}
+        isLoading={isRegistering}
+      />
 
       {/* Mobile menu */}
       <div className={clsx(
@@ -602,33 +658,21 @@ const Navbar = () => {
           </div>
 
           {/* Mobile wallet & user section */}
-          {user.isAuthenticated && (
+          {connected ? (
             <div className="border-t border-dark-surface-elevated/20 px-4 py-3">
-              {!wallet.isConnected ? (
-                <Button 
-                  variant="wallet" 
-                  size="sm" 
-                  onClick={handleWalletConnect}
-                  className="w-full mb-3"
-                >
-                  <WalletIcon className="h-4 w-4 mr-2" />
-                  Connect Wallet
-                </Button>
-              ) : (
-                <div className="mb-3 p-3 bg-dark-surface-elevated rounded-lg">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm font-medium text-dark-text-primary">
-                        {wallet.ensName || formatAddress(wallet.address)}
-                      </p>
-                      <p className="text-xs text-dark-text-muted">
-                        {wallet.balance} ETH
-                      </p>
-                    </div>
-                    <Badge.Verified />
+              <div className="mb-3 p-3 bg-dark-surface-elevated rounded-lg">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-dark-text-primary">
+                      {wallet.ensName || wallet.address}
+                    </p>
+                    <p className="text-xs text-dark-text-muted">
+                      {parseFloat(wallet.balance).toFixed(4)} {wallet.currency}
+                    </p>
                   </div>
+                  <Badge.Verified />
                 </div>
-              )}
+              </div>
               
               <div className="flex items-center space-x-3 mb-3">
                 <Avatar src={user.avatar} name={user.name} size="sm" />
@@ -637,6 +681,28 @@ const Navbar = () => {
                   <p className="text-xs text-dark-text-muted">{user.email}</p>
                 </div>
               </div>
+              
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={handleWalletDisconnect}
+                className="w-full"
+              >
+                <ArrowRightOnRectangleIcon className="h-4 w-4 mr-2" />
+                Disconnect Wallet
+              </Button>
+            </div>
+          ) : (
+            <div className="border-t border-dark-surface-elevated/20 px-4 py-3">
+              <Button 
+                variant="primary" 
+                size="sm" 
+                onClick={handleWalletConnect}
+                className="w-full"
+              >
+                <WalletIcon className="h-4 w-4 mr-2" />
+                Connect Wallet
+              </Button>
             </div>
           )}
         </div>

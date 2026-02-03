@@ -1,0 +1,70 @@
+@startuml Documentation & Support
+
+title ModelChain - Documentation & Support
+
+skinparam actorStyle awesome
+skinparam backgroundColor white
+
+actor "Visitor" as Visitor
+actor "User" as User
+actor "Developer" as Dev
+actor "Validator" as Val
+
+package "Developer Documentation" {
+  usecase "View API Documentation" as UC96
+  usecase "View SDK Tools" as UC97
+  usecase "View Node Setup Guide" as UC99
+}
+
+package "Validator Documentation" {
+  usecase "View Validation Guidelines" as UC98
+}
+
+package "Legal & Policies" {
+  usecase "Read Terms of Service" as UC100
+  usecase "Read Privacy Policy" as UC101
+  usecase "Read Security Policy" as UC102
+}
+
+package "Help & Support" {
+  usecase "View FAQ" as UC103
+  usecase "Contact Support" as UC104
+  usecase "View About Page" as UC105
+}
+
+Visitor --> UC96
+Visitor --> UC97
+Visitor --> UC98
+Visitor --> UC99
+Visitor --> UC100
+Visitor --> UC101
+Visitor --> UC102
+Visitor --> UC103
+Visitor --> UC104
+Visitor --> UC105
+
+User --> UC96
+User --> UC103
+User --> UC104
+
+Dev --> UC96
+Dev --> UC97
+Dev --> UC99
+
+Val --> UC98
+
+note right of UC96
+  Complete API docs:
+  - REST endpoints
+  - Authentication
+  - Code examples
+  - Rate limits
+end note
+
+note right of UC98
+  Standards for
+  model validation
+  and quality checks
+end note
+
+@enduml

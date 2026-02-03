@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   WalletIcon,
   CurrencyDollarIcon,
@@ -53,166 +54,83 @@ import Input from '../../components/ui/Input';
 import Card from '../../components/ui/Card';
 import Badge from '../../components/ui/Badge';
 import Loading from '../../components/ui/Loading';
+import { useWallet } from '../../contexts/WalletContext';
+import { useAuth } from '../../contexts/AuthContext';
 
 const WalletDashboard = () => {
+  const navigate = useNavigate();
+  const { connected, address, balance, chainId } = useWallet();
+  const { isAuthenticated } = useAuth();
+  
   const [isLoading, setIsLoading] = useState(true);
   const [balanceVisible, setBalanceVisible] = useState(true);
   const [selectedTimeframe, setSelectedTimeframe] = useState('7d');
   const [showSendModal, setShowSendModal] = useState(false);
   const [showReceiveModal, setShowReceiveModal] = useState(false);
-  const [sendFormData, setSendFormData] = useState({ address: '', amount: '', asset: 'MCT' });
+  const [sendFormData, setSendFormData] = useState({ address: '', amount: '', asset: 'ETH' });
 
-  // Mock wallet data
-  const [walletData] = useState({
-    totalBalance: 15420.50,
-    totalBalanceUSD: 11565.38,
-    address: '0x742d35Cc6C4532B789FE2EAB4C8F5a7B8D8F4E3C',
+  // Get network info
+  const getNetworkInfo = (chainId) => {
+    const networks = {
+      '1': { name: 'Ethereum', currency: 'ETH', isTestnet: false },
+      '137': { name: 'Polygon', currency: 'POL', isTestnet: false },
+      '80002': { name: 'Polygon Amoy', currency: 'POL', isTestnet: true },
+      '11155111': { name: 'Sepolia', currency: 'ETH', isTestnet: true },
+      '31337': { name: 'Localhost', currency: 'ETH', isTestnet: true },
+    };
+    return networks[chainId] || { name: 'Unknown', currency: 'ETH', isTestnet: true };
+  };
+
+  const networkInfo = getNetworkInfo(chainId);
+
+  // Wallet data from context - no fake USD for testnet
+  const walletData = {
+    totalBalance: parseFloat(balance || '0'),
+    address: address || '',
+    network: networkInfo.name,
+    currency: networkInfo.currency,
+    isTestnet: networkInfo.isTestnet,
     assets: [
       {
-        symbol: 'MCT',
-        name: 'ModelChain Token',
-        balance: 12500.00,
-        balanceUSD: 9375.00,
-        price: 0.75,
-        change24h: 5.2,
-        icon: CpuChipIcon,
-        color: 'blue'
-      },
-      {
-        symbol: 'MCG',
-        name: 'ModelChain Governance',
-        balance: 2420.50,
-        balanceUSD: 2057.43,
-        price: 0.85,
-        change24h: -1.8,
-        icon: ShieldCheckIcon,
-        color: 'purple'
-      },
-      {
-        symbol: 'ETH',
-        name: 'Ethereum',
-        balance: 0.5,
-        balanceUSD: 1132.95,
-        price: 2265.90,
-        change24h: 3.1,
+        symbol: networkInfo.currency,
+        name: networkInfo.name,
+        balance: parseFloat(balance || '0'),
+        change24h: 0,
         icon: CurrencyDollarIcon,
-        color: 'gray'
+        color: 'purple'
       }
     ],
     performance: {
-      daily: 2.5,
-      weekly: 12.8,
-      monthly: -5.3,
-      allTime: 245.7
+      daily: 0,
+      weekly: 0,
+      monthly: 0,
+      allTime: 0
     },
     staking: {
-      totalStaked: 5000,
-      stakingRewards: 892.15,
-      apy: 12.5,
-      nextReward: '2d 14h'
+      totalStaked: 0,
+      stakingRewards: 0,
+      apy: 0,
+      nextReward: 'N/A'
     }
-  });
+  };
 
-  // Mock transaction history
-  const [transactions] = useState([
-    {
-      id: 'tx_001',
-      type: 'purchase',
-      status: 'completed',
-      asset: 'MCT',
-      amount: -25.50,
-      amountUSD: -19.13,
-      counterparty: 'GPT-4 Vision Model',
-      timestamp: '2025-10-03T14:30:00Z',
-      txHash: '0x742d35cc6c4532b789fe2eab4c8f5a7b8d8f4e3c',
-      category: 'marketplace'
-    },
-    {
-      id: 'tx_002',
-      type: 'reward',
-      status: 'completed',
-      asset: 'MCT',
-      amount: 156.75,
-      amountUSD: 117.56,
-      counterparty: 'Model Sales Revenue',
-      timestamp: '2025-10-03T12:15:00Z',
-      txHash: '0x8a3b2c4d5e6f7890abcdef1234567890fedcba09',
-      category: 'revenue'
-    },
-    {
-      id: 'tx_003',
-      type: 'staking_reward',
-      status: 'completed',
-      asset: 'MCG',
-      amount: 45.67,
-      amountUSD: 38.82,
-      counterparty: 'Staking Rewards',
-      timestamp: '2025-10-03T09:00:00Z',
-      txHash: '0x9f1e2d3c4b5a6978fedc0987654321ba098765fe',
-      category: 'staking'
-    },
-    {
-      id: 'tx_004',
-      type: 'send',
-      status: 'completed',
-      asset: 'ETH',
-      amount: -0.1,
-      amountUSD: -226.59,
-      counterparty: '0xABCD...5678',
-      timestamp: '2025-10-02T16:45:00Z',
-      txHash: '0xabcdef1234567890fedcba0987654321dcba0987',
-      category: 'transfer'
-    },
-    {
-      id: 'tx_005',
-      type: 'purchase',
-      status: 'completed',
-      asset: 'MCT',
-      amount: -89.25,
-      amountUSD: -66.94,
-      counterparty: 'Audio Transcription Pro',
-      timestamp: '2025-10-02T11:20:00Z',
-      txHash: '0x1234567890abcdef9876543210fedcba12345678',
-      category: 'marketplace'
-    },
-    {
-      id: 'tx_006',
-      type: 'receive',
-      status: 'completed',
-      asset: 'MCT',
-      amount: 500.00,
-      amountUSD: 375.00,
-      counterparty: '0x1234...ABCD',
-      timestamp: '2025-10-01T14:30:00Z',
-      txHash: '0xfedcba0987654321abcdef1234567890bcdefabc',
-      category: 'transfer'
-    },
-    {
-      id: 'tx_007',
-      type: 'validation_reward',
-      status: 'pending',
-      asset: 'MCT',
-      amount: 22.50,
-      amountUSD: 16.88,
-      counterparty: 'Model Validation',
-      timestamp: '2025-10-01T10:15:00Z',
-      txHash: '0x567890abcdef1234fedcba9876543210abcdef12',
-      category: 'validation'
-    }
-  ]);
+  // Transaction history - empty until blockchain integration
+  const [transactions] = useState([]);
 
 
 
   useEffect(() => {
     const loadWalletData = async () => {
-      setIsLoading(true);
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      // Check for wallet connection
+      if (!connected || !isAuthenticated) {
+        navigate('/connect-wallet');
+        return;
+      }
       setIsLoading(false);
     };
 
     loadWalletData();
-  }, []);
+  }, [connected, isAuthenticated, navigate]);
 
   // Helper functions
   const formatCurrency = (amount, currency = 'USD') => {
@@ -267,8 +185,7 @@ const WalletDashboard = () => {
 
   const handleSendSubmit = (e) => {
     e.preventDefault();
-    // Implement send logic
-    console.log('Send transaction:', sendFormData);
+    // TODO: Implement send logic with wallet context
     setShowSendModal(false);
     setSendFormData({ address: '', amount: '', asset: 'MCT' });
   };
@@ -304,11 +221,11 @@ const WalletDashboard = () => {
         {balanceVisible ? (
           <>
             <p className="text-3xl font-bold text-white mb-2">
-              {formatCurrency(walletData.totalBalanceUSD)}
+              {walletData.totalBalance.toFixed(4)} {walletData.currency}
             </p>
             <div className="flex items-center">
               <span className="text-blue-200 text-sm mr-2">
-                {formatTokens(walletData.totalBalance, 'MCT')} equivalent
+                {walletData.network} {walletData.isTestnet && <Badge variant="warning" size="xs">Testnet</Badge>}
               </span>
               <div className="flex items-center">
                 {walletData.performance.daily >= 0 ? (
@@ -384,7 +301,6 @@ const WalletDashboard = () => {
       <div className="space-y-4">
         {walletData.assets.map((asset) => {
           const Icon = asset.icon;
-          const percentage = (asset.balanceUSD / walletData.totalBalanceUSD) * 100;
           
           return (
             <div key={asset.symbol} className="p-4 bg-gray-800/50 rounded-lg">
@@ -404,7 +320,7 @@ const WalletDashboard = () => {
                 
                 <div className="text-right">
                   <p className="text-white font-medium">
-                    {balanceVisible ? formatCurrency(asset.balanceUSD) : '****'}
+                    {balanceVisible ? `${asset.balance.toFixed(4)} ${asset.symbol}` : '****'}
                   </p>
                   <div className="flex items-center">
                     {asset.change24h >= 0 ? (
@@ -427,18 +343,18 @@ const WalletDashboard = () => {
                   <span className="text-gray-400">
                     {balanceVisible ? `${asset.balance.toLocaleString()} ${asset.symbol}` : '****'}
                   </span>
-                  <span className="text-gray-400">{percentage.toFixed(1)}%</span>
+                  <span className="text-gray-400">100.0%</span>
                 </div>
                 <div className="w-full bg-gray-700 rounded-full h-2">
                   <div
                     className={clsx('h-2 rounded-full', `bg-${asset.color}-500`)}
-                    style={{ width: `${percentage}%` }}
+                    style={{ width: '100%' }}
                   />
                 </div>
               </div>
               
               <div className="flex items-center justify-between text-sm">
-                <span className="text-gray-400">Price: {formatCurrency(asset.price)}</span>
+                <span className="text-gray-400">{walletData.isTestnet ? 'Testnet Token' : 'Native Token'}</span>
                 <Button variant="ghost" size="sm">
                   <ChevronRightIcon className="h-4 w-4" />
                 </Button>

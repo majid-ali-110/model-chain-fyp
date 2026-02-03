@@ -11,23 +11,9 @@ const Browse = () => {
   const [_sortBy, setSortBy] = useState('popular');
   const [_filterBy, setFilterBy] = useState('all');
 
+  // Models would come from ModelRegistry contract in production
   const models = [
-    {
-      id: 1,
-      name: 'GPT-4 Clone',
-      category: 'Language',
-      price: '0.05 ETH',
-      featured: true,
-      trending: true
-    },
-    {
-      id: 2,
-      name: 'Image Classifier Pro',
-      category: 'Computer Vision',
-      price: '0.03 ETH',
-      featured: false,
-      trending: true
-    }
+    // Empty - will be populated from blockchain
   ];
 
   const sortOptions = [

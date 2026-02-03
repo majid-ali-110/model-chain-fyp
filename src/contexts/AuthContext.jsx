@@ -66,48 +66,34 @@ export const AuthProvider = ({ children }) => {
         localStorage.removeItem('authToken');
         localStorage.removeItem('userData');
       }
-    } else {
-      // Auto-login with mock user for development
-      const mockUser = {
-        id: '1',
-        name: 'Demo User',
-        email: 'demo@modelchain.io',
-        role: 'developer',
-        avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Demo',
-        walletAddress: '0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb',
-      };
-      
-      localStorage.setItem('authToken', 'demo-token');
-      localStorage.setItem('userData', JSON.stringify(mockUser));
-      dispatch({ type: 'LOGIN_SUCCESS', payload: mockUser });
     }
   }, []);
 
-  const login = async (credentials) => {
+  const login = async (walletAddress, profile) => {
     dispatch({ type: 'LOGIN_START' });
     
     try {
-      // Mock login - replace with actual API call
-      const response = await new Promise((resolve) => {
-        setTimeout(() => {
-          resolve({
-            user: {
-              id: '1',
-              name: 'John Doe',
-              email: credentials.email,
-              role: 'developer',
-              avatar: null,
-              walletAddress: '0x123...abc',
-            },
-            token: 'mock-jwt-token'
-          });
-        }, 1000);
-      });
+      // Use wallet address and profile from WalletContext
+      if (!walletAddress || !profile) {
+        throw new Error('Wallet not connected or profile not found');
+      }
 
-      localStorage.setItem('authToken', response.token);
-      localStorage.setItem('userData', JSON.stringify(response.user));
+      const user = {
+        id: walletAddress,
+        name: profile.displayName,
+        email: profile.email || '',
+        role: profile.role,
+        avatar: profile.avatar,
+        walletAddress: walletAddress,
+        bio: profile.bio,
+        username: profile.username,
+      };
+
+      const token = `wallet-${walletAddress}`;
+      localStorage.setItem('authToken', token);
+      localStorage.setItem('userData', JSON.stringify(user));
       
-      dispatch({ type: 'LOGIN_SUCCESS', payload: response.user });
+      dispatch({ type: 'LOGIN_SUCCESS', payload: user });
       return { success: true };
     } catch (error) {
       dispatch({ type: 'LOGIN_FAILURE', payload: error.message });
@@ -115,36 +101,9 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  const register = async (userData) => {
-    dispatch({ type: 'LOGIN_START' });
-    
-    try {
-      // Mock registration - replace with actual API call
-      const response = await new Promise((resolve) => {
-        setTimeout(() => {
-          resolve({
-            user: {
-              id: '1',
-              name: userData.name,
-              email: userData.email,
-              role: 'user',
-              avatar: null,
-              walletAddress: null,
-            },
-            token: 'mock-jwt-token'
-          });
-        }, 1000);
-      });
-
-      localStorage.setItem('authToken', response.token);
-      localStorage.setItem('userData', JSON.stringify(response.user));
-      
-      dispatch({ type: 'LOGIN_SUCCESS', payload: response.user });
-      return { success: true };
-    } catch (error) {
-      dispatch({ type: 'LOGIN_FAILURE', payload: error.message });
-      return { success: false, error: error.message };
-    }
+  const register = async (walletAddress, profile) => {
+    // Same as login for wallet-based auth
+    return login(walletAddress, profile);
   };
 
   const logout = () => {

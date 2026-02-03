@@ -1,0 +1,193 @@
+{
+  "abi": [
+    {
+      "inputs": [
+        { "internalType": "address", "name": "_modelRegistry", "type": "address" }
+      ],
+      "stateMutability": "nonpayable",
+      "type": "constructor"
+    },
+    {
+      "inputs": [
+        { "internalType": "uint256", "name": "modelId", "type": "uint256" },
+        { "internalType": "uint256", "name": "basePrice", "type": "uint256" },
+        { "internalType": "uint256", "name": "commercialMultiplier", "type": "uint256" },
+        { "internalType": "uint256", "name": "enterpriseMultiplier", "type": "uint256" }
+      ],
+      "name": "listModel",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        { "internalType": "uint256", "name": "modelId", "type": "uint256" },
+        { "internalType": "uint256", "name": "newBasePrice", "type": "uint256" },
+        { "internalType": "uint256", "name": "commercialMultiplier", "type": "uint256" },
+        { "internalType": "uint256", "name": "enterpriseMultiplier", "type": "uint256" }
+      ],
+      "name": "updateListing",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        { "internalType": "uint256", "name": "modelId", "type": "uint256" }
+      ],
+      "name": "delistModel",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        { "internalType": "uint256", "name": "modelId", "type": "uint256" },
+        { "internalType": "uint8", "name": "licenseType", "type": "uint8" }
+      ],
+      "name": "calculatePrice",
+      "outputs": [
+        { "internalType": "uint256", "name": "", "type": "uint256" }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        { "internalType": "uint256", "name": "modelId", "type": "uint256" },
+        { "internalType": "uint8", "name": "licenseType", "type": "uint8" }
+      ],
+      "name": "purchaseModel",
+      "outputs": [],
+      "stateMutability": "payable",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "withdrawEarnings",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        { "internalType": "uint256", "name": "modelId", "type": "uint256" },
+        { "internalType": "address", "name": "user", "type": "address" }
+      ],
+      "name": "checkAccess",
+      "outputs": [
+        { "internalType": "bool", "name": "", "type": "bool" }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        { "internalType": "address", "name": "user", "type": "address" }
+      ],
+      "name": "getUserPurchases",
+      "outputs": [
+        {
+          "components": [
+            { "internalType": "uint256", "name": "modelId", "type": "uint256" },
+            { "internalType": "address", "name": "buyer", "type": "address" },
+            { "internalType": "uint256", "name": "price", "type": "uint256" },
+            { "internalType": "uint8", "name": "licenseType", "type": "uint8" },
+            { "internalType": "uint256", "name": "purchasedAt", "type": "uint256" },
+            { "internalType": "bool", "name": "isActive", "type": "bool" }
+          ],
+          "internalType": "struct Marketplace.Purchase[]",
+          "name": "",
+          "type": "tuple[]"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        { "internalType": "uint256", "name": "modelId", "type": "uint256" }
+      ],
+      "name": "getListing",
+      "outputs": [
+        {
+          "components": [
+            { "internalType": "uint256", "name": "modelId", "type": "uint256" },
+            { "internalType": "address", "name": "seller", "type": "address" },
+            { "internalType": "uint256", "name": "basePrice", "type": "uint256" },
+            { "internalType": "uint256", "name": "commercialMultiplier", "type": "uint256" },
+            { "internalType": "uint256", "name": "enterpriseMultiplier", "type": "uint256" },
+            { "internalType": "bool", "name": "isActive", "type": "bool" },
+            { "internalType": "uint256", "name": "totalSales", "type": "uint256" },
+            { "internalType": "uint256", "name": "totalRevenue", "type": "uint256" }
+          ],
+          "internalType": "struct Marketplace.Listing",
+          "name": "",
+          "type": "tuple"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        { "internalType": "address", "name": "", "type": "address" }
+      ],
+      "name": "pendingWithdrawals",
+      "outputs": [
+        { "internalType": "uint256", "name": "", "type": "uint256" }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        { "internalType": "address", "name": "", "type": "address" }
+      ],
+      "name": "sellerEarnings",
+      "outputs": [
+        { "internalType": "uint256", "name": "", "type": "uint256" }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        { "indexed": true, "internalType": "uint256", "name": "modelId", "type": "uint256" },
+        { "indexed": true, "internalType": "address", "name": "seller", "type": "address" },
+        { "indexed": false, "internalType": "uint256", "name": "basePrice", "type": "uint256" }
+      ],
+      "name": "ModelListed",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        { "indexed": true, "internalType": "uint256", "name": "modelId", "type": "uint256" }
+      ],
+      "name": "ModelDelisted",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        { "indexed": true, "internalType": "uint256", "name": "modelId", "type": "uint256" },
+        { "indexed": true, "internalType": "address", "name": "buyer", "type": "address" },
+        { "indexed": false, "internalType": "uint256", "name": "price", "type": "uint256" },
+        { "indexed": false, "internalType": "uint8", "name": "licenseType", "type": "uint8" }
+      ],
+      "name": "ModelPurchased",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        { "indexed": true, "internalType": "address", "name": "seller", "type": "address" },
+        { "indexed": false, "internalType": "uint256", "name": "amount", "type": "uint256" }
+      ],
+      "name": "EarningsWithdrawn",
+      "type": "event"
+    }
+  ]
+}

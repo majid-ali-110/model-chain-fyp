@@ -13,7 +13,6 @@ import { UserProvider } from './contexts/UserContext';
 import MainLayout from './layouts/MainLayout';
 import DashboardLayout from './layouts/DashboardLayout';
 import CleanLayout from './layouts/CleanLayout';
-import AuthLayout from './layouts/AuthLayout';
 import AdminLayout from './layouts/AdminLayout';
 
 // Components
@@ -24,10 +23,8 @@ import ScrollToTop from './components/common/ScrollToTop';
 import Home from './pages/Home';
 import NotFound from './pages/NotFound';
 
-// Auth Pages
-import Login from './pages/auth/Login';
-import Register from './pages/auth/Register';
-import ForgotPassword from './pages/auth/ForgotPassword';
+// Wallet Connection Page
+import ConnectWallet from './pages/ConnectWallet';
 
 // Marketplace Pages
 import Models from './pages/marketplace/Models';
@@ -36,7 +33,7 @@ import Browse from './pages/marketplace/Browse';
 import Categories from './pages/marketplace/Categories';
 
 // Dashboard Pages
-import Dashboard from './pages/dashboard/DashboardClean';
+import Dashboard from './pages/dashboard/Dashboard';
 import Overview from './pages/dashboard/Overview';
 import MyModels from './pages/dashboard/MyModels';
 import Notifications from './pages/dashboard/Notifications';
@@ -86,6 +83,7 @@ import About from './pages/About';
 import FAQ from './pages/FAQ';
 import { Blog, Careers, Contact, Press, Status, Community, Documentation, Support, DeveloperSupport, CookiePolicy } from './pages/TemplatePagesindex';
 
+import WalletAuthSync from './components/auth/WalletAuthSync';
 import './App.css';
 
 function App() {
@@ -96,6 +94,7 @@ function App() {
           <AuthProvider>
             <ModelProvider>
               <UserProvider>
+                <WalletAuthSync />
                 <Router>
                   <ScrollToTop />
                   <div style={{ minHeight: '100vh', backgroundColor: '#0a0c10', color: '#ffffff' }}>
@@ -165,12 +164,8 @@ function App() {
                         </Route>
                       </Route>
 
-                      {/* Auth Routes with Auth Layout */}
-                      <Route path="/" element={<AuthLayout />}>
-                        <Route path="login" element={<Login />} />
-                        <Route path="register" element={<Register />} />
-                        <Route path="forgot-password" element={<ForgotPassword />} />
-                      </Route>
+                      {/* Wallet Connection Route - Clean Layout (No Auth Layout needed) */}
+                      <Route path="connect-wallet" element={<ConnectWallet />} />
 
                       {/* Protected Dashboard Routes - Clean Layout (No Sidebar) */}
                       <Route path="/dashboard" element={

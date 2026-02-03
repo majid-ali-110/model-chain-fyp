@@ -3,6 +3,7 @@ import Card from '../../components/ui/Card';
 import Badge from '../../components/ui/Badge';
 import Button from '../../components/ui/Button';
 import Progress from '../../components/ui/Progress';
+import { useWallet } from '../../contexts/WalletContext';
 import {
   CheckCircleIcon,
   ClockIcon,
@@ -14,90 +15,56 @@ import {
 
 const Dashboard = () => {
   const [filter, setFilter] = useState('all');
+  const { chainId } = useWallet();
 
+  // Get network currency based on chainId
+  const getNetworkCurrency = (chainId) => {
+    const polygonChains = ['137', '80002', '80001'];
+    return polygonChains.includes(chainId) ? 'POL' : 'ETH';
+  };
+
+  const currency = getNetworkCurrency(chainId);
+
+  // Stats - would come from blockchain in production
   const stats = [
     {
       title: 'Models Validated',
-      value: '127',
-      change: '+12 this week',
+      value: '0',
+      change: '--',
       icon: CheckCircleIcon,
       color: 'green'
     },
     {
       title: 'Pending Reviews',
-      value: '8',
-      change: '3 urgent',
+      value: '0',
+      change: '--',
       icon: ClockIcon,
       color: 'yellow'
     },
     {
       title: 'Earnings',
-      value: '2.4 ETH',
-      change: '+0.3 ETH this week',
+      value: `0 ${currency}`,
+      change: '--',
       icon: CurrencyDollarIcon,
       color: 'blue'
     },
     {
       title: 'Accuracy Score',
-      value: '98.5%',
-      change: '+0.2% improvement',
+      value: '--',
+      change: '--',
       icon: ChartBarIcon,
       color: 'purple'
     }
   ];
 
+  // Pending models - would come from ModelRegistry contract
   const pendingModels = [
-    {
-      id: 1,
-      name: 'Advanced NLP Model',
-      developer: 'alice.eth',
-      category: 'Language',
-      submittedAt: '2024-01-15',
-      priority: 'high',
-      complexity: 'complex'
-    },
-    {
-      id: 2,
-      name: 'Image Recognition v2',
-      developer: 'bob.eth',
-      category: 'Computer Vision',
-      submittedAt: '2024-01-14',
-      priority: 'medium',
-      complexity: 'standard'
-    },
-    {
-      id: 3,
-      name: 'Audio Classifier',
-      developer: 'charlie.eth',
-      category: 'Audio',
-      submittedAt: '2024-01-13',
-      priority: 'low',
-      complexity: 'simple'
-    }
+    // Empty - will be populated from blockchain
   ];
 
+  // Recent validations - would come from blockchain events
   const recentValidations = [
-    {
-      id: 1,
-      name: 'GPT-4 Clone',
-      status: 'approved',
-      completedAt: '2024-01-12',
-      earnings: '0.05 ETH'
-    },
-    {
-      id: 2,
-      name: 'Image Classifier Pro',
-      status: 'rejected',
-      completedAt: '2024-01-11',
-      earnings: '0 ETH'
-    },
-    {
-      id: 3,
-      name: 'Text Summarizer',
-      status: 'approved',
-      completedAt: '2024-01-10',
-      earnings: '0.03 ETH'
-    }
+    // Empty - will be populated from blockchain
   ];
 
   const getPriorityColor = (priority) => {

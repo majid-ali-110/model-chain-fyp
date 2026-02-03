@@ -18,16 +18,21 @@ import {
   LockClosedIcon,
   CubeTransparentIcon,
   BeakerIcon,
-  LightBulbIcon
+  LightBulbIcon,
+  WalletIcon
 } from '@heroicons/react/24/outline';
 import { clsx } from 'clsx';
 import Button from '../components/ui/Button';
 import Card from '../components/ui/Card';
 import Badge from '../components/ui/Badge';
 import Loading from '../components/ui/Loading';
+import WalletConnectModal from '../components/wallet/WalletConnectModal';
+import { useWallet } from '../contexts/WalletContext';
 
 const Home = () => {
   const [isVisible, setIsVisible] = useState({});
+  const [showWalletModal, setShowWalletModal] = useState(false);
+  const { connected, connectWallet, connecting } = useWallet();
   const [currentTestimonial, setCurrentTestimonial] = useState(0);
   const observerRef = useRef(null);
 
@@ -293,49 +298,15 @@ const Home = () => {
     }
   };
 
-  // Featured models data
-  const featuredModels = [
-    {
-      id: 1,
-      name: 'GPT-4 Vision Pro',
-      category: 'Computer Vision',
-      price: '2.5 ETH',
-      rating: 4.9,
-      downloads: '15.2K',
-      image: 'https://images.unsplash.com/photo-1677442136019-21780ecad995?w=400&h=300&fit=crop',
-      verified: true,
-      trending: true
-    },
-    {
-      id: 2,
-      name: 'Audio Synthesizer X',
-      category: 'Audio Processing',
-      price: '1.8 ETH',
-      rating: 4.7,
-      downloads: '8.9K',
-      image: 'https://images.unsplash.com/photo-1655393001768-d946c97d6fd1?w=400&h=300&fit=crop',
-      verified: true,
-      trending: false
-    },
-    {
-      id: 3,
-      name: 'NLP Sentiment Analyzer',
-      category: 'Natural Language',
-      price: '3.2 ETH',
-      rating: 4.8,
-      downloads: '12.1K',
-      image: 'https://images.unsplash.com/photo-1639322537504-6427a16b0a28?w=400&h=300&fit=crop',
-      verified: true,
-      trending: true
-    }
-  ];
+  // Featured models - will be populated from ModelRegistry contract
+  const featuredModels = [];
 
-  // Statistics data
+  // Statistics data - will be populated from blockchain in production
   const statistics = [
-    { label: 'AI Models', value: '12,450', icon: CpuChipIcon, color: 'text-blue-400' },
-    { label: 'Total Transactions', value: '$45.2M', icon: CurrencyDollarIcon, color: 'text-green-400' },
-    { label: 'Active Developers', value: '8,920', icon: UsersIcon, color: 'text-purple-400' },
-    { label: 'Model Downloads', value: '2.1M', icon: ChartBarIcon, color: 'text-yellow-400' }
+    { label: 'AI Models', value: '0', icon: CpuChipIcon, color: 'text-blue-400' },
+    { label: 'Total Transactions', value: '--', icon: CurrencyDollarIcon, color: 'text-green-400' },
+    { label: 'Active Developers', value: '0', icon: UsersIcon, color: 'text-purple-400' },
+    { label: 'Model Downloads', value: '0', icon: ChartBarIcon, color: 'text-yellow-400' }
   ];
 
   // How it works steps
@@ -913,7 +884,18 @@ const Home = () => {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {featuredModels.map((model, index) => (
+          {featuredModels.length === 0 ? (
+            <div className="col-span-full text-center py-16">
+              <CpuChipIcon className="h-16 w-16 mx-auto mb-4 text-dark-text-muted opacity-50" />
+              <h3 className="text-xl font-semibold text-dark-text-primary mb-2">No Models Yet</h3>
+              <p className="text-dark-text-secondary mb-6">Be the first to upload an AI model to the marketplace</p>
+              <Link to="/developer/upload">
+                <Button variant="primary" size="lg">
+                  Upload Your Model
+                </Button>
+              </Link>
+            </div>
+          ) : featuredModels.map((model, index) => (
             <Card 
               key={model.id}
               variant="elevated" 
@@ -1362,14 +1344,25 @@ const Home = () => {
           </p>
           
           <div className="flex flex-col sm:flex-row gap-6 justify-center items-center">
-            <Link 
-              to="/register" 
-              className="inline-flex items-center justify-center px-8 py-4 text-lg h-14 min-w-[280px] font-bold text-white bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 rounded-lg border border-cyan-400/30 shadow-lg hover:shadow-cyan-500/50 hover:shadow-2xl transition-all duration-300 hover:scale-105 group"
-            >
-              <RocketLaunchIcon className="h-6 w-6 mr-2" />
-              <span>Start Building Today</span>
-              <ArrowRightIcon className="h-5 w-5 ml-2 group-hover:translate-x-1 transition-transform" />
-            </Link>
+            {connected ? (
+              <Link 
+                to="/marketplace/models" 
+                className="inline-flex items-center justify-center px-8 py-4 text-lg h-14 min-w-[280px] font-bold text-white bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 rounded-lg border border-cyan-400/30 shadow-lg hover:shadow-cyan-500/50 hover:shadow-2xl transition-all duration-300 hover:scale-105 group"
+              >
+                <CubeTransparentIcon className="h-6 w-6 mr-2" />
+                <span>Explore Marketplace</span>
+                <ArrowRightIcon className="h-5 w-5 ml-2 group-hover:translate-x-1 transition-transform" />
+              </Link>
+            ) : (
+              <button 
+                onClick={() => setShowWalletModal(true)}
+                className="inline-flex items-center justify-center px-8 py-4 text-lg h-14 min-w-[280px] font-bold text-white bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 rounded-lg border border-cyan-400/30 shadow-lg hover:shadow-cyan-500/50 hover:shadow-2xl transition-all duration-300 hover:scale-105 group"
+              >
+                <WalletIcon className="h-6 w-6 mr-2" />
+                <span>Connect Wallet to Start</span>
+                <ArrowRightIcon className="h-5 w-5 ml-2 group-hover:translate-x-1 transition-transform" />
+              </button>
+            )}
             
             <Link 
               to="/marketplace/browse" 
@@ -1382,6 +1375,14 @@ const Home = () => {
           </div>
         </div>
       </section>
+
+      {/* Wallet Connect Modal */}
+      <WalletConnectModal
+        isOpen={showWalletModal}
+        onClose={() => setShowWalletModal(false)}
+        onConnect={connectWallet}
+        isConnecting={connecting}
+      />
 
     </div>
   );

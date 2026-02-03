@@ -5,8 +5,10 @@ import {
   BoltIcon,
   CurrencyDollarIcon,
   ClockIcon,
-  TrendingUpIcon,
+  ArrowTrendingUpIcon,
   ArrowTopRightOnSquareIcon,
+  ArrowPathIcon,
+  AdjustmentsHorizontalIcon,
   PlayIcon,
   PlusIcon,
   StarIcon,
@@ -36,190 +38,69 @@ import {
   VideoCameraIcon
 } from '@heroicons/react/24/outline';
 import { 
-  StarIcon as StarSolidIcon
+  StarIcon as StarSolidIcon,
+  BoltIcon as BoltSolidIcon
 } from '@heroicons/react/24/solid';
 import { clsx } from 'clsx';
 import Button from '../../components/ui/Button';
 import Card from '../../components/ui/Card';
 import Badge from '../../components/ui/Badge';
 import Loading from '../../components/ui/Loading';
+import LineChart from '../../components/charts/LineChart';
+import { useAuth } from '../../contexts/AuthContext';
+import { useWallet } from '../../contexts/WalletContext';
+import { useUser } from '../../contexts/UserContext';
 
 const Dashboard = () => {
   const navigate = useNavigate();
+  const { user, isAuthenticated } = useAuth();
+  const { connected, address, balance, chainId } = useWallet();
+  const { profile, purchases, userModels, earnings, rewards, activity, loading: userLoading } = useUser();
+
+  // Get network currency based on chainId
+  const getNetworkCurrency = (chainId) => {
+    const polygonChains = ['137', '80002', '80001'];
+    return polygonChains.includes(chainId) ? 'POL' : 'ETH';
+  };
+
+  const currency = getNetworkCurrency(chainId);
   
   // State management
   const [isLoading, setIsLoading] = useState(true);
-  const [userStats, setUserStats] = useState(null);
-  const [recentActivity, setRecentActivity] = useState([]);
-  const [subscriptions, setSubscriptions] = useState([]);
-  const [recommendations, setRecommendations] = useState([]);
-  const [usageData, setUsageData] = useState([]);
   const [selectedTimeframe, setSelectedTimeframe] = useState('7d');
 
-  // Mock user data
+  // Load dashboard data from contexts
   useEffect(() => {
-    const loadDashboardData = async () => {
-      setIsLoading(true);
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      // User stats
-      setUserStats({
-        totalRequests: 12547,
-        totalTokens: 8934521,
-        totalSpent: 247.83,
-        activeSubscriptions: 3,
-        favoriteModels: 12,
-        testsRun: 156,
-        avgResponseTime: 1.2,
-        successRate: 98.7,
-        memberSince: '2024-03-15',
-        currentPlan: 'Pro'
-      });
+    setIsLoading(userLoading);
+  }, [userLoading]);
 
-      // Recent activity
-      setRecentActivity([
-        {
-          id: 1,
-          type: 'test',
-          action: 'Ran test with GPT-4 Turbo',
-          model: 'GPT-4 Turbo',
-          timestamp: '2024-10-03T10:30:00Z',
-          status: 'completed',
-          tokens: 156,
-          cost: 0.47
-        },
-        {
-          id: 2,
-          type: 'subscription',
-          action: 'Subscribed to Claude 3 Opus',
-          model: 'Claude 3 Opus',
-          timestamp: '2024-10-03T09:15:00Z',
-          status: 'active',
-          cost: 49.00
-        },
-        {
-          id: 3,
-          type: 'favorite',
-          action: 'Added DALL-E 3 to favorites',
-          model: 'DALL-E 3',
-          timestamp: '2024-10-02T16:45:00Z',
-          status: 'completed'
-        },
-        {
-          id: 4,
-          type: 'test',
-          action: 'Generated image with Stable Diffusion',
-          model: 'Stable Diffusion XL',
-          timestamp: '2024-10-02T14:20:00Z',
-          status: 'completed',
-          tokens: null,
-          cost: 0.02
-        },
-        {
-          id: 5,
-          type: 'purchase',
-          action: 'Purchased API access for Whisper',
-          model: 'Whisper Large V3',
-          timestamp: '2024-10-01T11:30:00Z',
-          status: 'completed',
-          cost: 15.00
-        }
-      ]);
+  // Compute stats from real data
+  const userStats = {
+    totalRequests: purchases.length,
+    totalTokens: 0, // TODO: Calculate from blockchain
+    totalSpent: earnings.total,
+    activeSubscriptions: purchases.length,
+    favoriteModels: 0, // TODO: Implement favorites
+    testsRun: 0, // TODO: Track test runs
+    avgResponseTime: 0,
+    successRate: 100,
+    memberSince: profile?.joinedAt || new Date().toISOString(),
+    currentPlan: profile?.role === 'developer' ? 'Developer' : profile?.role === 'validator' ? 'Validator' : 'User'
+  };
 
-      // Active subscriptions
-      setSubscriptions([
-        {
-          id: 1,
-          modelId: 'gpt-4-turbo',
-          modelName: 'GPT-4 Turbo',
-          provider: 'OpenAI',
-          plan: 'Pro Monthly',
-          cost: 49.00,
-          nextBilling: '2024-11-03',
-          usage: { used: 8432, limit: 50000, unit: 'tokens' },
-          status: 'active'
-        },
-        {
-          id: 2,
-          modelId: 'claude-3-opus',
-          modelName: 'Claude 3 Opus',
-          provider: 'Anthropic',
-          plan: 'Enterprise',
-          cost: 99.00,
-          nextBilling: '2024-11-15',
-          usage: { used: 15678, limit: 100000, unit: 'tokens' },
-          status: 'active'
-        },
-        {
-          id: 3,
-          modelId: 'dall-e-3',
-          modelName: 'DALL-E 3',
-          provider: 'OpenAI',
-          plan: 'Pay Per Use',
-          cost: 23.40,
-          nextBilling: null,
-          usage: { used: 47, limit: null, unit: 'images' },
-          status: 'active'
-        }
-      ]);
+  // Usage data for chart - empty for now, will be populated from blockchain
+  const usageData = [
+    { date: 'Mon', day: 0, requests: 0, cost: 0 },
+    { date: 'Tue', day: 1, requests: 0, cost: 0 },
+    { date: 'Wed', day: 2, requests: 0, cost: 0 },
+    { date: 'Thu', day: 3, requests: 0, cost: 0 },
+    { date: 'Fri', day: 4, requests: 0, cost: 0 },
+    { date: 'Sat', day: 5, requests: 0, cost: 0 },
+    { date: 'Sun', day: 6, requests: 0, cost: 0 }
+  ];
 
-      // Personalized recommendations
-      setRecommendations([
-        {
-          id: 'llama-2-70b',
-          name: 'LLaMA 2 70B',
-          provider: 'Meta',
-          category: 'text',
-          description: 'Open-source alternative to GPT models',
-          pricing: { type: 'free', price: 0 },
-          rating: 4.6,
-          downloads: 234000,
-          reason: 'Free alternative to your current subscriptions',
-          tags: ['free', 'open-source', 'text-generation']
-        },
-        {
-          id: 'mistral-7b',
-          name: 'Mistral 7B',
-          provider: 'Mistral AI',
-          category: 'text',
-          description: 'Efficient language model for coding tasks',
-          pricing: { type: 'token', price: 0.002 },
-          rating: 4.7,
-          downloads: 145000,
-          reason: 'Perfect for code generation based on your usage',
-          tags: ['coding', 'efficient', 'multilingual']
-        },
-        {
-          id: 'flux-dev',
-          name: 'FLUX.1 Dev',
-          provider: 'Black Forest Labs',
-          category: 'image',
-          description: 'State-of-the-art image generation model',
-          pricing: { type: 'image', price: 0.05 },
-          rating: 4.8,
-          downloads: 89000,
-          reason: 'Trending image model with better quality',
-          tags: ['image-generation', 'high-quality', 'trending']
-        }
-      ]);
-
-      // Usage data for chart
-      setUsageData([
-        { date: '2024-09-27', requests: 45, tokens: 12400, cost: 3.72 },
-        { date: '2024-09-28', requests: 52, tokens: 14800, cost: 4.44 },
-        { date: '2024-09-29', requests: 38, tokens: 10200, cost: 3.06 },
-        { date: '2024-09-30', requests: 67, tokens: 18900, cost: 5.67 },
-        { date: '2024-10-01', requests: 74, tokens: 21300, cost: 6.39 },
-        { date: '2024-10-02', requests: 61, tokens: 16700, cost: 5.01 },
-        { date: '2024-10-03', requests: 43, tokens: 11800, cost: 3.54 }
-      ]);
-
-      setIsLoading(false);
-    };
-
-    loadDashboardData();
-  }, []);
+  // Recommendations - empty for now, will be populated from ModelRegistry
+  const recommendations = [];
 
   // Get activity icon
   const getActivityIcon = (type) => {
@@ -305,7 +186,7 @@ const Dashboard = () => {
                     {userStats.totalRequests.toLocaleString()}
                   </p>
                   <Badge variant="success" size="sm" className="ml-2">
-                    <TrendingUpIcon className="h-3 w-3 mr-1" />
+                    <ArrowTrendingUpIcon className="h-3 w-3 mr-1" />
                     +12%
                   </Badge>
                 </div>
@@ -325,7 +206,7 @@ const Dashboard = () => {
                     {(userStats.totalTokens / 1000000).toFixed(1)}M
                   </p>
                   <Badge variant="success" size="sm" className="ml-2">
-                    <TrendingUpIcon className="h-3 w-3 mr-1" />
+                    <ArrowTrendingUpIcon className="h-3 w-3 mr-1" />
                     +8%
                   </Badge>
                 </div>
@@ -345,7 +226,7 @@ const Dashboard = () => {
                     ${userStats.totalSpent.toFixed(2)}
                   </p>
                   <Badge variant="warning" size="sm" className="ml-2">
-                    <TrendingUpIcon className="h-3 w-3 mr-1" />
+                    <ArrowTrendingUpIcon className="h-3 w-3 mr-1" />
                     +15%
                   </Badge>
                 </div>
@@ -408,10 +289,10 @@ const Dashboard = () => {
                 <div className="h-64">
                   <LineChart
                     data={usageData}
-                    xKey="date"
-                    yKeys={[
-                      { key: 'requests', name: 'Requests', color: '#10B981' },
-                      { key: 'cost', name: 'Cost ($)', color: '#F59E0B' }
+                    xKey="day"
+                    lines={[
+                      { key: 'requests', label: 'Requests', color: '#10B981' },
+                      { key: 'cost', label: 'Cost ($)', color: '#F59E0B' }
                     ]}
                     height={256}
                   />
@@ -455,63 +336,60 @@ const Dashboard = () => {
                 </div>
 
                 <div className="space-y-4">
-                  {subscriptions.map((subscription) => (
-                    <div
-                      key={subscription.id}
-                      className="flex items-center justify-between p-4 bg-dark-surface-primary rounded-lg border border-dark-surface-elevated"
-                    >
-                      <div className="flex items-center space-x-4">
-                        <div className="p-2 bg-primary-500/10 rounded-lg">
-                          <CpuChipIcon className="h-5 w-5 text-primary-400" />
-                        </div>
-                        <div>
-                          <h4 className="font-medium text-dark-text-primary">
-                            {subscription.modelName}
-                          </h4>
-                          <p className="text-sm text-dark-text-muted">
-                            {subscription.provider} • {subscription.plan}
-                          </p>
-                          {subscription.usage.limit && (
-                            <div className="flex items-center mt-1">
-                              <div className="w-24 bg-dark-surface-elevated rounded-full h-1.5 mr-2">
-                                <div
-                                  className="bg-primary-500 h-1.5 rounded-full"
-                                  style={{ width: `${Math.min((subscription.usage.used / subscription.usage.limit) * 100, 100)}%` }}
-                                />
-                              </div>
-                              <span className="text-xs text-dark-text-muted">
-                                {subscription.usage.used.toLocaleString()} / {subscription.usage.limit.toLocaleString()} {subscription.usage.unit}
-                              </span>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                      
-                      <div className="text-right">
-                        <p className="font-bold text-dark-text-primary">
-                          ${subscription.cost}/mo
-                        </p>
-                        {subscription.nextBilling && (
-                          <p className="text-sm text-dark-text-muted">
-                            Next: {new Date(subscription.nextBilling).toLocaleDateString()}
-                          </p>
-                        )}
-                      </div>
+                  {purchases.length === 0 ? (
+                    <div className="text-center py-12">
+                      <ShoppingCartIcon className="h-12 w-12 text-dark-text-muted mx-auto mb-4" />
+                      <p className="text-dark-text-muted">No purchases yet</p>
+                      <Button variant="outline" size="sm" className="mt-4" onClick={() => navigate('/marketplace')}>
+                        Browse Marketplace
+                      </Button>
                     </div>
-                  ))}
+                  ) : (
+                    purchases.map((purchase) => (
+                      <div
+                        key={purchase.id}
+                        className="flex items-center justify-between p-4 bg-dark-surface-primary rounded-lg border border-dark-surface-elevated"
+                      >
+                        <div className="flex items-center space-x-4">
+                          <div className="p-2 bg-primary-500/10 rounded-lg">
+                            <CpuChipIcon className="h-5 w-5 text-primary-400" />
+                          </div>
+                          <div>
+                            <h4 className="font-medium text-dark-text-primary">
+                              {purchase.modelName}
+                            </h4>
+                            <p className="text-sm text-dark-text-muted">
+                              {new Date(purchase.purchaseDate).toLocaleDateString()}
+                            </p>
+                          </div>
+                        </div>
+                        
+                        <div className="text-right">
+                          <p className="font-bold text-dark-text-primary">
+                            {purchase.price} {purchase.currency}
+                          </p>
+                          <Badge variant={purchase.status === 'completed' ? 'success' : 'warning'} size="sm">
+                            {purchase.status}
+                          </Badge>
+                        </div>
+                      </div>
+                    ))
+                  )}
                 </div>
 
-                <div className="mt-6 p-4 bg-gradient-to-r from-primary-500/10 to-secondary-500/10 border border-primary-500/20 rounded-lg">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <h4 className="font-medium text-dark-text-primary">Monthly Total</h4>
-                      <p className="text-sm text-dark-text-muted">All active subscriptions</p>
+                {purchases.length > 0 && (
+                  <div className="mt-6 p-4 bg-gradient-to-r from-primary-500/10 to-secondary-500/10 border border-primary-500/20 rounded-lg">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <h4 className="font-medium text-dark-text-primary">Total Spent</h4>
+                        <p className="text-sm text-dark-text-muted">All purchases</p>
+                      </div>
+                      <p className="text-2xl font-bold text-primary-400">
+                        {earnings.total} {currency}
+                      </p>
                     </div>
-                    <p className="text-2xl font-bold text-primary-400">
-                      ${subscriptions.reduce((sum, sub) => sum + sub.cost, 0).toFixed(2)}
-                    </p>
                   </div>
-                </div>
+                )}
               </div>
             </Card>
 
@@ -658,46 +536,46 @@ const Dashboard = () => {
                 </div>
                 
                 <div className="space-y-4">
-                  {recentActivity.map((activity) => {
-                    const IconComponent = getActivityIcon(activity.type);
-                    return (
-                      <div key={activity.id} className="flex items-start space-x-3">
-                        <div className={clsx(
-                          'p-2 rounded-lg mt-0.5',
-                          activity.type === 'test' && 'bg-blue-500/10',
-                          activity.type === 'subscription' && 'bg-green-500/10',
-                          activity.type === 'favorite' && 'bg-red-500/10',
-                          activity.type === 'purchase' && 'bg-purple-500/10'
-                        )}>
-                          <IconComponent className={clsx(
-                            'h-4 w-4',
-                            activity.type === 'test' && 'text-blue-400',
-                            activity.type === 'subscription' && 'text-green-400',
-                            activity.type === 'favorite' && 'text-red-400',
-                            activity.type === 'purchase' && 'text-purple-400'
-                          )} />
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <p className="text-sm text-dark-text-primary">
-                            {activity.action}
-                          </p>
-                          <div className="flex items-center justify-between mt-1">
-                            <p className="text-xs text-dark-text-muted">
-                              {formatRelativeTime(activity.timestamp)}
+                  {activity.length === 0 ? (
+                    <div className="text-center py-8">
+                      <ClockIcon className="h-10 w-10 text-dark-text-muted mx-auto mb-3" />
+                      <p className="text-sm text-dark-text-muted">No recent activity</p>
+                    </div>
+                  ) : (
+                    activity.slice(0, 5).map((activityItem) => {
+                      const IconComponent = getActivityIcon(activityItem.type);
+                      return (
+                        <div key={activityItem.id} className="flex items-start space-x-3">
+                          <div className={clsx(
+                            'p-2 rounded-lg mt-0.5',
+                            activityItem.type === 'test' && 'bg-blue-500/10',
+                            activityItem.type === 'subscription' && 'bg-green-500/10',
+                            activityItem.type === 'favorite' && 'bg-red-500/10',
+                            activityItem.type === 'purchase' && 'bg-purple-500/10'
+                          )}>
+                            <IconComponent className={clsx(
+                              'h-4 w-4',
+                              activityItem.type === 'test' && 'text-blue-400',
+                              activityItem.type === 'subscription' && 'text-green-400',
+                              activityItem.type === 'favorite' && 'text-red-400',
+                              activityItem.type === 'purchase' && 'text-purple-400'
+                            )} />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm text-dark-text-primary">
+                              {activityItem.title}
                             </p>
-                            {activity.cost && (
-                              <Badge
-                                variant={activity.cost > 10 ? 'warning' : 'secondary'}
-                                size="sm"
-                              >
-                                ${activity.cost.toFixed(2)}
-                              </Badge>
-                            )}
+                            <p className="text-xs text-dark-text-muted mt-0.5">
+                              {activityItem.description}
+                            </p>
+                            <p className="text-xs text-dark-text-muted mt-1">
+                              {formatRelativeTime(activityItem.timestamp)}
+                            </p>
                           </div>
                         </div>
-                      </div>
-                    );
-                  })}
+                      );
+                    })
+                  )}
                 </div>
                 
                 <Button

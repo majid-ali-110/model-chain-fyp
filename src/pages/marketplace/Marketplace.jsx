@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   MagnifyingGlassIcon,
   FunnelIcon,
@@ -35,8 +35,12 @@ import Card from '../../components/ui/Card';
 import Badge from '../../components/ui/Badge';
 import Loading from '../../components/ui/Loading';
 import ModelCard from '../../components/models/ModelCard';
+import { useModel } from '../../contexts/ModelContext';
 
 const Marketplace = () => {
+  // Get models from context
+  const { models: contextModels, loading: contextLoading } = useModel();
+  
   // State management
   const [models, setModels] = useState([]);
   const [filteredModels, setFilteredModels] = useState([]);
@@ -55,12 +59,12 @@ const Marketplace = () => {
   const [showFilters, setShowFilters] = useState(false);
   const [viewMode, setViewMode] = useState('grid'); // 'grid' or 'list'
   const [currentPage, setCurrentPage] = useState(1);
-  const [hasMoreModels, setHasMoreModels] = useState(true);
+  const [hasMoreModels, setHasMoreModels] = useState(false);
   const [totalModels, setTotalModels] = useState(0);
   const observerRef = useRef(null);
   const loadingRef = useRef(null);
 
-  // Mock data for filters
+  // Filter options (categories info)
   const filterOptions = {
     categories: [
       { id: 'text', name: 'Text Generation', icon: DocumentTextIcon, count: 248 },
@@ -108,140 +112,24 @@ const Marketplace = () => {
     ]
   };
 
-  // Generate mock models
-  const generateMockModels = useCallback((page = 1, limit = 12) => {
-    const modelTemplates = [
-      {
-        name: 'GPT-4 Turbo',
-        description: 'Latest GPT-4 model with improved reasoning and multimodal capabilities',
-        category: 'text',
-        modelType: 'transformer',
-        provider: 'openai',
-        price: 0.03,
-        rating: 4.9,
-        reviews: 1250,
-        downloads: 89000,
-        features: ['fine-tunable', 'real-time', 'api-access'],
-        isHot: true,
-        isNew: false
-      },
-      {
-        name: 'DALL-E 3',
-        description: 'Advanced image generation with enhanced prompt understanding',
-        category: 'image',
-        modelType: 'diffusion',
-        provider: 'openai',
-        price: 0.08,
-        rating: 4.8,
-        reviews: 890,
-        downloads: 67000,
-        features: ['real-time', 'api-access'],
-        isHot: true,
-        isNew: false
-      },
-      {
-        name: 'Claude 3 Opus',
-        description: 'Most capable model for complex reasoning and analysis',
-        category: 'text',
-        modelType: 'transformer',
-        provider: 'anthropic',
-        price: 0.05,
-        rating: 4.8,
-        reviews: 756,
-        downloads: 54000,
-        features: ['fine-tunable', 'api-access', 'custom-training'],
-        isHot: false,
-        isNew: true
-      },
-      {
-        name: 'Stable Diffusion XL',
-        description: 'High-resolution image generation with artistic control',
-        category: 'image',
-        modelType: 'diffusion',
-        provider: 'stability',
-        price: 0.02,
-        rating: 4.7,
-        reviews: 2100,
-        downloads: 156000,
-        features: ['fine-tunable', 'batch-processing', 'custom-training'],
-        isHot: false,
-        isNew: false
-      },
-      {
-        name: 'Whisper Large V3',
-        description: 'State-of-the-art speech recognition and transcription',
-        category: 'audio',
-        modelType: 'transformer',
-        provider: 'openai',
-        price: 0.006,
-        rating: 4.6,
-        reviews: 432,
-        downloads: 23000,
-        features: ['real-time', 'batch-processing', 'api-access'],
-        isHot: false,
-        isNew: true
-      },
-      {
-        name: 'LLaMA 2 70B',
-        description: 'Open-source large language model for various tasks',
-        category: 'text',
-        modelType: 'transformer',
-        provider: 'community',
-        price: 0.0,
-        rating: 4.5,
-        reviews: 1890,
-        downloads: 234000,
-        features: ['fine-tunable', 'custom-training', 'batch-processing'],
-        isHot: false,
-        isNew: false
-      }
-    ];
-
-    const models = [];
-    const startIndex = (page - 1) * limit;
-    
-    for (let i = 0; i < limit; i++) {
-      const template = modelTemplates[i % modelTemplates.length];
-      const modelIndex = startIndex + i;
-      
-      models.push({
-        id: `model-${modelIndex}`,
-        ...template,
-        name: `${template.name} ${Math.floor(modelIndex / 6) > 0 ? `v${Math.floor(modelIndex / 6) + 1}` : ''}`,
-        price: template.price + (Math.random() * 0.01),
-        rating: Math.max(3.5, template.rating - (Math.random() * 0.3)),
-        reviews: template.reviews + Math.floor(Math.random() * 100),
-        downloads: template.downloads + Math.floor(Math.random() * 1000),
-        isNew: modelIndex < 6 && Math.random() > 0.7,
-        isHot: Math.random() > 0.8
-      });
-    }
-    
-    return models;
-  }, []);
-
-  // Load initial models
+  // Load models from context
   useEffect(() => {
-    const loadInitialModels = async () => {
-      setIsLoading(true);
-      await new Promise(resolve => setTimeout(resolve, 1000)); // Simulate API delay
-      
-      const initialModels = generateMockModels(1, 12);
-      setModels(initialModels);
-      setFilteredModels(initialModels);
-      setTotalModels(156); // Mock total
-      setIsLoading(false);
-    };
+    setIsLoading(contextLoading);
+    
+    if (!contextLoading) {
+      setModels(contextModels || []);
+      setFilteredModels(contextModels || []);
+      setTotalModels(contextModels?.length || 0);
+      setHasMoreModels(false); // All models loaded at once from context
+    }
+  }, [contextModels, contextLoading]);
 
-    loadInitialModels();
-  }, [generateMockModels]);
-
-  // Infinite scroll setup
+  // Infinite scroll setup (kept for future pagination)
   useEffect(() => {
     const observer = new IntersectionObserver(
       (entries) => {
         if (entries[0].isIntersecting && hasMoreModels && !isLoadingMore) {
-          loadMoreModels();
+          // Future: loadMoreModels();
         }
       },
       { threshold: 0.1 }
@@ -258,28 +146,7 @@ const Marketplace = () => {
         observerRef.current.disconnect();
       }
     };
-  }, [hasMoreModels, isLoadingMore, loadMoreModels]);
-
-  // Load more models
-  const loadMoreModels = useCallback(async () => {
-    if (isLoadingMore || !hasMoreModels) return;
-
-    setIsLoadingMore(true);
-    await new Promise(resolve => setTimeout(resolve, 800));
-
-    const nextPage = currentPage + 1;
-    const newModels = generateMockModels(nextPage, 12);
-    
-    setModels(prev => [...prev, ...newModels]);
-    setCurrentPage(nextPage);
-    
-    // Simulate reaching end of results
-    if (models.length + newModels.length >= 156) {
-      setHasMoreModels(false);
-    }
-    
-    setIsLoadingMore(false);
-  }, [isLoadingMore, hasMoreModels, currentPage, generateMockModels, models.length]);
+  }, [hasMoreModels, isLoadingMore]);
 
   // Filter and search logic
   useEffect(() => {
@@ -289,8 +156,8 @@ const Marketplace = () => {
     if (searchQuery) {
       filtered = filtered.filter(model =>
         model.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        model.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        model.provider.toLowerCase().includes(searchQuery.toLowerCase())
+        model.description?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        model.provider?.toLowerCase().includes(searchQuery.toLowerCase())
       );
     }
 
@@ -318,7 +185,7 @@ const Marketplace = () => {
     // Apply features filter
     if (selectedFilters.features.length > 0) {
       filtered = filtered.filter(model =>
-        selectedFilters.features.some(feature => model.features.includes(feature))
+        selectedFilters.features.some(feature => model.features?.includes(feature))
       );
     }
 
@@ -351,22 +218,22 @@ const Marketplace = () => {
     // Apply sorting
     switch (selectedFilters.sortBy) {
       case 'newest':
-        filtered.sort((a, b) => b.isNew - a.isNew);
+        filtered.sort((a, b) => (b.isNew ? 1 : 0) - (a.isNew ? 1 : 0));
         break;
       case 'rating':
-        filtered.sort((a, b) => b.rating - a.rating);
+        filtered.sort((a, b) => (b.rating || 0) - (a.rating || 0));
         break;
       case 'price-low':
-        filtered.sort((a, b) => a.price - b.price);
+        filtered.sort((a, b) => (a.price || 0) - (b.price || 0));
         break;
       case 'price-high':
-        filtered.sort((a, b) => b.price - a.price);
+        filtered.sort((a, b) => (b.price || 0) - (a.price || 0));
         break;
       case 'name':
-        filtered.sort((a, b) => a.name.localeCompare(b.name));
+        filtered.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
         break;
       default: // popular
-        filtered.sort((a, b) => b.downloads - a.downloads);
+        filtered.sort((a, b) => (b.downloads || 0) - (a.downloads || 0));
     }
 
     setFilteredModels(filtered);

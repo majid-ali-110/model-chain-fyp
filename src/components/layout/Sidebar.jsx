@@ -15,14 +15,18 @@ import {
 } from '@heroicons/react/24/outline';
 import { clsx } from 'clsx';
 import Badge from '../ui/Badge';
+import { useAuth } from '../../contexts/AuthContext';
+import { useWallet } from '../../contexts/WalletContext';
 
 const Sidebar = ({ isOpen = true, className = '' }) => {
   const location = useLocation();
+  const { isAuthenticated, user: authUser } = useAuth();
+  const { walletProfile } = useWallet();
 
-  // Mock user data - replace with actual auth context
+  // User data from contexts
   const user = {
-    role: 'developer', // 'user', 'developer', 'validator', 'admin'
-    name: 'John Doe',
+    role: walletProfile?.role || authUser?.role || 'user',
+    name: walletProfile?.displayName || authUser?.displayName || 'User',
   };
 
   const navigation = [

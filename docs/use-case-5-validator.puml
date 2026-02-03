@@ -1,0 +1,68 @@
+@startuml Validator - Quality Assurance
+
+title ModelChain - Validator Features
+
+skinparam actorStyle awesome
+skinparam backgroundColor white
+
+actor "Validator" as Val
+actor "IPFS" as IPFS <<External>>
+actor "Blockchain" as BC <<External>>
+
+package "Validation Workflow" {
+  usecase "View Validation Queue" as UC57
+  usecase "Select Model to Validate" as UC58
+  usecase "Download Model for Testing" as UC59
+  usecase "Run Validation Tests" as UC60
+  usecase "Check Model Quality" as UC61
+  usecase "Submit Validation Report" as UC62
+  usecase "Approve Model" as UC63
+  usecase "Reject Model" as UC64
+}
+
+package "Validator Dashboard" {
+  usecase "View Validator Dashboard" as UC66
+  usecase "View Validation History" as UC65
+  usecase "Track Validation Stats" as UC67
+  usecase "View Earned Rewards" as UC68
+  usecase "Claim Validation Rewards" as UC69
+  usecase "View Validator Leaderboard" as UC70
+  usecase "View Reputation Score" as UC71
+}
+
+Val --> UC57
+Val --> UC58
+Val --> UC65
+Val --> UC66
+Val --> UC67
+Val --> UC68
+Val --> UC69
+Val --> UC70
+Val --> UC71
+
+UC58 --> UC59 : <<includes>>
+UC59 ..> IPFS : downloads from
+UC59 --> UC60 : <<includes>>
+UC60 --> UC61 : <<includes>>
+UC61 --> UC62 : <<includes>>
+UC62 --> UC63 : <<extends>>
+UC62 --> UC64 : <<extends>>
+UC63 ..> BC : records approval
+UC64 ..> BC : records rejection
+UC69 ..> BC : claims rewards
+
+note right of UC60
+  Validation includes:
+  - File integrity
+  - Performance tests
+  - Security scan
+  - Documentation check
+end note
+
+note right of UC69
+  Validators earn POL
+  tokens for accurate
+  validations
+end note
+
+@enduml

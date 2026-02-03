@@ -1,0 +1,414 @@
+@startuml ModelChain Use Case Diagram
+
+' Title and Styling
+title ModelChain - Decentralized AI Model Marketplace\nComplete Use Case Diagram
+
+
+' Actors
+actor "Visitor\n(Unconnected)" as Visitor
+actor "User\n(Wallet Connected)" as User
+actor "Developer\n(Model Creator)" as Developer
+actor "Validator\n(Quality Checker)" as Validator
+actor "Admin\n(Platform Manager)" as Admin
+actor "DAO Member\n(Token Holder)" as DAO
+
+' External Systems
+actor "MetaMask\nWallet" as MetaMask <<External>>
+actor "IPFS/Pinata\nStorage" as IPFS <<External>>
+actor "Smart Contract\nBlockchain" as Blockchain <<External>>
+
+' ============================================
+' AUTHENTICATION & WALLET MANAGEMENT
+' ============================================
+package "Authentication & Wallet Management" {
+  usecase "Connect Wallet" as UC1
+  usecase "Disconnect Wallet" as UC2
+  usecase "Complete Onboarding" as UC3
+  usecase "Select User Role" as UC4
+  usecase "Create Profile" as UC5
+  usecase "View Wallet Balance" as UC6
+  usecase "View Transaction History" as UC7
+  usecase "Switch Network" as UC8
+  usecase "Copy Wallet Address" as UC9
+  usecase "View on Block Explorer" as UC10
+}
+
+' ============================================
+' MARKETPLACE & BROWSING
+' ============================================
+package "Marketplace & Model Discovery" {
+  usecase "Browse Models" as UC11
+  usecase "Search Models" as UC12
+  usecase "Filter by Category" as UC13
+  usecase "Filter by Price" as UC14
+  usecase "Filter by Rating" as UC15
+  usecase "Sort Models" as UC16
+  usecase "View Model Details" as UC17
+  usecase "View Model Metadata" as UC18
+  usecase "View Model Reviews" as UC19
+  usecase "Purchase Model Access" as UC20
+  usecase "Download Model Files" as UC21
+  usecase "View Model License" as UC22
+  usecase "Check Model Compatibility" as UC23
+}
+
+' ============================================
+' SANDBOX & TESTING
+' ============================================
+package "Sandbox & Model Testing" {
+  usecase "Access Sandbox" as UC24
+  usecase "Load Model in Sandbox" as UC25
+  usecase "Configure Input Parameters" as UC26
+  usecase "Run Model Inference" as UC27
+  usecase "View Model Output" as UC28
+  usecase "Compare Model Performance" as UC29
+  usecase "Save Test Results" as UC30
+  usecase "Share Test Configuration" as UC31
+}
+
+' ============================================
+' USER PROFILE & DASHBOARD
+' ============================================
+package "User Profile & Dashboard" {
+  usecase "View Dashboard" as UC32
+  usecase "View Profile" as UC33
+  usecase "Edit Profile" as UC34
+  usecase "View Purchased Models" as UC35
+  usecase "View Usage Statistics" as UC36
+  usecase "View Recommendations" as UC37
+  usecase "Manage Settings" as UC38
+  usecase "View Notifications" as UC39
+  usecase "Mark Notifications Read" as UC40
+  usecase "View Activity History" as UC41
+}
+
+' ============================================
+' DEVELOPER FEATURES
+' ============================================
+package "Developer - Model Management" {
+  usecase "Upload Model" as UC42
+  usecase "Set Model Metadata" as UC43
+  usecase "Upload to IPFS" as UC44
+  usecase "Mint Model NFT" as UC45
+  usecase "Set Model Price" as UC46
+  usecase "Set License Terms" as UC47
+  usecase "View My Models" as UC48
+  usecase "Edit Model Details" as UC49
+  usecase "Delist Model" as UC50
+  usecase "View Model Analytics" as UC51
+  usecase "Track Download Stats" as UC52
+  usecase "Track Revenue" as UC53
+  usecase "View Model Reviews" as UC54
+  usecase "Respond to Reviews" as UC55
+  usecase "Update Model Version" as UC56
+}
+
+' ============================================
+' VALIDATOR FEATURES
+' ============================================
+package "Validator - Quality Assurance" {
+  usecase "View Validation Queue" as UC57
+  usecase "Select Model to Validate" as UC58
+  usecase "Download Model for Testing" as UC59
+  usecase "Run Validation Tests" as UC60
+  usecase "Check Model Quality" as UC61
+  usecase "Submit Validation Report" as UC62
+  usecase "Approve Model" as UC63
+  usecase "Reject Model" as UC64
+  usecase "View Validation History" as UC65
+  usecase "View Validator Dashboard" as UC66
+  usecase "Track Validation Stats" as UC67
+  usecase "View Earned Rewards" as UC68
+  usecase "Claim Validation Rewards" as UC69
+  usecase "View Validator Leaderboard" as UC70
+  usecase "View Reputation Score" as UC71
+}
+
+' ============================================
+' GOVERNANCE & DAO
+' ============================================
+package "Governance & DAO" {
+  usecase "View Proposals" as UC72
+  usecase "Filter Proposals by Status" as UC73
+  usecase "Filter Proposals by Category" as UC74
+  usecase "View Proposal Details" as UC75
+  usecase "Create New Proposal" as UC76
+  usecase "Vote on Proposal" as UC77
+  usecase "Delegate Voting Power" as UC78
+  usecase "View Voting Results" as UC79
+  usecase "View Governance Stats" as UC80
+  usecase "View Treasury Balance" as UC81
+  usecase "View Voting History" as UC82
+  usecase "Comment on Proposal" as UC83
+}
+
+' ============================================
+' ADMIN FEATURES
+' ============================================
+package "Admin - Platform Management" {
+  usecase "View Platform Overview" as UC84
+  usecase "View All Users" as UC85
+  usecase "Manage User Roles" as UC86
+  usecase "View All Models" as UC87
+  usecase "Moderate Models" as UC88
+  usecase "Handle Reports" as UC89
+  usecase "View Platform Statistics" as UC90
+  usecase "Manage Platform Settings" as UC91
+  usecase "View Transaction Logs" as UC92
+  usecase "Emergency Pause Contract" as UC93
+  usecase "View Validator Performance" as UC94
+  usecase "Assign Validator Roles" as UC95
+}
+
+' ============================================
+' DOCUMENTATION & SUPPORT
+' ============================================
+package "Documentation & Support" {
+  usecase "View API Documentation" as UC96
+  usecase "View SDK Tools" as UC97
+  usecase "View Validation Guidelines" as UC98
+  usecase "View Node Setup Guide" as UC99
+  usecase "Read Terms of Service" as UC100
+  usecase "Read Privacy Policy" as UC101
+  usecase "Read Security Policy" as UC102
+  usecase "View FAQ" as UC103
+  usecase "Contact Support" as UC104
+  usecase "View About Page" as UC105
+}
+
+' ============================================
+' RELATIONSHIPS - VISITOR
+' ============================================
+Visitor --> UC11 : Browse without wallet
+Visitor --> UC12
+Visitor --> UC13
+Visitor --> UC14
+Visitor --> UC15
+Visitor --> UC16
+Visitor --> UC17
+Visitor --> UC1 : Connect to use features
+Visitor --> UC96
+Visitor --> UC97
+Visitor --> UC98
+Visitor --> UC99
+Visitor --> UC100
+Visitor --> UC101
+Visitor --> UC102
+Visitor --> UC103
+Visitor --> UC104
+Visitor --> UC105
+
+' ============================================
+' RELATIONSHIPS - WALLET CONNECTION
+' ============================================
+UC1 ..> MetaMask : <<uses>>
+UC1 ..> Blockchain : <<verifies>>
+UC1 --> UC3 : <<includes>> (new user)
+UC3 --> UC4 : <<includes>>
+UC4 --> UC5 : <<includes>>
+
+' ============================================
+' RELATIONSHIPS - USER (Wallet Connected)
+' ============================================
+User --> UC2
+User --> UC6
+User --> UC7
+User --> UC8
+User --> UC9
+User --> UC10
+User --> UC11
+User --> UC12
+User --> UC13
+User --> UC14
+User --> UC15
+User --> UC16
+User --> UC17
+User --> UC18
+User --> UC19
+User --> UC20
+User --> UC21
+User --> UC22
+User --> UC23
+User --> UC24
+User --> UC25
+User --> UC26
+User --> UC27
+User --> UC28
+User --> UC29
+User --> UC30
+User --> UC31
+User --> UC32
+User --> UC33
+User --> UC34
+User --> UC35
+User --> UC36
+User --> UC37
+User --> UC38
+User --> UC39
+User --> UC40
+User --> UC41
+
+' Purchase flow
+UC20 ..> Blockchain : <<executes>>
+UC20 --> UC21 : <<includes>>
+UC21 ..> IPFS : <<downloads>>
+
+' ============================================
+' RELATIONSHIPS - DEVELOPER
+' ============================================
+Developer --|> User : inherits
+Developer --> UC42
+Developer --> UC43
+Developer --> UC44
+Developer --> UC45
+Developer --> UC46
+Developer --> UC47
+Developer --> UC48
+Developer --> UC49
+Developer --> UC50
+Developer --> UC51
+Developer --> UC52
+Developer --> UC53
+Developer --> UC54
+Developer --> UC55
+Developer --> UC56
+
+' Upload flow
+UC42 --> UC43 : <<includes>>
+UC43 --> UC44 : <<includes>>
+UC44 ..> IPFS : <<uploads>>
+UC44 --> UC45 : <<includes>>
+UC45 ..> Blockchain : <<mints NFT>>
+
+' ============================================
+' RELATIONSHIPS - VALIDATOR
+' ============================================
+Validator --|> User : inherits
+Validator --> UC57
+Validator --> UC58
+Validator --> UC59
+Validator --> UC60
+Validator --> UC61
+Validator --> UC62
+Validator --> UC63
+Validator --> UC64
+Validator --> UC65
+Validator --> UC66
+Validator --> UC67
+Validator --> UC68
+Validator --> UC69
+Validator --> UC70
+Validator --> UC71
+
+' Validation flow
+UC58 --> UC59 : <<includes>>
+UC59 ..> IPFS : <<downloads>>
+UC60 --> UC61 : <<includes>>
+UC61 --> UC62 : <<includes>>
+UC62 --> UC63 : <<extends>>
+UC62 --> UC64 : <<extends>>
+UC63 ..> Blockchain : <<records>>
+UC64 ..> Blockchain : <<records>>
+UC69 ..> Blockchain : <<claims>>
+
+' ============================================
+' RELATIONSHIPS - DAO MEMBER
+' ============================================
+DAO --|> User : inherits
+DAO --> UC72
+DAO --> UC73
+DAO --> UC74
+DAO --> UC75
+DAO --> UC76
+DAO --> UC77
+DAO --> UC78
+DAO --> UC79
+DAO --> UC80
+DAO --> UC81
+DAO --> UC82
+DAO --> UC83
+
+' Governance flow
+UC76 ..> Blockchain : <<creates>>
+UC77 ..> Blockchain : <<records vote>>
+UC78 ..> Blockchain : <<delegates>>
+
+' ============================================
+' RELATIONSHIPS - ADMIN
+' ============================================
+Admin --|> User : inherits
+Admin --> UC84
+Admin --> UC85
+Admin --> UC86
+Admin --> UC87
+Admin --> UC88
+Admin --> UC89
+Admin --> UC90
+Admin --> UC91
+Admin --> UC92
+Admin --> UC93
+Admin --> UC94
+Admin --> UC95
+
+' Admin actions
+UC93 ..> Blockchain : <<emergency pause>>
+UC95 ..> Blockchain : <<assigns role>>
+
+' ============================================
+' NOTES
+' ============================================
+note right of Visitor
+  Can browse marketplace
+  but needs wallet to
+  purchase or interact
+end note
+
+note right of User
+  Basic authenticated user
+  Can purchase models,
+  test in sandbox, and
+  participate in governance
+end note
+
+note right of Developer
+  Can upload and manage
+  AI models, track analytics,
+  and earn from sales
+end note
+
+note right of Validator
+  Validates model quality,
+  earns rewards for
+  accurate validations
+end note
+
+note right of Admin
+  Platform administrator
+  with full management
+  capabilities
+end note
+
+note right of DAO
+  Token holders can
+  create and vote on
+  governance proposals
+end note
+
+note bottom of Blockchain
+  Polygon Amoy Testnet
+  Contracts:
+  - UserRegistry: 0x88B0...0b0D
+  - ModelRegistry: 0x276B...a5AC
+  - Marketplace: 0x7e77...0b91
+  - Governance: 0xfD19...e0AE
+end note
+
+note bottom of IPFS
+  Pinata Service
+  Stores:
+  - Model files
+  - Model metadata
+  - User profiles
+end note
+
+@enduml

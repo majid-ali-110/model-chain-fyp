@@ -234,9 +234,9 @@ const UploadModel = () => {
       await new Promise(resolve => setTimeout(resolve, 200));
     }
     
-    // Mock IPFS hash
-    const mockHash = 'QmYjtig7VJQ6XsnUjqqJvj7QaMcCAwtrgNdahSiFofrE7o';
-    setIpfsHash(mockHash);
+    // Placeholder IPFS hash - will be replaced with real IPFS integration
+    const placeholderHash = 'QmPlaceholder' + Date.now().toString(36);
+    setIpfsHash(placeholderHash);
     setIsUploading(false);
   };
 
@@ -246,9 +246,9 @@ const UploadModel = () => {
     // Simulate blockchain transaction
     await new Promise(resolve => setTimeout(resolve, 3000));
     
-    // Mock transaction hash
-    const mockTxHash = '0x742d35cc6c4532b789fe2eab4c8f5a7b8d8f4e3c9f1a2b3c4d5e6f7890abcdef';
-    setBlockchainTxHash(mockTxHash);
+    // Placeholder transaction hash - will be replaced with real blockchain tx
+    const placeholderTxHash = '0x' + Array(64).fill(0).map(() => Math.floor(Math.random() * 16).toString(16)).join('');
+    setBlockchainTxHash(placeholderTxHash);
     setIsUploading(false);
   };
 

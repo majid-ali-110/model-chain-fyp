@@ -45,14 +45,22 @@ import {
   HeartIcon as HeartSolidIcon
 } from '@heroicons/react/24/solid';
 import { clsx } from 'clsx';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import Button from '../../components/ui/Button';
 import Input from '../../components/ui/Input';
 import Card from '../../components/ui/Card';
 import Badge from '../../components/ui/Badge';
 import Loading from '../../components/ui/Loading';
+import { useWallet } from '../../contexts/WalletContext';
+import { useAuth } from '../../contexts/AuthContext';
+import { useUser } from '../../contexts/UserContext';
 
 const MyModels = () => {
+  const navigate = useNavigate();
+  const { connected } = useWallet();
+  const { isAuthenticated } = useAuth();
+  const { userModels: contextUserModels, earnings } = useUser();
+  
   const [models, setModels] = useState([]);
   const [filteredModels, setFilteredModels] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -66,199 +74,42 @@ const MyModels = () => {
   const [selectedModels, setSelectedModels] = useState([]);
   const [actionMenuOpen, setActionMenuOpen] = useState(null);
 
-  // Mock stats data
-  const [stats] = useState({
-    totalModels: 15,
-    totalDownloads: 125430,
-    totalRevenue: 2485.67,
-    avgRating: 4.6,
+  // Stats computed from context
+  const stats = {
+    totalModels: contextUserModels?.length || 0,
+    totalDownloads: contextUserModels?.reduce((sum, m) => sum + (m.downloads || 0), 0) || 0,
+    totalRevenue: earnings?.total || 0,
+    avgRating: contextUserModels?.length > 0 
+      ? (contextUserModels.reduce((sum, m) => sum + (m.rating || 0), 0) / contextUserModels.length).toFixed(1)
+      : 0,
     monthlyGrowth: {
-      models: 12.5,
-      downloads: 24.8,
-      revenue: 18.3,
-      rating: 0.2
+      models: 0,
+      downloads: 0,
+      revenue: 0,
+      rating: 0
     }
-  });
+  };
 
-  // Load models data
+  // Load models data from context
   useEffect(() => {
+    if (!connected || !isAuthenticated) {
+      navigate('/connect-wallet');
+      return;
+    }
+    
     const loadModels = async () => {
       setIsLoading(true);
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      await new Promise(resolve => setTimeout(resolve, 300));
 
-      const mockModels = [
-        {
-          id: 1,
-          name: 'GPT-4 Fine-tuned Classifier',
-          description: 'Advanced text classification model fine-tuned on domain-specific data',
-          category: 'text',
-          status: 'published',
-          version: '2.1.0',
-          downloads: 15420,
-          revenue: 892.50,
-          rating: 4.8,
-          reviews: 156,
-          likes: 89,
-          createdAt: '2024-08-15T10:30:00Z',
-          updatedAt: '2024-09-22T14:45:00Z',
-          price: 25.00,
-          pricingModel: 'one-time',
-          framework: 'Hugging Face',
-          size: '2.1 GB',
-          license: 'MIT',
-          tags: ['nlp', 'classification', 'transformer'],
-          performance: { accuracy: '94.2%', speed: '12ms' },
-          monthlyStats: {
-            downloads: 1240,
-            revenue: 156.75,
-            growth: 15.2
-          }
-        },
-        {
-          id: 2,
-          name: 'Custom Object Detection',
-          description: 'YOLOv8-based object detection model for retail environments',
-          category: 'image',
-          status: 'published',
-          version: '1.0.3',
-          downloads: 8930,
-          revenue: 445.20,
-          rating: 4.5,
-          reviews: 82,
-          likes: 67,
-          createdAt: '2024-07-10T16:20:00Z',
-          updatedAt: '2024-09-15T11:30:00Z',
-          price: 0,
-          pricingModel: 'free',
-          framework: 'PyTorch',
-          size: '156 MB',
-          license: 'Apache 2.0',
-          tags: ['computer-vision', 'object-detection', 'yolo'],
-          performance: { accuracy: '91.8%', speed: '45ms' },
-          monthlyStats: {
-            downloads: 920,
-            revenue: 0,
-            growth: -2.1
-          }
-        },
-        {
-          id: 3,
-          name: 'Speech Recognition API',
-          description: 'Real-time speech-to-text model optimized for multiple languages',
-          category: 'audio',
-          status: 'published',
-          version: '3.2.1',
-          downloads: 12350,
-          revenue: 678.90,
-          rating: 4.7,
-          reviews: 124,
-          likes: 98,
-          createdAt: '2024-06-20T09:15:00Z',
-          updatedAt: '2024-09-28T16:20:00Z',
-          price: 0.05,
-          pricingModel: 'usage-based',
-          framework: 'TensorFlow',
-          size: '890 MB',
-          license: 'Commercial',
-          tags: ['speech', 'asr', 'multilingual'],
-          performance: { accuracy: '96.1%', speed: '250ms' },
-          monthlyStats: {
-            downloads: 1850,
-            revenue: 298.45,
-            growth: 28.7
-          }
-        },
-        {
-          id: 4,
-          name: 'Video Content Analyzer',
-          description: 'Multi-modal video analysis for content moderation and insights',
-          category: 'video',
-          status: 'draft',
-          version: '0.9.0',
-          downloads: 0,
-          revenue: 0,
-          rating: 0,
-          reviews: 0,
-          likes: 0,
-          createdAt: '2024-09-30T14:00:00Z',
-          updatedAt: '2024-10-02T10:30:00Z',
-          price: 45.00,
-          pricingModel: 'subscription',
-          framework: 'PyTorch',
-          size: '3.2 GB',
-          license: 'Proprietary',
-          tags: ['video-analysis', 'content-moderation', 'multimodal'],
-          performance: { accuracy: '89.5%', speed: '2.1s' },
-          monthlyStats: {
-            downloads: 0,
-            revenue: 0,
-            growth: 0
-          }
-        },
-        {
-          id: 5,
-          name: 'Sentiment Analysis Pro',
-          description: 'Enterprise-grade sentiment analysis with emotion detection',
-          category: 'text',
-          status: 'published',
-          version: '1.5.2',
-          downloads: 22100,
-          revenue: 1284.30,
-          rating: 4.9,
-          reviews: 203,
-          likes: 145,
-          createdAt: '2024-05-12T08:45:00Z',
-          updatedAt: '2024-09-20T13:15:00Z',
-          price: 15.99,
-          pricingModel: 'subscription',
-          framework: 'Scikit-learn',
-          size: '45 MB',
-          license: 'MIT',
-          tags: ['sentiment', 'emotion', 'text-analysis'],
-          performance: { accuracy: '97.3%', speed: '5ms' },
-          monthlyStats: {
-            downloads: 2890,
-            revenue: 445.67,
-            growth: 19.8
-          }
-        },
-        {
-          id: 6,
-          name: 'Recommendation Engine',
-          description: 'Collaborative filtering recommendation system',
-          category: 'recommendation',
-          status: 'under-review',
-          version: '2.0.0',
-          downloads: 0,
-          revenue: 0,
-          rating: 0,
-          reviews: 0,
-          likes: 0,
-          createdAt: '2024-09-25T11:20:00Z',
-          updatedAt: '2024-10-01T09:45:00Z',
-          price: 89.99,
-          pricingModel: 'one-time',
-          framework: 'TensorFlow',
-          size: '1.8 GB',
-          license: 'Commercial',
-          tags: ['recommendation', 'collaborative-filtering', 'ml'],
-          performance: { accuracy: '92.7%', speed: '150ms' },
-          monthlyStats: {
-            downloads: 0,
-            revenue: 0,
-            growth: 0
-          }
-        }
-      ];
-
-      setModels(mockModels);
-      setFilteredModels(mockModels);
+      // Use models from context (empty if none)
+      const userModels = contextUserModels || [];
+      setModels(userModels);
+      setFilteredModels(userModels);
       setIsLoading(false);
     };
 
     loadModels();
-  }, []);
+  }, [connected, isAuthenticated, navigate, contextUserModels]);
 
   // Filter and search logic
   useEffect(() => {
@@ -403,13 +254,12 @@ const MyModels = () => {
 
   // Actions
   const handleModelAction = (action, modelId) => {
-    console.log(`Action: ${action} for model: ${modelId}`);
     setActionMenuOpen(null);
-    // Implement action logic here
+    // TODO: Implement action logic here
   };
 
   const handleBulkAction = (action) => {
-    console.log(`Bulk action: ${action} for models:`, selectedModels);
+    // TODO: Implement bulk action logic
     setSelectedModels([]);
   };
 

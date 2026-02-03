@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { dummyModels } from '../../data/dummyModels';
+import { useModel } from '../../contexts/ModelContext';
 import {
   PlayIcon,
   PauseIcon,
@@ -57,6 +57,7 @@ import OutputPanel from '../../components/sandbox/OutputPanel';
 
 const Sandbox = () => {
   const [searchParams, setSearchParams] = useSearchParams();
+  const { models: contextModels } = useModel();
   
   // State management
   const [selectedModel, setSelectedModel] = useState(null);
@@ -102,11 +103,11 @@ const Sandbox = () => {
       'Medical': 'text'
     };
 
-    // Convert dummy models to sandbox compatible format
-    const sandboxModels = dummyModels.slice(0, 30).map(model => ({
+    // Convert context models to sandbox compatible format
+    const sandboxModels = contextModels.map(model => ({
       id: model.id,
       name: model.name,
-      provider: model.developer?.name || 'Unknown',
+      provider: model.owner || 'Unknown',
       category: categoryMap[model.category] || 'text',
       description: model.description,
       pricing: {
@@ -115,7 +116,7 @@ const Sandbox = () => {
       },
       maxTokens: 4096,
       contextLength: '128K',
-      isPopular: model.featured || model.rating >= 4.7,
+      isPopular: model.featured || (model.rating || 0) >= 4.7,
       isFree: model.price === 0,
       accuracy: model.accuracy,
       rating: model.rating,
@@ -123,60 +124,22 @@ const Sandbox = () => {
       verified: model.verified
     }));
 
-    // Add popular open-source models
-    const mockModels = [
-      ...sandboxModels,
-      {
-        id: 'gpt-4-turbo',
-        name: 'GPT-4 Turbo (Demo)',
-        provider: 'OpenAI',
-        category: 'text',
-        description: 'Most capable GPT-4 model with enhanced reasoning',
-        pricing: { type: 'token', price: 0.03 },
-        maxTokens: 4096,
-        contextLength: '128K',
-        isPopular: true,
-        isFree: false
-      },
-      {
-        id: 'claude-3-opus',
-        name: 'Claude 3 Opus (Demo)',
-        provider: 'Anthropic',
-        category: 'text',
-        description: 'Most capable model for complex reasoning',
-        pricing: { type: 'token', price: 0.05 },
-        maxTokens: 4096,
-        contextLength: '200K',
-        isPopular: true,
-        isFree: false
-      },
-      {
-        id: 'dall-e-3',
-        name: 'DALL-E 3 (Demo)',
-        provider: 'OpenAI',
-        category: 'image',
-        description: 'Advanced image generation model',
-        pricing: { type: 'image', price: 0.08 },
-        maxTokens: null,
-        contextLength: null,
-        isPopular: true,
-        isFree: false
-      }
-    ];
+    // Use context models or show empty state
+    const allModels = sandboxModels;
 
-    setAvailableModels(mockModels);
-    setFilteredModels(mockModels);
+    setAvailableModels(allModels);
+    setFilteredModels(allModels);
     
     // Check if model is specified in URL
     const modelId = searchParams.get('model');
-    if (modelId) {
-      const model = mockModels.find(m => m.id === modelId);
+    if (modelId && allModels.length > 0) {
+      const model = allModels.find(m => m.id === modelId);
       if (model) {
         setSelectedModel(model);
       }
-    } else {
+    } else if (allModels.length > 0) {
       // Default to first popular model
-      const defaultModel = mockModels.find(m => m.isPopular) || mockModels[0];
+      const defaultModel = allModels.find(m => m.isPopular) || allModels[0];
       setSelectedModel(defaultModel);
     }
 
@@ -185,7 +148,7 @@ const Sandbox = () => {
     if (savedHistory) {
       setTestHistory(JSON.parse(savedHistory));
     }
-  }, [searchParams]);
+  }, [searchParams, contextModels]);
 
   // Filter models based on search
   useEffect(() => {

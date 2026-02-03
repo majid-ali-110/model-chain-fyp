@@ -52,10 +52,16 @@ import Card from '../../components/ui/Card';
 import Badge from '../../components/ui/Badge';
 import Loading from '../../components/ui/Loading';
 import ModelCard from '../../components/models/ModelCard';
+import { useWallet } from '../../contexts/WalletContext';
+import { useAuth } from '../../contexts/AuthContext';
+import { useUser } from '../../contexts/UserContext';
 
 const Profile = () => {
   const { userId } = useParams();
   const navigate = useNavigate();
+  const { connected, address } = useWallet();
+  const { isAuthenticated, user } = useAuth();
+  const { profile: userProfile, userModels: contextUserModels } = useUser();
   
   // State management
   const [profile, setProfile] = useState(null);
@@ -70,177 +76,77 @@ const Profile = () => {
   const [followersCount, setFollowersCount] = useState(0);
   const [followingCount, setFollowingCount] = useState(0);
 
-  // Mock profile data
+  // Load profile from context
   useEffect(() => {
     const loadProfile = async () => {
       setIsLoading(true);
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
       
       // Check if viewing own profile
-      const currentUserId = 'current-user-123'; // This would come from auth context
-      const isOwnProfile = userId === currentUserId || !userId;
+      const isOwnProfile = !userId || userId === address;
       setIsCurrentUser(isOwnProfile);
       
-      // Mock profile data
-      const mockProfile = {
-        id: userId || currentUserId,
-        username: isOwnProfile ? 'you' : 'sarah_ai_dev',
-        displayName: isOwnProfile ? 'Your Profile' : 'Sarah Chen',
-        email: 'sarah@example.com',
-        bio: 'AI researcher and model developer passionate about democratizing artificial intelligence. Building the future of human-AI collaboration through innovative machine learning solutions and open-source contributions.',
-        avatar: '👩‍💻',
-        coverImage: 'https://images.unsplash.com/photo-1620712943543-bcc4688e7485?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&h=300',
-        location: 'San Francisco, CA',
-        website: 'https://sarahchen.ai',
-        joinDate: '2023-06-15',
-        verified: true,
-        isPro: true,
-        stats: {
-          modelsPublished: 12,
-          totalDownloads: 456789,
-          totalStars: 8934,
-          reviewsWritten: 45,
-          averageRating: 4.8,
-          totalViews: 234567,
-          followers: 2847,
-          following: 156
-        },
-        badges: [
-          { id: 'verified', name: 'Verified Developer', icon: CheckBadgeIcon, color: 'text-blue-400' },
-          { id: 'pro', name: 'Pro Member', icon: TrophyIcon, color: 'text-yellow-400' },
-          { id: 'top-contributor', name: 'Top Contributor', icon: StarIcon, color: 'text-purple-400' },
-          { id: 'early-adopter', name: 'Early Adopter', icon: SparklesIcon, color: 'text-green-400' }
-        ],
-        specialties: ['Computer Vision', 'NLP', 'Generative AI', 'MLOps'],
-        socialLinks: {
-          github: 'https://github.com/sarahchen',
-          twitter: 'https://twitter.com/sarahchen_ai',
-          linkedin: 'https://linkedin.com/in/sarahchen'
-        }
-      };
+      if (isOwnProfile && userProfile) {
+        // Use profile from context
+        const profileData = {
+          id: address,
+          username: userProfile.username || address?.slice(0, 8),
+          displayName: userProfile.name || user?.name || 'Anonymous',
+          email: userProfile.email || '',
+          bio: userProfile.bio || 'No bio yet',
+          avatar: userProfile.avatar || '👤',
+          coverImage: null,
+          location: '',
+          website: userProfile.social?.website || '',
+          joinDate: userProfile.joinedAt || new Date().toISOString(),
+          verified: false,
+          isPro: userProfile.role === 'developer' || userProfile.role === 'validator',
+          stats: {
+            modelsPublished: contextUserModels?.length || 0,
+            totalDownloads: 0,
+            totalStars: 0,
+            reviewsWritten: 0,
+            averageRating: 0,
+            totalViews: 0,
+            followers: 0,
+            following: 0
+          },
+          badges: [],
+          specialties: [],
+          socialLinks: userProfile.social || {}
+        };
 
-      setProfile(mockProfile);
-      setFollowersCount(mockProfile.stats.followers);
-      setFollowingCount(mockProfile.stats.following);
-
-      // Mock user models
-      setUserModels([
-        {
-          id: 'vision-transformer-v2',
-          name: 'Vision Transformer V2',
-          description: 'Advanced image classification model with 95% accuracy',
-          category: 'image',
-          downloads: 45000,
-          rating: 4.9,
-          reviews: 156,
-          price: 0.05,
-          isHot: true,
-          publishedAt: '2024-09-15'
-        },
-        {
-          id: 'nlp-sentiment-pro',
-          name: 'NLP Sentiment Pro',
-          description: 'Professional sentiment analysis for enterprise applications',
-          category: 'text',
-          downloads: 28000,
-          rating: 4.7,
-          reviews: 89,
-          price: 0.02,
-          isNew: true,
-          publishedAt: '2024-10-01'
-        },
-        {
-          id: 'audio-transcriber-xl',
-          name: 'Audio Transcriber XL',
-          description: 'High-accuracy speech-to-text with speaker recognition',
-          category: 'audio',
-          downloads: 15600,
-          rating: 4.8,
-          reviews: 67,
-          price: 0.008,
-          publishedAt: '2024-08-20'
-        }
-      ]);
-
-      // Mock user reviews
-      setUserReviews([
-        {
-          id: 1,
-          modelId: 'gpt-4-turbo',
-          modelName: 'GPT-4 Turbo',
-          rating: 5,
-          comment: 'Incredible performance improvements over previous versions. The reasoning capabilities are significantly better.',
-          date: '2024-09-28',
-          helpful: 45,
-          verified: true
-        },
-        {
-          id: 2,
-          modelId: 'dall-e-3',
-          modelName: 'DALL-E 3',
-          rating: 4,
-          comment: 'Great for creative tasks, but could use better prompt understanding for technical diagrams.',
-          date: '2024-09-25',
-          helpful: 23,
-          verified: true
-        },
-        {
-          id: 3,
-          modelId: 'claude-3-opus',
-          modelName: 'Claude 3 Opus',
-          rating: 5,
-          comment: 'Best model for complex reasoning tasks. Worth the premium pricing for professional use.',
-          date: '2024-09-20',
-          helpful: 67,
-          verified: true
-        }
-      ]);
-
-      // Mock user activity
-      setUserActivity([
-        {
-          id: 1,
-          type: 'model_published',
-          action: 'Published Vision Transformer V2',
-          timestamp: '2024-09-15T10:30:00Z',
-          details: { modelId: 'vision-transformer-v2', category: 'image' }
-        },
-        {
-          id: 2,
-          type: 'review_written',
-          action: 'Reviewed GPT-4 Turbo',
-          timestamp: '2024-09-28T14:20:00Z',
-          details: { modelId: 'gpt-4-turbo', rating: 5 }
-        },
-        {
-          id: 3,
-          type: 'model_favorited',
-          action: 'Added Claude 3 Opus to favorites',
-          timestamp: '2024-09-20T09:15:00Z',
-          details: { modelId: 'claude-3-opus' }
-        },
-        {
-          id: 4,
-          type: 'achievement_earned',
-          action: 'Earned Top Contributor badge',
-          timestamp: '2024-09-10T16:45:00Z',
-          details: { badge: 'top-contributor' }
-        },
-        {
-          id: 5,
-          type: 'model_updated',
-          action: 'Updated NLP Sentiment Pro',
-          timestamp: '2024-10-01T11:30:00Z',
-          details: { modelId: 'nlp-sentiment-pro', version: '2.1' }
-        }
-      ]);
-
+        setProfile(profileData);
+        setFollowersCount(0);
+        setFollowingCount(0);
+        setUserModels(contextUserModels || []);
+        setUserReviews([]);
+        setUserActivity([]);
+      } else if (!isOwnProfile) {
+        // Viewing another user's profile - TODO: fetch from blockchain
+        setProfile(null);
+      }
+      
       setIsLoading(false);
     };
 
-    loadProfile();
-  }, [userId]);
+    if (connected && isAuthenticated) {
+      loadProfile();
+    } else {
+      navigate('/connect-wallet');
+    }
+  }, [userId, address, userProfile, user, contextUserModels, connected, isAuthenticated, navigate]);
+
+  // Helper functions - Get category icon
+  const getCategoryIcon = (category) => {
+    switch (category) {
+      case 'text': return DocumentTextIcon;
+      case 'image': return PhotoIcon;
+      case 'audio': return SpeakerWaveIcon;
+      case 'video': return VideoCameraIcon;
+      case 'code': return CodeBracketIcon;
+      default: return CpuChipIcon;
+    }
+  };
 
   // Tab configuration
   const tabs = [

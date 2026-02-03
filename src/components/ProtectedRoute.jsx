@@ -16,9 +16,9 @@ const ProtectedRoute = ({ children, roles = [], adminOnly = false, validatorOnly
     );
   }
 
-  // Redirect to login if not authenticated
+  // Redirect to wallet connection page if not authenticated
   if (!isAuthenticated) {
-    return <Navigate to="/login" state={{ from: location }} replace />;
+    return <Navigate to="/connect-wallet" state={{ from: location }} replace />;
   }
 
   // Check role-based access

@@ -3,6 +3,7 @@ import Card from '../../components/ui/Card';
 import Badge from '../../components/ui/Badge';
 import Button from '../../components/ui/Button';
 import Progress from '../../components/ui/Progress';
+import { useWallet } from '../../contexts/WalletContext';
 import {
   CurrencyDollarIcon,
   CubeIcon,
@@ -13,52 +14,51 @@ import {
 } from '@heroicons/react/24/outline';
 
 const Overview = () => {
+  const { balance, chainId, isConnected } = useWallet();
+
+  // Get network currency based on chainId
+  const getNetworkCurrency = (chainId) => {
+    const polygonChains = ['137', '80002', '80001'];
+    return polygonChains.includes(chainId) ? 'POL' : 'ETH';
+  };
+
+  const currency = getNetworkCurrency(chainId);
+
+  // Stats - in production these would come from blockchain/database
   const stats = [
     {
-      title: 'Total Earnings',
-      value: '12.5 ETH',
-      change: '+15.3%',
-      changeType: 'increase',
+      title: 'Wallet Balance',
+      value: isConnected ? `${parseFloat(balance || '0').toFixed(4)} ${currency}` : 'Not connected',
+      change: '--',
+      changeType: 'neutral',
       icon: CurrencyDollarIcon
     },
     {
       title: 'Active Models',
-      value: '8',
-      change: '+2',
-      changeType: 'increase',
+      value: '0',
+      change: '--',
+      changeType: 'neutral',
       icon: CubeIcon
     },
     {
       title: 'Total Downloads',
-      value: '1,247',
-      change: '+89',
-      changeType: 'increase',
+      value: '0',
+      change: '--',
+      changeType: 'neutral',
       icon: ChartBarIcon
     },
     {
       title: 'Followers',
-      value: '342',
-      change: '-5',
-      changeType: 'decrease',
+      value: '0',
+      change: '--',
+      changeType: 'neutral',
       icon: UserGroupIcon
     }
   ];
 
+  // Recent models - would come from ModelRegistry contract
   const recentModels = [
-    {
-      id: 1,
-      name: 'GPT-4 Clone',
-      status: 'active',
-      downloads: 456,
-      earnings: '2.3 ETH'
-    },
-    {
-      id: 2,
-      name: 'Image Classifier',
-      status: 'pending',
-      downloads: 123,
-      earnings: '0.8 ETH'
-    }
+    // Empty - will be populated from blockchain
   ];
 
   return (
@@ -111,7 +111,13 @@ const Overview = () => {
           </Card.Header>
           <Card.Content>
             <div className="space-y-4">
-              {recentModels.map(model => (
+              {recentModels.length === 0 ? (
+                <div className="text-center py-8 text-secondary-500">
+                  <CubeIcon className="h-12 w-12 mx-auto mb-2 opacity-50" />
+                  <p>No models yet</p>
+                  <p className="text-sm">Upload your first model to get started</p>
+                </div>
+              ) : recentModels.map(model => (
                 <div key={model.id} className="flex items-center justify-between py-3 border-b border-secondary-100 last:border-0">
                   <div>
                     <p className="font-medium text-secondary-900">{model.name}</p>
@@ -146,26 +152,10 @@ const Overview = () => {
           </Card.Header>
           <Card.Content>
             <div className="space-y-4">
-              <div>
-                <div className="flex justify-between text-sm mb-2">
-                  <span>GPT-4 Clone</span>
-                  <span>85%</span>
-                </div>
-                <Progress value={85} />
-              </div>
-              <div>
-                <div className="flex justify-between text-sm mb-2">
-                  <span>Image Classifier</span>
-                  <span>67%</span>
-                </div>
-                <Progress value={67} />
-              </div>
-              <div>
-                <div className="flex justify-between text-sm mb-2">
-                  <span>Audio Processor</span>
-                  <span>42%</span>
-                </div>
-                <Progress value={42} />
+              <div className="text-center py-8 text-secondary-500">
+                <ChartBarIcon className="h-12 w-12 mx-auto mb-2 opacity-50" />
+                <p>No performance data</p>
+                <p className="text-sm">Upload models to track their performance</p>
               </div>
             </div>
             <div className="mt-4">

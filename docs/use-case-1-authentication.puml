@@ -1,0 +1,54 @@
+@startuml Authentication & Wallet Management
+
+title ModelChain - Authentication & Wallet Management
+
+skinparam actorStyle awesome
+skinparam backgroundColor white
+
+actor "Visitor" as Visitor
+actor "User" as User
+actor "MetaMask" as MM <<External>>
+actor "Blockchain" as BC <<External>>
+
+package "Authentication & Wallet Management" {
+  usecase "Connect Wallet" as UC1
+  usecase "Disconnect Wallet" as UC2
+  usecase "Complete Onboarding" as UC3
+  usecase "Select User Role" as UC4
+  usecase "Create Profile" as UC5
+  usecase "View Wallet Balance" as UC6
+  usecase "View Transaction History" as UC7
+  usecase "Switch Network" as UC8
+  usecase "Copy Wallet Address" as UC9
+  usecase "View on Block Explorer" as UC10
+}
+
+Visitor --> UC1
+
+User --> UC2
+User --> UC6
+User --> UC7
+User --> UC8
+User --> UC9
+User --> UC10
+
+UC1 ..> MM : uses
+UC1 ..> BC : verifies
+UC1 --> UC3 : <<includes>>
+UC3 --> UC4 : <<includes>>
+UC4 --> UC5 : <<includes>>
+
+note right of UC1
+  Supports:
+  - MetaMask
+  - WalletConnect
+  - Coinbase Wallet
+end note
+
+note right of UC3
+  New users complete
+  onboarding to create
+  blockchain profile
+end note
+
+@enduml

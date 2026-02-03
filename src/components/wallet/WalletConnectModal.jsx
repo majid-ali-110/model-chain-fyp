@@ -168,12 +168,11 @@ const WalletConnectModal = ({
   };
 
   const renderWalletProvider = (provider) => (
-    <button
+    <div
       key={provider.id}
-      onClick={() => handleProviderSelect(provider)}
-      disabled={isConnecting}
+      onClick={() => !isConnecting && handleProviderSelect(provider)}
       className={clsx(
-        'relative w-full p-4 rounded-lg border-2 transition-all duration-200',
+        'relative w-full p-4 rounded-lg border-2 transition-all duration-200 cursor-pointer',
         'bg-dark-surface-elevated hover:bg-dark-surface-hover',
         'focus:outline-none focus:ring-2 focus:ring-primary-500/30',
         provider.borderColor,
@@ -261,7 +260,7 @@ const WalletConnectModal = ({
           </div>
         </div>
       )}
-    </button>
+    </div>
   );
 
   const renderConnectionStep = () => {

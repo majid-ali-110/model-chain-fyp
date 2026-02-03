@@ -1,0 +1,62 @@
+@startuml Governance & DAO
+
+title ModelChain - Governance & DAO
+
+skinparam actorStyle awesome
+skinparam backgroundColor white
+
+actor "DAO Member\n(Token Holder)" as DAO
+actor "Blockchain" as BC <<External>>
+
+package "Proposal Management" {
+  usecase "View Proposals" as UC72
+  usecase "Filter Proposals by Status" as UC73
+  usecase "Filter Proposals by Category" as UC74
+  usecase "View Proposal Details" as UC75
+  usecase "Create New Proposal" as UC76
+  usecase "Comment on Proposal" as UC83
+}
+
+package "Voting" {
+  usecase "Vote on Proposal" as UC77
+  usecase "Delegate Voting Power" as UC78
+  usecase "View Voting Results" as UC79
+  usecase "View Voting History" as UC82
+}
+
+package "Governance Stats" {
+  usecase "View Governance Stats" as UC80
+  usecase "View Treasury Balance" as UC81
+}
+
+DAO --> UC72
+DAO --> UC73
+DAO --> UC74
+DAO --> UC75
+DAO --> UC76
+DAO --> UC77
+DAO --> UC78
+DAO --> UC79
+DAO --> UC80
+DAO --> UC81
+DAO --> UC82
+DAO --> UC83
+
+UC76 ..> BC : creates on-chain
+UC77 ..> BC : records vote
+UC78 ..> BC : delegates power
+
+note right of UC77
+  Voting power = MCT tokens held
+  1 MCT = 1 vote
+end note
+
+note right of UC76
+  Proposal categories:
+  - Fee Structure
+  - Platform Updates
+  - Treasury Management
+  - Governance Rules
+end note
+
+@enduml

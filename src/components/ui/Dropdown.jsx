@@ -54,22 +54,16 @@ const DropdownItem = ({ children, onClick, disabled = false, className = '', ...
   <Menu.Item disabled={disabled}>
     {({ active, close }) => {
       const handleClick = (e) => {
-        console.log('🟡 Dropdown.Item clicked, calling onClick handler');
         e.preventDefault();
         e.stopPropagation();
         
         if (onClick) {
-          console.log('🟡 Executing onClick callback');
           onClick(e);
-        } else {
-          console.warn('⚠️ No onClick handler provided!');
         }
         
         // Close dropdown after action
-        console.log('🟡 Closing dropdown in 100ms');
         setTimeout(() => {
           close();
-          console.log('🟡 Dropdown closed');
         }, 100);
       };
 

@@ -1,11 +1,19 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import Card from '../../components/ui/Card';
 import Button from '../../components/ui/Button';
 import Input from '../../components/ui/Input';
 import Dropdown from '../../components/ui/Dropdown';
-import { CloudArrowUpIcon, DocumentIcon } from '@heroicons/react/24/outline';
+import { CloudArrowUpIcon, DocumentIcon, CheckCircleIcon, ExclamationCircleIcon } from '@heroicons/react/24/outline';
+import { useWallet } from '../../contexts/WalletContext';
+import { useModels } from '../../contexts/ModelContext';
+import { uploadFile, uploadJSON } from '../../services/ipfs';
 
 const Upload = () => {
+  const navigate = useNavigate();
+  const { address, isConnected } = useWallet();
+  const { uploadModel } = useModels();
+  
   const [formData, setFormData] = useState({
     name: '',
     description: '',
@@ -16,6 +24,8 @@ const Upload = () => {
     file: null
   });
   const [uploading, setUploading] = useState(false);
+  const [uploadStep, setUploadStep] = useState(null); // 'file', 'metadata', 'contract', 'complete'
+  const [error, setError] = useState(null);
   const [dragActive, setDragActive] = useState(false);
 
   const categories = [
@@ -63,13 +73,59 @@ const Upload = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
+    if (!isConnected) {
+      setError('Please connect your wallet to upload a model');
+      return;
+    }
+    
     setUploading(true);
+    setError(null);
     
-    // TODO: Implement upload logic
-    await new Promise(resolve => setTimeout(resolve, 2000));
-    
-    setUploading(false);
-    console.log('Upload complete:', formData);
+    try {
+      // Step 1: Upload model file to IPFS
+      setUploadStep('file');
+      const modelFileHash = await uploadFile(formData.file);
+      
+      // Step 2: Create and upload metadata to IPFS
+      setUploadStep('metadata');
+      const metadata = {
+        name: formData.name,
+        description: formData.description,
+        category: formData.category,
+        license: formData.license,
+        tags: formData.tags.split(',').map(t => t.trim()).filter(Boolean),
+        modelFile: modelFileHash,
+        creator: address,
+        createdAt: new Date().toISOString(),
+        version: '1.0.0',
+      };
+      
+      const metadataHash = await uploadJSON(metadata);
+      
+      // Step 3: Mint NFT on blockchain
+      setUploadStep('contract');
+      const result = await uploadModel({
+        ...metadata,
+        metadataURI: metadataHash,
+        price: formData.price,
+      });
+      
+      if (result.success) {
+        setUploadStep('complete');
+        // Redirect to my models page after short delay
+        setTimeout(() => {
+          navigate('/developer/my-models');
+        }, 2000);
+      } else {
+        throw new Error(result.error || 'Failed to mint model NFT');
+      }
+    } catch (err) {
+      setError(err.message);
+      setUploadStep(null);
+    } finally {
+      setUploading(false);
+    }
   };
 
   const handleChange = (field, value) => {
@@ -82,6 +138,51 @@ const Upload = () => {
         <h1 className="text-2xl font-bold text-secondary-900">Upload New Model</h1>
         <p className="text-secondary-600">Share your AI model with the ModelChain community</p>
       </div>
+
+      {/* Error Alert */}
+      {error && (
+        <Card className="border-red-200 bg-red-50">
+          <Card.Content className="flex items-center gap-3 py-3">
+            <ExclamationCircleIcon className="h-5 w-5 text-red-500" />
+            <p className="text-red-700">{error}</p>
+          </Card.Content>
+        </Card>
+      )}
+
+      {/* Upload Progress */}
+      {uploadStep && (
+        <Card className="border-primary-200 bg-primary-50">
+          <Card.Content className="py-4">
+            <h3 className="font-medium text-primary-900 mb-3">Upload Progress</h3>
+            <div className="space-y-2">
+              <div className="flex items-center gap-2">
+                <CheckCircleIcon className={`h-5 w-5 ${uploadStep === 'file' || uploadStep === 'metadata' || uploadStep === 'contract' || uploadStep === 'complete' ? 'text-green-500' : 'text-secondary-300'}`} />
+                <span className={uploadStep === 'file' ? 'text-primary-700 font-medium' : 'text-secondary-600'}>
+                  Uploading model file to IPFS...
+                </span>
+              </div>
+              <div className="flex items-center gap-2">
+                <CheckCircleIcon className={`h-5 w-5 ${uploadStep === 'metadata' || uploadStep === 'contract' || uploadStep === 'complete' ? 'text-green-500' : 'text-secondary-300'}`} />
+                <span className={uploadStep === 'metadata' ? 'text-primary-700 font-medium' : 'text-secondary-600'}>
+                  Uploading metadata to IPFS...
+                </span>
+              </div>
+              <div className="flex items-center gap-2">
+                <CheckCircleIcon className={`h-5 w-5 ${uploadStep === 'contract' || uploadStep === 'complete' ? 'text-green-500' : 'text-secondary-300'}`} />
+                <span className={uploadStep === 'contract' ? 'text-primary-700 font-medium' : 'text-secondary-600'}>
+                  Minting NFT on blockchain...
+                </span>
+              </div>
+              <div className="flex items-center gap-2">
+                <CheckCircleIcon className={`h-5 w-5 ${uploadStep === 'complete' ? 'text-green-500' : 'text-secondary-300'}`} />
+                <span className={uploadStep === 'complete' ? 'text-green-700 font-medium' : 'text-secondary-600'}>
+                  Upload complete!
+                </span>
+              </div>
+            </div>
+          </Card.Content>
+        </Card>
+      )}
 
       <form onSubmit={handleSubmit} className="space-y-6">
         {/* File Upload */}
@@ -238,15 +339,15 @@ const Upload = () => {
 
         {/* Submit */}
         <div className="flex justify-end gap-4">
-          <Button type="button" variant="outline">
-            Save Draft
+          <Button type="button" variant="outline" onClick={() => navigate(-1)}>
+            Cancel
           </Button>
           <Button 
             type="submit" 
             loading={uploading}
-            disabled={!formData.file || !formData.name || !formData.category}
+            disabled={!formData.file || !formData.name || !formData.category || !formData.price || uploading || uploadStep === 'complete'}
           >
-            {uploading ? 'Uploading...' : 'Upload Model'}
+            {uploading ? 'Uploading...' : uploadStep === 'complete' ? 'Upload Complete!' : 'Upload Model'}
           </Button>
         </div>
       </form>

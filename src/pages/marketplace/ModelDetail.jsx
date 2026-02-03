@@ -53,10 +53,14 @@ import Card from '../../components/ui/Card';
 import Badge from '../../components/ui/Badge';
 import Loading from '../../components/ui/Loading';
 import Input from '../../components/ui/Input';
+import { useModel } from '../../contexts/ModelContext';
+import { useWallet } from '../../contexts/WalletContext';
 
 const ModelDetail = () => {
   const { modelId } = useParams();
   const navigate = useNavigate();
+  const { models, getModelById } = useModel();
+  const { connected, address } = useWallet();
   
   // State management
   const [model, setModel] = useState(null);
@@ -71,145 +75,39 @@ const ModelDetail = () => {
   const [purchaseLoading, setPurchaseLoading] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState('pay-per-use');
 
-  // Load model data
+  // Load model data from context
   useEffect(() => {
     const loadModel = async () => {
       setIsLoading(true);
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      await new Promise(resolve => setTimeout(resolve, 300));
       
-      // Mock model data - in real app this would come from API
-      const mockModelData = {
-        id: modelId || 'gpt-4-turbo',
-        name: 'GPT-4 Turbo',
-        tagline: 'Most capable GPT-4 model with enhanced reasoning and multimodal capabilities',
-        description: 'GPT-4 Turbo is our most advanced system, producing safer and more useful responses. It can understand and generate human-like text, analyze images, and solve complex problems with greater accuracy than previous models.',
-        category: 'text-generation',
-        provider: {
-          id: 'openai',
-          name: 'OpenAI',
-          avatar: '🤖',
-          verified: true,
-          joinDate: '2015-12-11',
-          totalModels: 25,
-          followers: 125000,
-          website: 'https://openai.com',
-          description: 'OpenAI is an AI research and deployment company dedicated to ensuring that artificial general intelligence benefits all of humanity.'
-        },
-        stats: {
-          rating: 4.9,
-          reviews: 1250,
-          downloads: 890000,
-          favorites: 45600,
-          views: 2340000
-        },
-        pricing: {
-          payPerUse: { price: 0.03, unit: 'per 1K tokens', type: 'usage' },
-          subscription: { 
-            monthly: { price: 49, requests: 10000 },
-            yearly: { price: 490, requests: 120000, discount: 20 }
-          },
-          enterprise: { price: 'Custom', contact: true }
-        },
-        technical: {
-          modelType: 'Transformer',
-          parameters: '1.76T',
-          contextLength: '128K tokens',
-          languages: ['English', 'Spanish', 'French', 'German', 'Chinese', 'Japanese'],
-          modalities: ['Text', 'Images', 'Code'],
-          updateFrequency: 'Monthly',
-          apiVersion: 'v1.2.3'
-        },
-        features: [
-          'Advanced reasoning capabilities',
-          'Multimodal understanding (text + images)',
-          'Enhanced code generation',
-          'Improved mathematical problem solving',
-          'Better instruction following',
-          'Reduced hallucinations'
-        ],
-        useCases: [
-          'Content creation and editing',
-          'Code generation and debugging',
-          'Data analysis and visualization',
-          'Educational tutoring',
-          'Creative writing assistance',
-          'Research and summarization'
-        ],
-        blockchain: {
-          verified: true,
-          contractAddress: '0x742b4c4e55c8f1f4f3b3c6c8f7f8f9f0f1f2f3f4',
-          network: 'Polygon',
-          verificationDate: '2024-09-15',
-          ipfsHash: 'QmYwAPJzv5CZsnA8rnJnwdKDNq7VGz7w8Lz9Z3Z4Z5Z6Z7',
-          audits: [
-            { company: 'CertiK', date: '2024-09-10', status: 'Passed' },
-            { company: 'Quantstamp', date: '2024-09-05', status: 'Passed' }
-          ]
-        },
-        license: {
-          type: 'Custom Commercial',
-          permissions: ['Commercial Use', 'Distribution', 'Modification'],
-          limitations: ['Attribution Required', 'No Resale'],
-          url: 'https://openai.com/licenses/custom'
-        },
-        documentation: {
-          quickStart: 'Get started with GPT-4 Turbo in minutes using our simple API.',
-          apiReference: 'Complete API documentation with examples and use cases.',
-          examples: 'Explore pre-built examples and integrations.',
-          sdks: ['Python', 'Node.js', 'Java', 'PHP', 'Go']
-        },
-        tags: ['nlp', 'text-generation', 'multimodal', 'reasoning', 'gpt-4', 'openai'],
-        createdAt: '2024-03-15',
-        updatedAt: '2024-10-01',
-        isNew: false,
-        isHot: true,
-        isFeatured: true
-      };
-
-      const mockReviewsData = [
-        {
-          id: 1,
-          user: { name: 'Sarah Chen', avatar: '👩‍💻', verified: true },
-          rating: 5,
-          date: '2024-09-28',
-          comment: 'Incredible performance improvements over GPT-4. The reasoning capabilities are significantly better, especially for complex tasks.',
-          helpful: 45,
-          verified_purchase: true
-        },
-        {
-          id: 2,
-          user: { name: 'David Rodriguez', avatar: '👨‍🔬', verified: false },
-          rating: 5,
-          date: '2024-09-25',
-          comment: 'Game changer for our content creation workflow. The multimodal capabilities work seamlessly.',
-          helpful: 32,
-          verified_purchase: true
-        },
-        {
-          id: 3,
-          user: { name: 'Emily Johnson', avatar: '👩‍🎨', verified: true },
-          rating: 4,
-          date: '2024-09-20',
-          comment: 'Great model overall, but pricing could be more competitive for smaller teams.',
-          helpful: 18,
-          verified_purchase: true
-        }
-      ];
+      // Try to find model in context
+      const contextModel = getModelById ? getModelById(modelId) : models?.find(m => m.id === modelId);
       
-      setModel(mockModelData);
-      setReviews(mockReviewsData);
+      if (contextModel) {
+        setModel(contextModel);
+        setReviews(contextModel.reviews || []);
+      } else {
+        // Model not found - show empty state or placeholder
+        setModel({
+          id: modelId,
+          name: 'Model Not Found',
+          description: 'This model does not exist or has been removed from the marketplace.',
+          notFound: true
+        });
+      }
+      
       setIsLoading(false);
     };
 
     loadModel();
-  }, [modelId]);
+  }, [modelId, models, getModelById]);
 
   // Tab configuration
   const tabs = [
     { id: 'overview', name: 'Overview', icon: InformationCircleIcon },
     { id: 'docs', name: 'Documentation', icon: DocumentTextIcon },
-    { id: 'reviews', name: 'Reviews', icon: StarIcon, count: model?.stats.reviews },
+    { id: 'reviews', name: 'Reviews', icon: StarIcon, count: model?.stats?.reviews || 0 },
     { id: 'licensing', name: 'Licensing', icon: ScaleIcon }
   ];
 
@@ -227,9 +125,8 @@ const ModelDetail = () => {
       // Simulate purchase process
       await new Promise(resolve => setTimeout(resolve, 2000));
       // Redirect to success page or show success modal
-      console.log('Purchase successful');
     } catch (error) {
-      console.error('Purchase failed:', error);
+      // Purchase failed
     } finally {
       setPurchaseLoading(false);
     }

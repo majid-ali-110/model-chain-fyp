@@ -37,94 +37,17 @@ const Governance = () => {
   const [delegatedTo, setDelegatedTo] = useState('0x8a3f...4c2d');
   const [userVotes, setUserVotes] = useState({});
   const [isSubmittingVote, setIsSubmittingVote] = useState(false);
-  const [proposals, setProposals] = useState([
-    {
-      id: 1,
-      title: 'Reduce Model Listing Fee from 2% to 1%',
-      category: 'Fee Structure',
-      creator: '0x742d...891a',
-      timeRemaining: '3 days 14 hours',
-      votesYes: 850000,
-      votesNo: 390000,
-      votesAbstain: 65000,
-      quorumReached: true,
-      description: 'This proposal aims to reduce the platform listing fee from 2% to 1% to attract more AI model developers.',
-      discussionCount: 45,
-      trending: true
-    },
-    {
-      id: 2,
-      title: 'Implement AI Model Quality Verification System',
-      category: 'Platform Updates',
-      creator: '0x8a3f...4c2d',
-      timeRemaining: '5 days 8 hours',
-      votesYes: 1100000,
-      votesNo: 250000,
-      votesAbstain: 55000,
-      quorumReached: true,
-      description: 'Introduce a comprehensive quality verification system for all AI models uploaded.',
-      discussionCount: 78,
-      trending: true
-    },
-    {
-      id: 3,
-      title: 'Allocate 500K MCT for Developer Grants',
-      category: 'Treasury Management',
-      creator: '0x3f9a...12bc',
-      timeRemaining: '1 day 22 hours',
-      votesYes: 620000,
-      votesNo: 660000,
-      votesAbstain: 50000,
-      quorumReached: true,
-      description: 'Allocate 500,000 MCT tokens from the treasury to fund developer grants.',
-      discussionCount: 92
-    },
-    {
-      id: 4,
-      title: 'Add Support for Polygon Network',
-      category: 'Platform Updates',
-      creator: '0x5c8d...7e4f',
-      timeRemaining: '6 days 4 hours',
-      votesYes: 1640000,
-      votesNo: 320000,
-      votesAbstain: 40000,
-      quorumReached: true,
-      description: 'Expand platform compatibility by adding support for Polygon network.',
-      discussionCount: 56
-    },
-    {
-      id: 5,
-      title: 'Update Governance Voting Period to 10 Days',
-      category: 'Governance',
-      creator: '0x9b2e...3a1d',
-      timeRemaining: '4 days 12 hours',
-      votesYes: 880000,
-      votesNo: 650000,
-      votesAbstain: 70000,
-      quorumReached: true,
-      description: 'Extend the voting period from 7 days to 10 days to allow more participation.',
-      discussionCount: 34
-    },
-    {
-      id: 6,
-      title: 'Partnership with Chainlink for Oracle Services',
-      category: 'Platform Updates',
-      creator: '0x2a7c...5f8e',
-      timeRemaining: '2 days 11 hours',
-      votesYes: 1420000,
-      votesNo: 520000,
-      votesAbstain: 60000,
-      quorumReached: true,
-      description: 'Establish a partnership with Chainlink to integrate reliable oracle services.',
-      discussionCount: 67,
-      trending: true
-    }
-  ]);
+  
+  // Proposals - empty, will be populated from Governance contract
+  const [proposals, setProposals] = useState([]);
 
+  // User voting power - based on MCT token holdings (governance token)
+  // In production: tokens would come from checking user's MCT balance on blockchain
+  // Voting power = number of MCT tokens held
   const userVotingPower = {
-    tokens: 1250,
-    votingWeight: 0.15,
-    status: 'Active'
+    tokens: 0, // Will be populated from blockchain MCT token balance
+    votingWeight: 0,
+    status: 'No Tokens'
   };
 
   // Category definitions
@@ -159,20 +82,17 @@ const Governance = () => {
   });
 
   const statistics = [
-    { label: 'Total Token Holders', value: '12,450', icon: UsersIcon, color: 'cyan' },
-    { label: 'Active Voters', value: '8,920', subtitle: '71.6%', icon: CheckBadgeIcon, color: 'purple' },
-    { label: 'Treasury Balance', value: '$4.2M', icon: BanknotesIcon, color: 'pink' },
-    { label: 'Active Proposals', value: '6', icon: DocumentTextIcon, color: 'blue' },
-    { label: 'Proposals Passed', value: '18', subtitle: 'Last 30 days', icon: CheckCircleIcon, color: 'cyan' },
-    { label: 'Avg Voting Time', value: '5.2 days', icon: ClockIcon, color: 'purple' }
+    { label: 'Total Token Holders', value: '--', icon: UsersIcon, color: 'cyan' },
+    { label: 'Active Voters', value: '--', subtitle: '--', icon: CheckBadgeIcon, color: 'purple' },
+    { label: 'Treasury Balance', value: '--', icon: BanknotesIcon, color: 'pink' },
+    { label: 'Active Proposals', value: '0', icon: DocumentTextIcon, color: 'blue' },
+    { label: 'Proposals Passed', value: '0', subtitle: 'All time', icon: CheckCircleIcon, color: 'cyan' },
+    { label: 'Avg Voting Time', value: '--', icon: ClockIcon, color: 'purple' }
   ];
 
+  // Past proposals - would come from Governance contract events
   const pastProposals = [
-    { title: 'Implement Staking Rewards System', result: 'Passed', percentage: 89, status: 'Executed', color: 'green' },
-    { title: 'Increase Platform Fee to 3%', result: 'Failed', percentage: 23, status: 'Rejected', color: 'red' },
-    { title: 'Add Ethereum Layer 2 Support', result: 'Passed', percentage: 76, status: 'Executed', color: 'green' },
-    { title: 'Launch Bug Bounty Program', result: 'Passed', percentage: 91, status: 'Executed', color: 'green' },
-    { title: 'Remove Model Verification Requirements', result: 'Failed', percentage: 18, status: 'Rejected', color: 'red' }
+    // Empty - will be populated from blockchain
   ];
 
   const howItWorksSteps = [
@@ -417,11 +337,37 @@ const Governance = () => {
                 </button>
               );
             })}
-          </div>
         </div>
+      </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredProposals.map((proposal) => {
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {filteredProposals.length === 0 ? (
+          <div className="col-span-full">
+            <Card className="bg-gray-800/50 backdrop-blur-sm border-gray-700">
+              <div className="p-12 text-center">
+                <DocumentTextIcon className="h-16 w-16 text-gray-600 mx-auto mb-4" />
+                <h3 className="text-xl font-semibold text-white mb-2">No Proposals Found</h3>
+                <p className="text-gray-400 mb-6 max-w-md mx-auto">
+                  {selectedCategory === 'All' 
+                    ? 'There are currently no active proposals. Create the first proposal to get started.'
+                    : 'No proposals match your current category filter. Try selecting a different category.'}
+                </p>
+                <div className="bg-gray-900/50 border border-gray-700 rounded-lg p-4 max-w-lg mx-auto">
+                  <h4 className="text-sm font-medium text-white mb-2 flex items-center justify-center gap-2">
+                    <SparklesIcon className="h-4 w-4 text-cyan-400" />
+                    How Voting Power Works
+                  </h4>
+                  <p className="text-xs text-gray-400 text-left">
+                    Voting power is based on your MCT (ModelChain Token) holdings. Each MCT token equals one vote.
+                    You currently hold <span className="text-cyan-400 font-medium">0 MCT</span>, which means you have no voting power yet.
+                    Acquire MCT tokens to participate in governance.
+                  </p>
+                </div>
+              </div>
+            </Card>
+          </div>
+        ) : (
+          filteredProposals.map((proposal) => {
             const yesPercent = calculatePercentage(proposal.votesYes, proposal);
             const noPercent = calculatePercentage(proposal.votesNo, proposal);
             const abstainPercent = calculatePercentage(proposal.votesAbstain, proposal);
@@ -531,18 +477,17 @@ const Governance = () => {
                       className="gap-2 px-4 py-2.5"
                       disabled={userVotes[proposal.id] || isDelegated}
                     >
-                      <CheckCircleIcon className="h-4 w-4 flex-shrink-0" />
-                      <span className="whitespace-nowrap">{userVotes[proposal.id] ? 'Already Voted' : 'Vote Now'}</span>
-                    </Button>
-                  </div>
+                    <CheckCircleIcon className="h-4 w-4 flex-shrink-0" />
+                    <span className="whitespace-nowrap">{userVotes[proposal.id] ? 'Already Voted' : 'Vote Now'}</span>
+                  </Button>
                 </div>
-              </Card>
-            );
-          })}
-        </div>
-      </div>
-
-      <div className="container mx-auto px-6 py-16 bg-gray-800/30">
+              </div>
+            </Card>
+          );
+        })
+      )}
+    </div>
+  </div>      <div className="container mx-auto px-6 py-16 bg-gray-800/30">
         <h2 className="text-3xl font-bold mb-8 text-white">Governance Statistics</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {statistics.map((stat, index) => {

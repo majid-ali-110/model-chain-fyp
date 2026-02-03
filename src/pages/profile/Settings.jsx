@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   UserIcon,
   ShieldCheckIcon,
@@ -28,8 +29,16 @@ import Button from '../../components/ui/Button';
 import Input from '../../components/ui/Input';
 import Card from '../../components/ui/Card';
 import Badge from '../../components/ui/Badge';
+import { useWallet } from '../../contexts/WalletContext';
+import { useAuth } from '../../contexts/AuthContext';
+import { useUser } from '../../contexts/UserContext';
 
 const Settings = () => {
+  const navigate = useNavigate();
+  const { connected, address, balance, chainId } = useWallet();
+  const { isAuthenticated, user, logout } = useAuth();
+  const { profile } = useUser();
+  
   const [activeTab, setActiveTab] = useState('account');
   const [isLoading, setIsLoading] = useState(false);
   const [showCurrentPassword, setShowCurrentPassword] = useState(false);
@@ -59,57 +68,53 @@ const Settings = () => {
     compactMode: false
   });
 
-  // Mock user data
+  // User info from context
   const [userInfo, setUserInfo] = useState({
-    username: 'sarah_ai_dev',
-    email: 'sarah@example.com',
-    displayName: 'Sarah Chen',
-    bio: 'AI/ML Engineer passionate about democratizing AI technology',
-    location: 'San Francisco, CA',
-    website: 'https://sarahchen.dev',
-    joinedDate: '2024-01-15',
-    verified: true
+    username: profile?.username || '',
+    email: profile?.email || '',
+    displayName: profile?.name || user?.name || '',
+    bio: profile?.bio || '',
+    location: '',
+    website: profile?.social?.website || '',
+    joinedDate: profile?.joinedAt || new Date().toISOString(),
+    verified: false
   });
 
-  // Mock wallet data
-  const [walletInfo] = useState({
-    address: '0x742d35Cc6C4532B789FE2EAB4C8F5a7B8D8F4E3C',
-    balance: '1,250.45',
-    currency: 'MCT',
-    usdValue: '$3,751.35',
-    connectedWallets: [
-      { type: 'MetaMask', address: '0x742d35...4E3C', status: 'connected' },
-      { type: 'WalletConnect', address: '0x8A3B2C...9F1E', status: 'disconnected' }
-    ]
-  });
+  // Get network info
+  const getNetworkInfo = (chainId) => {
+    const networks = {
+      '1': { name: 'Ethereum', currency: 'ETH', isTestnet: false },
+      '137': { name: 'Polygon', currency: 'POL', isTestnet: false },
+      '80002': { name: 'Polygon Amoy', currency: 'POL', isTestnet: true },
+      '11155111': { name: 'Sepolia', currency: 'ETH', isTestnet: true },
+      '31337': { name: 'Localhost', currency: 'ETH', isTestnet: true },
+    };
+    return networks[chainId] || { name: 'Unknown', currency: 'ETH', isTestnet: true };
+  };
 
-  // Mock sessions data
-  const [activeSessions, setActiveSessions] = useState([
-    {
-      id: 1,
-      device: 'Chrome on Windows',
-      location: 'San Francisco, CA',
-      lastActive: '2025-10-03T10:30:00Z',
-      current: true,
-      ip: '192.168.1.100'
-    },
-    {
-      id: 2,
-      device: 'Safari on iPhone',
-      location: 'San Francisco, CA',
-      lastActive: '2025-10-02T15:45:00Z',
-      current: false,
-      ip: '10.0.0.50'
-    },
-    {
-      id: 3,
-      device: 'Firefox on Mac',
-      location: 'New York, NY',
-      lastActive: '2025-10-01T09:20:00Z',
-      current: false,
-      ip: '172.16.0.10'
+  const networkInfo = getNetworkInfo(chainId);
+
+  // Wallet info from context
+  const walletInfo = {
+    address: address || '',
+    balance: balance || '0',
+    currency: networkInfo.currency,
+    network: networkInfo.name,
+    isTestnet: networkInfo.isTestnet,
+    connectedWallets: address ? [
+      { type: 'MetaMask', address: `${address.slice(0, 6)}...${address.slice(-4)}`, status: 'connected' }
+    ] : []
+  };
+
+  // Active sessions - empty for now
+  const [activeSessions, setActiveSessions] = useState([]);
+
+  // Check authentication
+  useEffect(() => {
+    if (!connected || !isAuthenticated) {
+      navigate('/connect-wallet');
     }
-  ]);
+  }, [connected, isAuthenticated, navigate]);
 
   const tabs = [
     { id: 'account', label: 'Account', icon: UserIcon },
@@ -414,9 +419,9 @@ const Settings = () => {
         
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="p-4 bg-gray-800/50 rounded-lg">
-            <p className="text-sm text-gray-400">MCT Balance</p>
-            <p className="text-2xl font-bold text-white">{walletInfo.balance}</p>
-            <p className="text-sm text-gray-400">{walletInfo.usdValue}</p>
+            <p className="text-sm text-gray-400">{walletInfo.currency} Balance {walletInfo.isTestnet && <span className="text-xs text-yellow-500">(Testnet)</span>}</p>
+            <p className="text-2xl font-bold text-white">{walletInfo.balance} {walletInfo.currency}</p>
+            <p className="text-sm text-gray-400">{walletInfo.network}</p>
           </div>
           
           <div className="p-4 bg-gray-800/50 rounded-lg">

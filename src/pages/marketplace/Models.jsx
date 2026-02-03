@@ -9,12 +9,14 @@ import {
   StarIcon,
   AdjustmentsHorizontalIcon,
   PlayIcon,
-  CurrencyDollarIcon
+  CurrencyDollarIcon,
+  CubeIcon
 } from '@heroicons/react/24/outline';
 import { clsx } from 'clsx';
-import { dummyModels } from '../../data/dummyModels.jsx';
+import { useModel } from '../../contexts/ModelContext';
 
 const Models = () => {
+  const { models, categories } = useModel();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [minPrice, _setMinPrice] = useState(0);
@@ -22,33 +24,51 @@ const Models = () => {
   const [minRating, setMinRating] = useState(0);
   const [sortBy, setSortBy] = useState('popular'); // popular, newest, price-low, price-high
 
-  // Categories derived from models
-  const categories = ['all', ...new Set(dummyModels.map(model => model.category))].sort();
+  // Categories with "all" option
+  const allCategories = ['all', ...categories];
 
   // Filter and sort models
   const filteredModels = useMemo(() => {
-    return dummyModels.filter(model => {
-      const matchesSearch = model.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                          model.description.toLowerCase().includes(searchTerm.toLowerCase());
+    return models.filter(model => {
+      const matchesSearch = model.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                          model.description?.toLowerCase().includes(searchTerm.toLowerCase());
       const matchesCategory = selectedCategory === 'all' || model.category === selectedCategory;
-      const matchesPrice = model.price >= minPrice && model.price <= maxPrice;
-      const matchesRating = model.rating >= minRating;
+      const matchesPrice = (model.price || 0) >= minPrice && (model.price || 0) <= maxPrice;
+      const matchesRating = (model.rating || 0) >= minRating;
       
       return matchesSearch && matchesCategory && matchesPrice && matchesRating;
     }).sort((a, b) => {
       switch (sortBy) {
         case 'newest':
-          return new Date(b.lastUpdated) - new Date(a.lastUpdated);
+          return new Date(b.createdAt || 0) - new Date(a.createdAt || 0);
         case 'price-low':
-          return a.price - b.price;
+          return (a.price || 0) - (b.price || 0);
         case 'price-high':
-          return b.price - a.price;
+          return (b.price || 0) - (a.price || 0);
         case 'popular':
         default:
-          return b.downloads - a.downloads;
+          return (b.downloads || 0) - (a.downloads || 0);
       }
     });
-  }, [searchTerm, selectedCategory, minPrice, maxPrice, minRating, sortBy]);
+  }, [models, searchTerm, selectedCategory, minPrice, maxPrice, minRating, sortBy]);
+
+  // Empty state when no models
+  if (models.length === 0) {
+    return (
+      <div className="min-h-screen bg-background">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+          <div className="text-center">
+            <CubeIcon className="h-16 w-16 text-dark-text-muted mx-auto mb-4" />
+            <h2 className="text-2xl font-bold text-dark-text-primary mb-2">No Models Yet</h2>
+            <p className="text-dark-text-secondary mb-6">Be the first to upload a model to the marketplace!</p>
+            <Link to="/developer/upload">
+              <Button variant="primary">Upload Model</Button>
+            </Link>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background">
@@ -93,7 +113,7 @@ const Models = () => {
 
               {/* Categories */}
             <div className="flex flex-wrap gap-2">
-              {categories.map(category => (
+              {allCategories.map(category => (
                 <Button
                   key={category}
                   variant={selectedCategory === category ? 'primary' : 'outline'}

@@ -1,0 +1,71 @@
+@startuml Developer - Model Management
+
+title ModelChain - Developer Features
+
+skinparam actorStyle awesome
+skinparam backgroundColor white
+
+actor "Developer" as Dev
+actor "IPFS" as IPFS <<External>>
+actor "Blockchain" as BC <<External>>
+
+package "Model Upload & Setup" {
+  usecase "Upload Model" as UC42
+  usecase "Set Model Metadata" as UC43
+  usecase "Upload to IPFS" as UC44
+  usecase "Mint Model NFT" as UC45
+  usecase "Set Model Price" as UC46
+  usecase "Set License Terms" as UC47
+}
+
+package "Model Management" {
+  usecase "View My Models" as UC48
+  usecase "Edit Model Details" as UC49
+  usecase "Delist Model" as UC50
+  usecase "Update Model Version" as UC56
+}
+
+package "Analytics & Revenue" {
+  usecase "View Model Analytics" as UC51
+  usecase "Track Download Stats" as UC52
+  usecase "Track Revenue" as UC53
+  usecase "View Model Reviews" as UC54
+  usecase "Respond to Reviews" as UC55
+}
+
+Dev --> UC42
+Dev --> UC48
+Dev --> UC49
+Dev --> UC50
+Dev --> UC51
+Dev --> UC52
+Dev --> UC53
+Dev --> UC54
+Dev --> UC55
+Dev --> UC56
+
+UC42 --> UC43 : <<includes>>
+UC43 --> UC44 : <<includes>>
+UC44 ..> IPFS : uploads to
+UC44 --> UC45 : <<includes>>
+UC45 ..> BC : mints NFT
+UC43 --> UC46 : <<includes>>
+UC43 --> UC47 : <<includes>>
+
+note right of UC42
+  Complete upload flow:
+  1. Set metadata
+  2. Upload to IPFS
+  3. Mint NFT on blockchain
+  4. List in marketplace
+end note
+
+note right of UC51
+  Track:
+  - Downloads
+  - Revenue
+  - Ratings
+  - User feedback
+end note
+
+@enduml

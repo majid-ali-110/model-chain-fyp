@@ -55,6 +55,38 @@ const LineChart = ({
   const chartWidth = dimensions.width - margin.left - margin.right;
   const chartHeight = dimensions.height - margin.top - margin.bottom;
 
+  // Create smooth path for line - define before useMemo
+  const createSmoothPath = (points, useSmooth) => {
+    if (points.length === 0) return '';
+    
+    if (!useSmooth || points.length < 3) {
+      // Simple line path
+      return points.reduce((path, point, index) => {
+        return path + (index === 0 ? `M ${point.x} ${point.y}` : ` L ${point.x} ${point.y}`);
+      }, '');
+    }
+
+    // Smooth curve using quadratic Bézier curves
+    let path = `M ${points[0].x} ${points[0].y}`;
+    
+    for (let i = 1; i < points.length; i++) {
+      const curr = points[i];
+      const next = points[i + 1];
+      
+      if (next) {
+        const cpX = curr.x;
+        const cpY = curr.y;
+        const endX = (curr.x + next.x) / 2;
+        const endY = (curr.y + next.y) / 2;
+        path += ` Q ${cpX} ${cpY} ${endX} ${endY}`;
+      } else {
+        path += ` L ${curr.x} ${curr.y}`;
+      }
+    }
+    
+    return path;
+  };
+
   // Process data and create scales
   const { processedLines, xTicks, yTicks } = useMemo(() => {
     if (!data.length) return { processedLines: [], xTicks: [], yTicks: [] };
@@ -77,17 +109,26 @@ const LineChart = ({
       return acc;
     }, []);
     
+    if (allYValues.length === 0) return { processedLines: [], xTicks: [], yTicks: [] };
+    
     const yMin = Math.min(...allYValues);
     const yMax = Math.max(...allYValues);
     
-    // Add padding to y range
-    const yPadding = (yMax - yMin) * 0.1;
-    const adjustedYMin = yMin - yPadding;
-    const adjustedYMax = yMax + yPadding;
+    // Handle case where all values are the same (including all zeros)
+    const yRange = yMax - yMin;
+    const yPadding = yRange > 0 ? yRange * 0.1 : 1; // Use default padding of 1 if range is 0
+    const adjustedYMin = yRange > 0 ? yMin - yPadding : yMin - 0.5;
+    const adjustedYMax = yRange > 0 ? yMax + yPadding : yMax + 0.5;
 
     // Create scales
-    const xScale = (value) => ((value - xMin) / (xMax - xMin)) * chartWidth;
-    const yScale = (value) => chartHeight - ((value - adjustedYMin) / (adjustedYMax - adjustedYMin)) * chartHeight;
+    const xScale = (value) => {
+      const range = xMax - xMin;
+      return range > 0 ? ((value - xMin) / range) * chartWidth : chartWidth / 2;
+    };
+    const yScale = (value) => {
+      const range = adjustedYMax - adjustedYMin;
+      return range > 0 ? chartHeight - ((value - adjustedYMin) / range) * chartHeight : chartHeight / 2;
+    };
 
     // Generate tick values
     const xTickCount = Math.min(8, allXValues.length);
@@ -127,38 +168,6 @@ const LineChart = ({
 
     return { processedLines, xTicks, yTicks };
   }, [data, lines, xKey, yKey, colors, chartWidth, chartHeight, smooth]);
-
-  // Create smooth path for line
-  const createSmoothPath = (points, useSmooth) => {
-    if (points.length === 0) return '';
-    
-    if (!useSmooth || points.length < 3) {
-      // Simple line path
-      return points.reduce((path, point, index) => {
-        return path + (index === 0 ? `M ${point.x} ${point.y}` : ` L ${point.x} ${point.y}`);
-      }, '');
-    }
-
-    // Smooth curve using quadratic Bézier curves
-    let path = `M ${points[0].x} ${points[0].y}`;
-    
-    for (let i = 1; i < points.length; i++) {
-      const curr = points[i];
-      const next = points[i + 1];
-      
-      if (next) {
-        const cpX = curr.x;
-        const cpY = curr.y;
-        const endX = (curr.x + next.x) / 2;
-        const endY = (curr.y + next.y) / 2;
-        path += ` Q ${cpX} ${cpY} ${endX} ${endY}`;
-      } else {
-        path += ` L ${curr.x} ${curr.y}`;
-      }
-    }
-    
-    return path;
-  };
 
   // Handle mouse events
   const handleMouseMove = (event) => {
@@ -336,11 +345,13 @@ const LineChart = ({
           }, []);
           const yMin = Math.min(...allYValues);
           const yMax = Math.max(...allYValues);
-          const yPadding = (yMax - yMin) * 0.1;
+          const yRange = yMax - yMin;
+          const yPadding = yRange > 0 ? yRange * 0.1 : 0.5;
           const adjustedYMin = yMin - yPadding;
           const adjustedYMax = yMax + yPadding;
+          const adjustedRange = adjustedYMax - adjustedYMin;
           
-          const y = chartHeight - ((tick - adjustedYMin) / (adjustedYMax - adjustedYMin)) * chartHeight;
+          const y = adjustedRange > 0 ? chartHeight - ((tick - adjustedYMin) / adjustedRange) * chartHeight : chartHeight / 2;
           return (
             <text
               key={`ylabel-${index}`}
@@ -555,25 +566,6 @@ const LineChart = ({
       
       {renderLegend()}
       {renderTooltip()}
-
-      {/* Custom Styles */}
-      <style jsx>{`
-        .animate-draw path {
-          stroke-dasharray: 1000;
-          stroke-dashoffset: 1000;
-          animation: draw 2s ease-in-out forwards;
-        }
-        
-        @keyframes draw {
-          to {
-            stroke-dashoffset: 0;
-          }
-        }
-        
-        .hover\\:r-6:hover {
-          r: 6;
-        }
-      `}</style>
     </div>
   );
 };

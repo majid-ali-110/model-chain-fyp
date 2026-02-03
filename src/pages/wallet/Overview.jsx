@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import Card from '../../components/ui/Card';
 import Badge from '../../components/ui/Badge';
 import Button from '../../components/ui/Button';
+import { useWallet } from '../../contexts/WalletContext';
 import {
   WalletIcon,
   ArrowUpIcon,
@@ -13,57 +14,34 @@ import {
 
 const Overview = () => {
   const [_timeframe, _setTimeframe] = useState('7d');
+  const { balance, chainId } = useWallet();
 
-  const walletStats = {
-    balance: '15.2478 ETH',
-    usdValue: '$38,945.22',
-    pendingEarnings: '2.1 ETH',
-    totalEarnings: '47.8 ETH'
+  // Get network currency based on chainId
+  const getNetworkCurrency = (chainId) => {
+    const polygonChains = ['137', '80002', '80001'];
+    return polygonChains.includes(chainId) ? 'POL' : 'ETH';
   };
 
+  const currency = getNetworkCurrency(chainId);
+  const isTestnet = ['80002', '80001', '11155111', '31337'].includes(chainId);
+
+  const walletStats = {
+    balance: `${parseFloat(balance || '0').toFixed(4)} ${currency}`,
+    network: isTestnet ? 'Testnet' : 'Mainnet',
+    pendingEarnings: `0 ${currency}`,
+    totalEarnings: `0 ${currency}`
+  };
+
+  // Real transactions would come from blockchain events
   const recentTransactions = [
-    {
-      id: 1,
-      type: 'earn',
-      description: 'Model download: GPT-4 Clone',
-      amount: '+0.05 ETH',
-      user: 'alice.eth',
-      time: '2 hours ago',
-      status: 'completed'
-    },
-    {
-      id: 2,
-      type: 'withdraw',
-      description: 'Withdrawal to external wallet',
-      amount: '-2.0 ETH',
-      user: 'You',
-      time: '1 day ago',
-      status: 'completed'
-    },
-    {
-      id: 3,
-      type: 'earn',
-      description: 'Model download: Image Classifier',
-      amount: '+0.03 ETH',
-      user: 'bob.eth',
-      time: '2 days ago',
-      status: 'completed'
-    },
-    {
-      id: 4,
-      type: 'pending',
-      description: 'Validation reward',
-      amount: '+0.1 ETH',
-      user: 'System',
-      time: '3 days ago',
-      status: 'pending'
-    }
+    // Placeholder - in production, fetch from blockchain events
   ];
 
+  // Portfolio breakdown - in production, calculate from actual transaction history
   const portfolioBreakdown = [
-    { category: 'Model Sales', amount: '32.4 ETH', percentage: 68 },
-    { category: 'Validation Rewards', amount: '12.2 ETH', percentage: 25 },
-    { category: 'Staking Rewards', amount: '3.2 ETH', percentage: 7 }
+    { category: 'Model Sales', amount: `0 ${currency}`, percentage: 0 },
+    { category: 'Validation Rewards', amount: `0 ${currency}`, percentage: 0 },
+    { category: 'Staking Rewards', amount: `0 ${currency}`, percentage: 0 }
   ];
 
   const getTransactionIcon = (type) => {
@@ -111,7 +89,7 @@ const Overview = () => {
           <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
             <div className="text-center">
               <p className="text-3xl font-bold text-secondary-900">{walletStats.balance}</p>
-              <p className="text-lg text-secondary-600">{walletStats.usdValue}</p>
+              <p className="text-lg text-secondary-600">{walletStats.network}</p>
               <p className="text-sm text-secondary-500">Current Balance</p>
             </div>
             <div className="text-center">

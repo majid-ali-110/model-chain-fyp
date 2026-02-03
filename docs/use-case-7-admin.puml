@@ -1,0 +1,66 @@
+@startuml Admin - Platform Management
+
+title ModelChain - Admin Features
+
+skinparam actorStyle awesome
+skinparam backgroundColor white
+
+actor "Admin" as Admin
+actor "Blockchain" as BC <<External>>
+
+package "Platform Overview" {
+  usecase "View Platform Overview" as UC84
+  usecase "View Platform Statistics" as UC90
+  usecase "View Transaction Logs" as UC92
+}
+
+package "User Management" {
+  usecase "View All Users" as UC85
+  usecase "Manage User Roles" as UC86
+  usecase "Assign Validator Roles" as UC95
+}
+
+package "Content Moderation" {
+  usecase "View All Models" as UC87
+  usecase "Moderate Models" as UC88
+  usecase "Handle Reports" as UC89
+  usecase "View Validator Performance" as UC94
+}
+
+package "System Administration" {
+  usecase "Manage Platform Settings" as UC91
+  usecase "Emergency Pause Contract" as UC93
+}
+
+Admin --> UC84
+Admin --> UC85
+Admin --> UC86
+Admin --> UC87
+Admin --> UC88
+Admin --> UC89
+Admin --> UC90
+Admin --> UC91
+Admin --> UC92
+Admin --> UC93
+Admin --> UC94
+Admin --> UC95
+
+UC86 ..> BC : updates role
+UC93 ..> BC : emergency pause
+UC95 ..> BC : assigns role
+
+note right of UC93
+  Emergency controls
+  for critical issues
+  or security threats
+end note
+
+note right of UC84
+  Monitor:
+  - Total users
+  - Total models
+  - Transaction volume
+  - Platform health
+end note
+
+@enduml

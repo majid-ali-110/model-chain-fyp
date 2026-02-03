@@ -1,0 +1,1381 @@
+# ModelChain - Complete Use Case Documentation
+## Decentralized AI Model Marketplace
+
+---
+
+## PROJECT OVERVIEW
+ModelChain is a blockchain-based marketplace where developers can upload, license, and sell AI models as NFTs. The platform uses smart contracts for transparent ownership, trustless payments, and decentralized governance.
+
+**Technology Stack:**
+- Blockchain: Polygon Amoy Testnet
+- Storage: IPFS (Pinata)
+- Frontend: React + Vite
+- Smart Contracts: Solidity (Hardhat)
+- Authentication: Wallet-only (MetaMask, WalletConnect)
+
+---
+
+## ACTORS
+
+### 1. VISITOR (Unauthenticated)
+- Anyone browsing the platform without wallet connection
+- Limited access to public content only
+
+### 2. USER (Wallet Connected)
+- Basic authenticated user with wallet connected
+- Can purchase models, test in sandbox, view profile
+- Inherits: Visitor capabilities
+
+### 3. DEVELOPER (Model Creator)
+- Specialized user who creates and uploads AI models
+- Can earn from model sales and track analytics
+- Inherits: User capabilities
+
+### 4. VALIDATOR (Quality Checker)
+- Specialized user who validates model quality
+- Earns rewards for accurate validations
+- Inherits: User capabilities
+
+### 5. DAO MEMBER (Token Holder)
+- User with governance tokens (MCT)
+- Can create and vote on platform governance proposals
+- Inherits: User capabilities
+
+### 6. ADMIN (Platform Manager)
+- Platform administrator with full management access
+- Can moderate content, manage users, emergency controls
+- Inherits: User capabilities
+
+### 7. EXTERNAL SYSTEMS
+- MetaMask/WalletConnect (Wallet providers)
+- IPFS/Pinata (Decentralized storage)
+- Blockchain (Smart contract execution)
+
+---
+
+## USE CASES BY CATEGORY
+
+---
+
+## 1. AUTHENTICATION & WALLET MANAGEMENT (10 Use Cases)
+
+### UC1: Connect Wallet
+**Actor:** Visitor, User
+**Description:** User connects their Web3 wallet (MetaMask/WalletConnect) to authenticate
+**Preconditions:** User has a Web3 wallet installed
+**Flow:**
+1. User clicks "Connect Wallet" button
+2. System displays wallet provider selection modal
+3. User selects wallet provider (MetaMask/WalletConnect)
+4. Wallet prompts for connection approval
+5. User approves connection
+6. System verifies wallet signature with blockchain
+7. System checks if user is registered in UserRegistry contract
+8. If not registered: System displays onboarding modal (UC3)
+9. If registered: System loads user profile from IPFS
+10. System authenticates user and redirects to dashboard
+**Postconditions:** User is authenticated with wallet connected
+**Extensions:** 
+- If wallet not installed: Show installation guide
+- If wrong network: Prompt to switch to Polygon Amoy
+
+### UC2: Disconnect Wallet
+**Actor:** User
+**Description:** User disconnects their wallet and logs out
+**Preconditions:** User is connected
+**Flow:**
+1. User clicks disconnect/sign out
+2. System calls wallet disconnect
+3. System clears authentication state
+4. System redirects to connect wallet page
+**Postconditions:** User is logged out, wallet disconnected
+
+### UC3: Complete Onboarding
+**Actor:** New User
+**Description:** First-time user completes profile creation
+**Preconditions:** Wallet connected, not registered
+**Flow:**
+1. System detects new user (not in UserRegistry)
+2. System displays onboarding modal
+3. User enters display name, email (optional)
+4. User selects primary role (UC4)
+5. User uploads avatar (optional)
+6. User confirms profile data
+7. System uploads profile to IPFS via Pinata
+8. System calls UserRegistry.registerUser() on blockchain
+9. Transaction is mined on Polygon Amoy
+10. System stores IPFS hash in smart contract
+11. System displays success message
+12. System redirects based on role
+**Postconditions:** User profile created on blockchain and IPFS
+
+### UC4: Select User Role
+**Actor:** New User
+**Description:** User selects their primary role during onboarding
+**Preconditions:** Onboarding in progress
+**Options:**
+- Buyer (Role 0) - Purchase and use models
+- Developer (Role 1) - Upload and sell models
+- Validator (Role 2) - Validate model quality
+**Postconditions:** Role stored in UserRegistry contract
+
+### UC5: Create Profile
+**Actor:** New User
+**Description:** User creates blockchain profile
+**Included in:** UC3
+**Smart Contract:** UserRegistry.registerUser()
+
+### UC6: View Wallet Balance
+**Actor:** User
+**Description:** User views their POL/ETH balance
+**Preconditions:** Wallet connected
+**Display:** Shows balance in native currency (POL for Polygon)
+
+### UC7: View Transaction History
+**Actor:** User
+**Description:** User views their blockchain transaction history
+**Display:** Empty state (real data from blockchain coming soon)
+
+### UC8: Switch Network
+**Actor:** User
+**Description:** User switches blockchain network
+**Flow:**
+1. System detects current network from wallet
+2. If not Polygon Amoy: Show warning
+3. User clicks switch network
+4. Wallet prompts for network change
+5. System updates UI with new network info
+
+### UC9: Copy Wallet Address
+**Actor:** User
+**Description:** User copies their wallet address to clipboard
+**Flow:**
+1. User clicks copy address
+2. System copies address to clipboard
+3. System shows success notification
+
+### UC10: View on Block Explorer
+**Actor:** User
+**Description:** User opens their address in block explorer
+**Flow:**
+1. User clicks "View on Explorer"
+2. System opens PolygonScan in new tab
+3. User views their address transactions
+
+---
+
+## 2. MARKETPLACE & MODEL DISCOVERY (13 Use Cases)
+
+### UC11: Browse Models
+**Actor:** Visitor, User
+**Description:** Browse available AI models in marketplace
+**Preconditions:** None (public access)
+**Display:** Grid of model cards with previews
+**Current State:** Empty state (no models uploaded yet)
+
+### UC12: Search Models
+**Actor:** Visitor, User
+**Description:** Search models by name, description, tags
+**Input:** Search query text
+**Display:** Filtered results matching query
+
+### UC13: Filter by Category
+**Actor:** Visitor, User
+**Description:** Filter models by category (NLP, Computer Vision, etc.)
+**Options:**
+- All Categories
+- Natural Language Processing
+- Computer Vision
+- Audio Processing
+- Reinforcement Learning
+- Generative AI
+
+### UC14: Filter by Price
+**Actor:** Visitor, User
+**Description:** Filter models by price range
+**Input:** Min price, Max price in POL
+**Display:** Models within price range
+
+### UC15: Filter by Rating
+**Actor:** Visitor, User
+**Description:** Filter models by user rating
+**Input:** Minimum star rating (1-5)
+**Display:** Models with rating >= minimum
+
+### UC16: Sort Models
+**Actor:** Visitor, User
+**Description:** Sort models by various criteria
+**Options:**
+- Newest First
+- Oldest First
+- Price: Low to High
+- Price: High to Low
+- Rating: High to Low
+- Most Popular
+
+### UC17: View Model Details
+**Actor:** Visitor, User
+**Description:** View detailed information about a specific model
+**Preconditions:** Model exists
+**Display:**
+- Model name, description, category
+- Price, license type
+- Creator information
+- Upload date, file size
+- Compatibility (frameworks, versions)
+- Reviews and ratings
+- Sample inputs/outputs
+- Technical specifications
+
+### UC18: View Model Metadata
+**Actor:** Visitor, User
+**Description:** View model's technical metadata
+**Display:**
+- Model type (TensorFlow, PyTorch, ONNX)
+- Framework version
+- Input/output shapes
+- Parameters count
+- File format
+
+### UC19: View Model Reviews
+**Actor:** Visitor, User
+**Description:** Read reviews from users who purchased the model
+**Display:** List of reviews with ratings, comments, dates
+**Current State:** Empty (no reviews yet)
+
+### UC20: Purchase Model Access
+**Actor:** User (must be connected)
+**Description:** Buy access to a model using POL tokens
+**Preconditions:** Wallet connected, sufficient POL balance
+**Flow:**
+1. User clicks "Purchase Model"
+2. System displays purchase confirmation modal
+3. Shows price, gas fees estimate
+4. User confirms purchase
+5. System calls Marketplace.purchaseModel() on blockchain
+6. User approves transaction in wallet
+7. Transaction is mined
+8. Smart contract transfers POL to creator
+9. System grants download access
+10. System updates user's purchased models list
+11. System shows success notification
+**Postconditions:** User owns model access, can download
+**Smart Contract:** Marketplace.purchaseModel()
+
+### UC21: Download Model Files
+**Actor:** User (must own model)
+**Description:** Download model files after purchase
+**Preconditions:** User purchased model (UC20)
+**Flow:**
+1. User clicks "Download Model"
+2. System verifies ownership via smart contract
+3. System retrieves IPFS hash from ModelRegistry
+4. System fetches files from IPFS/Pinata
+5. Browser downloads model files (zip/tar)
+**Postconditions:** User has local copy of model
+
+### UC22: View Model License
+**Actor:** Visitor, User
+**Description:** View licensing terms for model usage
+**Display:**
+- License type (MIT, Apache, Commercial, Custom)
+- Usage rights
+- Restrictions
+- Attribution requirements
+
+### UC23: Check Model Compatibility
+**Actor:** Visitor, User
+**Description:** Check if model is compatible with user's environment
+**Display:**
+- Required Python/Node version
+- Framework dependencies
+- GPU requirements
+- OS compatibility
+
+---
+
+## 3. SANDBOX & MODEL TESTING (8 Use Cases)
+
+### UC24: Access Sandbox
+**Actor:** User
+**Description:** Navigate to sandbox environment for testing models
+**Preconditions:** Wallet connected
+**URL:** /sandbox
+
+### UC25: Load Model in Sandbox
+**Actor:** User
+**Description:** Load a purchased or demo model into sandbox
+**Preconditions:** User owns model OR model is demo
+**Flow:**
+1. User selects model from dropdown
+2. System loads model configuration
+3. System displays input panel with fields
+
+### UC26: Configure Input Parameters
+**Actor:** User
+**Description:** Set input parameters for model inference
+**Input Types:**
+- Text input (for NLP models)
+- Image upload (for vision models)
+- Audio upload (for audio models)
+- JSON parameters
+- Sliders for numerical values
+
+### UC27: Run Model Inference
+**Actor:** User
+**Description:** Execute model with configured inputs
+**Flow:**
+1. User configures inputs (UC26)
+2. User clicks "Run Model"
+3. System validates inputs
+4. System sends request to model API/container
+5. System executes inference
+6. System displays loading state
+7. Model processes inputs
+8. System receives results
+9. System displays output (UC28)
+
+### UC28: View Model Output
+**Actor:** User
+**Description:** View results from model inference
+**Display Formats:**
+- Text output (classifications, predictions)
+- Image output (generated images)
+- JSON output (structured data)
+- Visualizations (charts, graphs)
+- Confidence scores
+
+### UC29: Compare Model Performance
+**Actor:** User
+**Description:** Compare results from multiple models
+**Preconditions:** Multiple models loaded
+**Display:** Side-by-side comparison of outputs, metrics
+
+### UC30: Save Test Results
+**Actor:** User
+**Description:** Save test configuration and results
+**Flow:**
+1. User clicks "Save Results"
+2. System saves inputs, outputs, timestamp
+3. System stores in user's test history
+**Storage:** Local storage or IPFS
+
+### UC31: Share Test Configuration
+**Actor:** User
+**Description:** Share test setup with others via link
+**Flow:**
+1. User clicks "Share"
+2. System generates shareable link with parameters
+3. User copies link
+4. Others can load same configuration
+
+---
+
+## 4. USER PROFILE & DASHBOARD (10 Use Cases)
+
+### UC32: View Dashboard
+**Actor:** User
+**Description:** View personalized dashboard
+**Preconditions:** Wallet connected, authenticated
+**URL:** /dashboard
+**Display:**
+- Welcome message with user name
+- Wallet balance (POL)
+- Quick stats (models owned, earnings, activity)
+- Recent activity timeline
+- Usage statistics chart
+- Recommendations
+- Quick actions
+
+### UC33: View Profile
+**Actor:** User
+**Description:** View own or others' public profile
+**URL:** /profile or /profile/:userId
+**Display:**
+- Avatar, display name, wallet address
+- Role badge (Developer/Validator/Buyer)
+- Join date, reputation score
+- Bio/description
+- Links (website, social media)
+- Statistics (models created, validations done)
+- Activity feed
+
+### UC34: Edit Profile
+**Actor:** User
+**Description:** Update profile information
+**Flow:**
+1. User navigates to Settings
+2. User clicks "Edit Profile"
+3. User updates fields (name, email, avatar, bio)
+4. User clicks "Save Changes"
+5. System uploads new data to IPFS
+6. System updates profile hash in UserRegistry
+7. Transaction is mined
+8. System shows success notification
+**Smart Contract:** UserRegistry.updateProfile()
+
+### UC35: View Purchased Models
+**Actor:** User
+**Description:** View list of models user has purchased
+**URL:** /dashboard/models
+**Display:** Grid of owned models with download buttons
+**Current State:** Empty (no purchases yet)
+
+### UC36: View Usage Statistics
+**Actor:** User
+**Description:** View platform usage analytics
+**Display:**
+- API calls made
+- Models tested
+- Sandbox usage time
+- Chart showing usage over time
+**Chart:** LineChart component (7-day history)
+
+### UC37: View Recommendations
+**Actor:** User
+**Description:** See personalized model recommendations
+**Algorithm:** Based on purchased models, browsing history
+**Display:** Recommended models carousel
+
+### UC38: Manage Settings
+**Actor:** User
+**Description:** Configure account and platform settings
+**URL:** /settings
+**Settings:**
+- Profile (name, email, avatar)
+- Wallet (address, network)
+- Notifications (email, push preferences)
+- Privacy (profile visibility)
+- Security (2FA, backup codes)
+- Theme (dark/light mode)
+
+### UC39: View Notifications
+**Actor:** User
+**Description:** View platform notifications
+**URL:** /notifications
+**Types:**
+- Model purchase confirmations
+- Validation complete
+- Governance proposals
+- System announcements
+**Display:** List with timestamps, unread indicators
+
+### UC40: Mark Notifications Read
+**Actor:** User
+**Description:** Mark notifications as read
+**Flow:**
+1. User clicks notification
+2. System marks as read
+3. System removes unread badge
+4. System navigates to relevant page
+
+### UC41: View Activity History
+**Actor:** User
+**Description:** View timeline of user actions
+**Display:**
+- Purchases made
+- Models uploaded
+- Validations completed
+- Votes cast
+- Timestamps for all actions
+
+---
+
+## 5. DEVELOPER - MODEL MANAGEMENT (15 Use Cases)
+
+### UC42: Upload Model
+**Actor:** Developer
+**Description:** Upload a new AI model to marketplace
+**Preconditions:** User has developer role
+**URL:** /developer/upload
+**Flow:**
+1. Developer navigates to upload page
+2. Developer fills model metadata (UC43)
+3. Developer uploads model files (weights, config)
+4. System validates files (format, size)
+5. System uploads to IPFS (UC44)
+6. System mints NFT (UC45)
+7. System lists model in marketplace
+8. System shows success notification
+**Postconditions:** Model available in marketplace
+
+### UC43: Set Model Metadata
+**Actor:** Developer
+**Description:** Configure model information
+**Included in:** UC42
+**Fields:**
+- Model name (required)
+- Description (required)
+- Category (required)
+- Tags (optional)
+- Version (required)
+- Framework (TensorFlow, PyTorch, etc.)
+- Framework version
+- License type (UC47)
+- Price in POL (UC46)
+- Sample inputs/outputs
+- Documentation link
+
+### UC44: Upload to IPFS
+**Actor:** System (automatic)
+**Description:** Upload model files to IPFS via Pinata
+**Included in:** UC42
+**Flow:**
+1. System compresses model files
+2. System calls Pinata API
+3. Files uploaded to IPFS
+4. System receives IPFS hash (CID)
+5. Hash stored for blockchain transaction
+
+### UC45: Mint Model NFT
+**Actor:** System (automatic)
+**Description:** Create NFT representing model ownership
+**Included in:** UC42
+**Flow:**
+1. System calls ModelRegistry.registerModel()
+2. Smart contract mints NFT
+3. NFT assigned to developer's wallet
+4. Metadata (IPFS hash, price) stored on-chain
+5. Transaction mined on Polygon
+**Smart Contract:** ModelRegistry.registerModel()
+**Postconditions:** NFT minted, developer is owner
+
+### UC46: Set Model Price
+**Actor:** Developer
+**Description:** Set price for model access
+**Included in:** UC43
+**Input:** Price in POL tokens
+**Range:** 0 POL (free) to any amount
+**Validation:** Must be >= 0
+
+### UC47: Set License Terms
+**Actor:** Developer
+**Description:** Choose license for model usage
+**Included in:** UC43
+**Options:**
+- MIT License
+- Apache 2.0
+- GPL v3
+- Commercial License
+- Custom License (upload file)
+
+### UC48: View My Models
+**Actor:** Developer
+**Description:** View list of uploaded models
+**URL:** /developer/models
+**Display:**
+- Grid/list of developer's models
+- Model status (pending validation, approved, rejected)
+- Stats (downloads, revenue, ratings)
+- Edit and delete actions
+**Current State:** Empty (no models uploaded)
+
+### UC49: Edit Model Details
+**Actor:** Developer
+**Description:** Update model information
+**Flow:**
+1. Developer clicks "Edit" on model
+2. System loads current metadata
+3. Developer updates fields
+4. Developer clicks "Save"
+5. System updates IPFS metadata
+6. System updates ModelRegistry
+7. Transaction is mined
+**Smart Contract:** ModelRegistry.updateModel()
+
+### UC50: Delist Model
+**Actor:** Developer
+**Description:** Remove model from marketplace
+**Flow:**
+1. Developer clicks "Delist Model"
+2. System shows confirmation dialog
+3. Developer confirms
+4. System calls ModelRegistry.delistModel()
+5. Transaction is mined
+6. Model hidden from marketplace
+**Smart Contract:** ModelRegistry.delistModel()
+**Note:** Existing owners retain access
+
+### UC51: View Model Analytics
+**Actor:** Developer
+**Description:** View detailed analytics for a model
+**URL:** /developer/analytics/:modelId
+**Display:**
+- Downloads count
+- Revenue generated
+- Views count
+- Ratings distribution
+- Geographic data
+- Time-series charts
+- Conversion rate
+
+### UC52: Track Download Stats
+**Actor:** Developer
+**Description:** Monitor model download metrics
+**Included in:** UC51
+**Metrics:**
+- Total downloads
+- Unique users
+- Downloads over time (chart)
+- Peak download times
+
+### UC53: Track Revenue
+**Actor:** Developer
+**Description:** Monitor earnings from model sales
+**Included in:** UC51
+**Metrics:**
+- Total revenue (POL)
+- Revenue over time (chart)
+- Average sale price
+- Top-selling period
+
+### UC54: View Model Reviews
+**Actor:** Developer
+**Description:** Read reviews for their models
+**Display:** List of reviews with ratings, comments
+**Current State:** Empty (no reviews yet)
+
+### UC55: Respond to Reviews
+**Actor:** Developer
+**Description:** Reply to user reviews
+**Flow:**
+1. Developer reads review
+2. Developer clicks "Respond"
+3. Developer writes response
+4. Developer submits
+5. System posts response
+6. Buyer receives notification
+
+### UC56: Update Model Version
+**Actor:** Developer
+**Description:** Release new version of existing model
+**Flow:**
+1. Developer clicks "New Version"
+2. Developer uploads new files
+3. Developer updates version number
+4. Developer adds changelog
+5. System uploads to IPFS
+6. System updates ModelRegistry
+7. Existing owners notified of update
+
+---
+
+## 6. VALIDATOR - QUALITY ASSURANCE (15 Use Cases)
+
+### UC57: View Validation Queue
+**Actor:** Validator
+**Description:** View models pending validation
+**Preconditions:** User has validator role
+**URL:** /validator/dashboard
+**Display:**
+- List of unvalidated models
+- Model details (name, developer, category)
+- Priority/urgency indicators
+- Claimed validations
+
+### UC58: Select Model to Validate
+**Actor:** Validator
+**Description:** Choose a model for validation
+**Flow:**
+1. Validator views validation queue (UC57)
+2. Validator clicks "Validate" on a model
+3. System checks if already claimed
+4. If available: System assigns to validator
+5. System marks as "In Progress"
+6. System navigates to validation interface
+
+### UC59: Download Model for Testing
+**Actor:** Validator
+**Description:** Download model files for local testing
+**Included in:** UC58
+**Flow:**
+1. System retrieves IPFS hash
+2. System downloads from IPFS/Pinata
+3. Files saved locally for testing
+
+### UC60: Run Validation Tests
+**Actor:** Validator
+**Description:** Execute standardized tests on model
+**Tests:**
+- File integrity check
+- Format validation
+- Performance benchmarks
+- Security scan (malware, backdoors)
+- Input/output correctness
+- Documentation quality
+- License compliance
+
+### UC61: Check Model Quality
+**Actor:** Validator
+**Description:** Assess model quality metrics
+**Included in:** UC60
+**Metrics:**
+- Accuracy/performance scores
+- Code quality
+- Documentation completeness
+- Security vulnerabilities
+- Adherence to guidelines
+
+### UC62: Submit Validation Report
+**Actor:** Validator
+**Description:** Submit validation results
+**Flow:**
+1. Validator completes tests (UC60, UC61)
+2. Validator fills report form
+3. Validator writes findings/comments
+4. Validator selects outcome (approve/reject)
+5. Validator submits report
+6. System uploads report to IPFS
+7. System records on blockchain
+8. Developer notified of results
+
+### UC63: Approve Model
+**Actor:** Validator
+**Description:** Approve model for marketplace listing
+**Extends:** UC62
+**Flow:**
+1. Validator selects "Approve"
+2. System calls Validation contract
+3. Model status changed to "Approved"
+4. Model visible in marketplace
+5. Validator earns rewards
+**Smart Contract:** ValidationContract.approveModel()
+
+### UC64: Reject Model
+**Actor:** Validator
+**Description:** Reject model due to quality issues
+**Extends:** UC62
+**Flow:**
+1. Validator selects "Reject"
+2. Validator provides rejection reasons
+3. System calls Validation contract
+4. Model status changed to "Rejected"
+5. Developer notified with feedback
+6. Model hidden from marketplace
+**Smart Contract:** ValidationContract.rejectModel()
+
+### UC65: View Validation History
+**Actor:** Validator
+**Description:** View past validations performed
+**URL:** /validator/dashboard
+**Display:**
+- List of validated models
+- Validation dates
+- Outcomes (approved/rejected)
+- Rewards earned
+
+### UC66: View Validator Dashboard
+**Actor:** Validator
+**Description:** View validator performance dashboard
+**URL:** /validator/dashboard
+**Display:**
+- Total validations: 0
+- Approvals: 0, Rejections: 0
+- Accuracy rate: --
+- Total rewards earned: 0 POL
+- Current reputation score: --
+- Recent validations list
+**Current State:** All zeros (no validations yet)
+
+### UC67: Track Validation Stats
+**Actor:** Validator
+**Description:** Monitor validation performance metrics
+**Included in:** UC66
+**Metrics:**
+- Validations this month
+- Average validation time
+- Accuracy (correct assessments)
+- Disagreement rate with other validators
+
+### UC68: View Earned Rewards
+**Actor:** Validator
+**Description:** View validation rewards earned
+**Display:**
+- Total POL earned
+- Rewards per validation
+- Pending rewards
+- Claimed rewards history
+
+### UC69: Claim Validation Rewards
+**Actor:** Validator
+**Description:** Withdraw earned validation rewards
+**Flow:**
+1. Validator views unclaimed rewards
+2. Validator clicks "Claim Rewards"
+3. System calls Validation contract
+4. Smart contract transfers POL to validator
+5. Transaction is mined
+6. Validator receives tokens
+7. System updates rewards balance
+**Smart Contract:** ValidationContract.claimRewards()
+
+### UC70: View Validator Leaderboard
+**Actor:** Validator, Visitor
+**Description:** View top validators by performance
+**URL:** /validator/leaderboard
+**Display:**
+- Ranked list of validators
+- Validation counts
+- Accuracy rates
+- Total rewards earned
+- Reputation scores
+
+### UC71: View Reputation Score
+**Actor:** Validator
+**Description:** View validator reputation/credibility score
+**Algorithm:** Based on validation accuracy, quantity, community feedback
+**Display:** Score out of 100, badge level
+**Current State:** -- (no validations yet)
+
+---
+
+## 7. GOVERNANCE & DAO (12 Use Cases)
+
+### UC72: View Proposals
+**Actor:** User, DAO Member
+**Description:** View active governance proposals
+**URL:** /governance
+**Display:**
+- List of proposals (active, passed, rejected)
+- Proposal titles, categories
+- Vote counts, time remaining
+- Status indicators
+**Current State:** Empty (no proposals created)
+
+### UC73: Filter Proposals by Status
+**Actor:** User, DAO Member
+**Description:** Filter proposals by status
+**Options:**
+- All Proposals
+- Active (voting in progress)
+- Passed (approved)
+- Rejected (failed)
+- Executed (implemented)
+
+### UC74: Filter Proposals by Category
+**Actor:** User, DAO Member
+**Description:** Filter by proposal category
+**Categories:**
+- All
+- Fee Structure
+- Platform Updates
+- Treasury Management
+- Governance Rules
+- Validator Policies
+
+### UC75: View Proposal Details
+**Actor:** User, DAO Member
+**Description:** View full proposal information
+**Display:**
+- Proposal title, description
+- Creator, creation date
+- Category, status
+- Voting results (Yes/No/Abstain percentages)
+- Vote counts (in MCT tokens)
+- Discussion/comments
+- Voting deadline
+- Execution timeline if passed
+
+### UC76: Create New Proposal
+**Actor:** DAO Member (with tokens)
+**Description:** Submit new governance proposal
+**Preconditions:** User holds minimum MCT tokens
+**Flow:**
+1. User clicks "Create Proposal"
+2. System checks token balance
+3. If insufficient: Show error
+4. User fills proposal form:
+   - Title
+   - Description
+   - Category
+   - Proposed changes
+   - Implementation plan
+5. User submits proposal
+6. System calls Governance contract
+7. Transaction is mined
+8. Proposal created with unique ID
+9. Community notified
+**Smart Contract:** Governance.createProposal()
+**Current State:** Feature available but token requirement applies
+
+### UC77: Vote on Proposal
+**Actor:** DAO Member (with tokens)
+**Description:** Cast vote on active proposal
+**Preconditions:** 
+- User holds MCT tokens
+- Proposal is active
+- User hasn't voted yet
+**Flow:**
+1. User views proposal (UC75)
+2. User clicks "Vote"
+3. System displays voting modal
+4. User selects: Yes / No / Abstain
+5. User confirms vote
+6. System calls Governance contract
+7. Vote weighted by MCT token holdings
+8. Transaction is mined
+9. Vote recorded on blockchain
+10. Proposal vote counts updated
+**Smart Contract:** Governance.vote()
+**Voting Power:** 1 MCT token = 1 vote
+**Current State:** User has 0 MCT = no voting power
+
+### UC78: Delegate Voting Power
+**Actor:** DAO Member
+**Description:** Delegate voting power to another address
+**Flow:**
+1. User clicks "Delegate Votes"
+2. User enters delegate address
+3. User confirms delegation
+4. System calls Governance contract
+5. Voting power transferred to delegate
+6. Delegate can vote with combined power
+**Smart Contract:** Governance.delegate()
+
+### UC79: View Voting Results
+**Actor:** User, DAO Member
+**Description:** View real-time or final voting results
+**Display:**
+- Yes votes: X MCT (Y%)
+- No votes: X MCT (Y%)
+- Abstain: X MCT (Y%)
+- Progress bars with percentages
+- Quorum status
+- Passing threshold indicator
+
+### UC80: View Governance Stats
+**Actor:** User, DAO Member
+**Description:** View platform governance statistics
+**Display:**
+- Total proposals created: 0
+- Active proposals: 0
+- Total votes cast: 0
+- Treasury balance: 0 POL
+- Token holders: 0
+- Participation rate: --%
+**Current State:** All zeros (no governance activity)
+
+### UC81: View Treasury Balance
+**Actor:** User, DAO Member
+**Description:** View DAO treasury holdings
+**Display:**
+- Total POL in treasury: 0
+- Token holdings
+- Asset allocation breakdown
+**Current State:** 0 POL treasury
+
+### UC82: View Voting History
+**Actor:** DAO Member
+**Description:** View own voting history
+**Display:**
+- Proposals voted on
+- Vote choices (Yes/No/Abstain)
+- Voting power used
+- Timestamps
+
+### UC83: Comment on Proposal
+**Actor:** DAO Member
+**Description:** Participate in proposal discussion
+**Flow:**
+1. User views proposal
+2. User scrolls to discussion section
+3. User writes comment
+4. User submits
+5. Comment posted with timestamp
+6. Other users can reply
+
+---
+
+## 8. ADMIN - PLATFORM MANAGEMENT (12 Use Cases)
+
+### UC84: View Platform Overview
+**Actor:** Admin
+**Description:** View high-level platform statistics
+**URL:** /admin/overview
+**Display:**
+- Total users count
+- Total models count
+- Total transactions volume
+- Platform revenue
+- Active validators
+- Governance proposals count
+- System health indicators
+
+### UC85: View All Users
+**Actor:** Admin
+**Description:** View list of all registered users
+**Display:**
+- User addresses
+- Display names
+- Roles (Buyer/Developer/Validator)
+- Join dates
+- Activity status
+- Reputation scores
+
+### UC86: Manage User Roles
+**Actor:** Admin
+**Description:** Assign or revoke user roles
+**Flow:**
+1. Admin selects user
+2. Admin clicks "Manage Roles"
+3. Admin selects role to assign/revoke
+4. Admin confirms action
+5. System calls UserRegistry contract
+6. Role updated on blockchain
+7. User notified of change
+**Smart Contract:** UserRegistry.updateUserRole()
+
+### UC87: View All Models
+**Actor:** Admin
+**Description:** View all models on platform
+**Display:**
+- All models (pending, approved, rejected, delisted)
+- Model details, creators
+- Status, timestamps
+- Filter and search tools
+
+### UC88: Moderate Models
+**Actor:** Admin
+**Description:** Review and moderate model content
+**Actions:**
+- Force approve model
+- Force reject model
+- Hide model temporarily
+- Request revalidation
+- Delete model (extreme cases)
+
+### UC89: Handle Reports
+**Actor:** Admin
+**Description:** Review user reports and complaints
+**Types:**
+- Inappropriate model content
+- Copyright violations
+- User misconduct
+- System abuse
+- Security issues
+**Actions:**
+- Investigate report
+- Take corrective action
+- Respond to reporter
+- Close report
+
+### UC90: View Platform Statistics
+**Actor:** Admin
+**Description:** View detailed platform analytics
+**Metrics:**
+- User growth over time
+- Model uploads over time
+- Transaction volume
+- Revenue breakdown
+- Geographic distribution
+- Active users (DAU, MAU)
+- Retention rates
+
+### UC91: Manage Platform Settings
+**Actor:** Admin
+**Description:** Configure platform parameters
+**Settings:**
+- Minimum model price
+- Validation requirements
+- Governance parameters
+- Fee percentages
+- Token economics
+- Security settings
+
+### UC92: View Transaction Logs
+**Actor:** Admin
+**Description:** View all blockchain transactions
+**Display:**
+- Transaction hashes
+- Types (purchase, validation, governance)
+- Amounts, gas fees
+- Timestamps
+- Success/failure status
+- User addresses involved
+
+### UC93: Emergency Pause Contract
+**Actor:** Admin
+**Description:** Pause smart contract in emergency
+**Use Case:** Security breach, critical bug discovered
+**Flow:**
+1. Admin detects critical issue
+2. Admin clicks "Emergency Pause"
+3. System requires multiple admin signatures
+4. Admin confirms with wallet
+5. System calls contract pause function
+6. All contract functions disabled
+7. Users notified of pause
+8. Investigation begins
+**Smart Contract:** Pausable contracts
+**Note:** Requires owner/admin privileges
+
+### UC94: View Validator Performance
+**Actor:** Admin
+**Description:** Monitor validator metrics
+**Display:**
+- Validator addresses
+- Validations completed
+- Accuracy rates
+- Average validation times
+- Reward earnings
+- Disputes/appeals
+
+### UC95: Assign Validator Roles
+**Actor:** Admin
+**Description:** Grant validator role to users
+**Flow:**
+1. Admin reviews validator application
+2. Admin verifies credentials
+3. Admin approves application
+4. System calls UserRegistry contract
+5. Validator role assigned
+6. User can start validating
+**Smart Contract:** UserRegistry.assignValidator()
+
+---
+
+## 9. DOCUMENTATION & SUPPORT (10 Use Cases)
+
+### UC96: View API Documentation
+**Actor:** Visitor, Developer
+**Description:** Access API documentation
+**URL:** /docs/api
+**Content:**
+- REST API endpoints
+- Authentication methods
+- Request/response formats
+- Code examples (curl, Python, JS)
+- Rate limits
+- Error codes
+- Webhook documentation
+
+### UC97: View SDK Tools
+**Actor:** Visitor, Developer
+**Description:** Access SDK documentation and downloads
+**URL:** /docs/sdk
+**Content:**
+- JavaScript SDK documentation
+- Python SDK documentation
+- Installation instructions
+- Code examples
+- CLI tools documentation
+- Integration guides
+
+### UC98: View Validation Guidelines
+**Actor:** Validator
+**Description:** Read model validation standards
+**URL:** /docs/validation
+**Content:**
+- Validation checklist
+- Quality criteria
+- Security requirements
+- Testing procedures
+- Reporting format
+- Best practices
+
+### UC99: View Node Setup Guide
+**Actor:** Developer, Validator
+**Description:** Learn how to set up infrastructure nodes
+**URL:** /docs/node-setup
+**Content:**
+- System requirements
+- Installation steps
+- Configuration files
+- Network settings
+- Troubleshooting
+- Maintenance tips
+
+### UC100: Read Terms of Service
+**Actor:** Visitor, User
+**Description:** View platform terms and conditions
+**URL:** /terms
+**Content:**
+- User obligations
+- Platform rules
+- Content policies
+- Dispute resolution
+- Liability limitations
+- Termination clauses
+
+### UC101: Read Privacy Policy
+**Actor:** Visitor, User
+**Description:** View privacy policy and data handling
+**URL:** /privacy
+**Content:**
+- Data collection practices
+- Wallet address handling
+- IPFS storage details
+- Third-party services
+- User rights (GDPR)
+- Data retention
+
+### UC102: Read Security Policy
+**Actor:** Visitor, User
+**Description:** View security practices and disclosure policy
+**URL:** /security
+**Content:**
+- Smart contract audits
+- Security measures
+- Vulnerability disclosure
+- Bug bounty program
+- Best practices for users
+- Incident response
+
+### UC103: View FAQ
+**Actor:** Visitor, User
+**Description:** Browse frequently asked questions
+**URL:** /faq
+**Categories:**
+- Getting Started
+- Wallet Connection
+- Buying Models
+- Selling Models
+- Validation Process
+- Governance
+- Troubleshooting
+
+### UC104: Contact Support
+**Actor:** Visitor, User
+**Description:** Submit support request
+**URL:** /contact or /support
+**Flow:**
+1. User fills support form
+2. User enters name, email, subject
+3. User describes issue
+4. User attaches screenshots (optional)
+5. User submits form
+6. System creates support ticket
+7. User receives confirmation email
+8. Support team responds
+
+### UC105: View About Page
+**Actor:** Visitor, User
+**Description:** Learn about ModelChain platform
+**URL:** /about
+**Content:**
+- Platform mission and vision
+- How it works
+- Technology stack
+- Team information
+- Roadmap
+- Contact information
+
+---
+
+## SMART CONTRACT INTERACTIONS
+
+### Deployed Contracts (Polygon Amoy Testnet):
+
+1. **UserRegistry** (0x88B072E8d297888a0099d687d238135b481E307D)
+   - registerUser()
+   - updateProfile()
+   - getUserProfile()
+   - updateUserRole()
+
+2. **ModelRegistry** (0x276BBe55C5163a3a7aD3057b35169eCcc344a5AC)
+   - registerModel()
+   - updateModel()
+   - delistModel()
+   - getModelInfo()
+
+3. **Marketplace** (0x7e77a578Ad335D2a8459324d91d0a73d1E680b91)
+   - purchaseModel()
+   - checkOwnership()
+   - withdrawEarnings()
+
+4. **Governance** (0xfD1907A8B9Bb163dbbfaf656e1113565BaABe0AE)
+   - createProposal()
+   - vote()
+   - delegate()
+   - executeProposal()
+
+---
+
+## EXTERNAL INTEGRATIONS
+
+### 1. IPFS/Pinata
+- Upload model files
+- Store user profiles
+- Fetch model metadata
+- Store validation reports
+
+### 2. MetaMask/WalletConnect
+- Wallet connection
+- Transaction signing
+- Network switching
+- Account management
+
+### 3. Polygon Blockchain
+- Smart contract execution
+- Transaction confirmation
+- Event listening
+- Balance queries
+
+---
+
+## USER ROLES MATRIX
+
+| Use Case Category | Visitor | User | Developer | Validator | DAO | Admin |
+|-------------------|---------|------|-----------|-----------|-----|-------|
+| Authentication | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
+| Browse Marketplace | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
+| Purchase Models | ✗ | ✓ | ✓ | ✓ | ✓ | ✓ |
+| Test in Sandbox | ✗ | ✓ | ✓ | ✓ | ✓ | ✓ |
+| Upload Models | ✗ | ✗ | ✓ | ✗ | ✗ | ✓ |
+| Validate Models | ✗ | ✗ | ✗ | ✓ | ✗ | ✓ |
+| Create Proposals | ✗ | ✗ | ✗ | ✗ | ✓ | ✓ |
+| Vote on Proposals | ✗ | ✗ | ✗ | ✗ | ✓ | ✓ |
+| Platform Moderation | ✗ | ✗ | ✗ | ✗ | ✗ | ✓ |
+| Documentation | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
+
+---
+
+## CURRENT PROJECT STATE
+
+### ✅ Implemented Features:
+- Wallet-only authentication (MetaMask, WalletConnect)
+- User onboarding with role selection
+- Smart contract integration (all 4 contracts deployed)
+- IPFS storage integration via Pinata
+- Empty marketplace (ready for models)
+- Empty dashboard (showing real wallet data)
+- Governance page (empty proposals, voting system ready)
+- Validator dashboard (ready for validations)
+- Developer upload page (functional)
+- Sandbox environment (basic setup)
+- Profile management
+- Settings page
+- Documentation pages
+- Legal pages
+
+### 🚧 In Progress:
+- Model upload and listing flow
+- Model validation workflow
+- Governance token (MCT) distribution
+- Rewards distribution system
+
+### 📋 Future Enhancements:
+- Real model purchases
+- Review and rating system
+- Advanced analytics
+- Mobile app
+- API for developers
+- Additional blockchain networks
+
+---
+
+## NOTES
+
+- All monetary values in POL (Polygon native token)
+- Empty states shown throughout (no fake/demo data)
+- Real blockchain integration (Polygon Amoy Testnet)
+- Decentralized storage via IPFS/Pinata
+- No centralized authentication (wallet-only)
+- DAO governance ready (awaiting token distribution)
+
+---
+
+**Document Version:** 1.0
+**Last Updated:** February 3, 2026
+**Total Use Cases:** 105
+**Actors:** 7 (including external systems)

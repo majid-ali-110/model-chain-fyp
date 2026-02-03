@@ -1,0 +1,62 @@
+@startuml ModelChain Use Case Overview
+
+title ModelChain - System Overview
+
+skinparam actorStyle awesome
+skinparam backgroundColor white
+
+actor "Visitor" as Visitor
+actor "User" as User
+actor "Developer" as Developer
+actor "Validator" as Validator
+actor "DAO Member" as DAO
+actor "Admin" as Admin
+
+actor "Blockchain" as BC <<External>>
+actor "IPFS" as IPFS <<External>>
+
+package "Core System" {
+  usecase "Authentication" as Auth
+  usecase "Marketplace" as Market
+  usecase "Model Management" as Models
+  usecase "Validation" as Valid
+  usecase "Governance" as Gov
+  usecase "Platform Admin" as PAdmin
+}
+
+Visitor --> Auth
+Visitor --> Market : Browse
+
+User --|> Visitor
+User --> Market : Purchase
+User --> Models : Use
+
+Developer --|> User
+Developer --> Models : Upload
+
+Validator --|> User
+Validator --> Valid
+
+DAO --|> User
+DAO --> Gov
+
+Admin --|> User
+Admin --> PAdmin
+
+Auth ..> BC
+Market ..> BC
+Models ..> IPFS
+Models ..> BC
+Valid ..> BC
+Gov ..> BC
+
+note right of BC
+  Polygon Amoy Testnet
+  Smart Contracts:
+  - UserRegistry: 0x88B0...0b0D
+  - ModelRegistry: 0x276B...a5AC
+  - Marketplace: 0x7e77...0b91
+  - Governance: 0xfD19...e0AE
+end note
+
+@enduml

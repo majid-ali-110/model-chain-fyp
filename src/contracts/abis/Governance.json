@@ -1,0 +1,243 @@
+{
+  "abi": [
+    {
+      "inputs": [],
+      "stateMutability": "nonpayable",
+      "type": "constructor"
+    },
+    {
+      "inputs": [
+        { "internalType": "uint256", "name": "lockPeriod", "type": "uint256" }
+      ],
+      "name": "stake",
+      "outputs": [],
+      "stateMutability": "payable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        { "internalType": "uint256", "name": "amount", "type": "uint256" }
+      ],
+      "name": "unstake",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        { "internalType": "string", "name": "title", "type": "string" },
+        { "internalType": "string", "name": "description", "type": "string" },
+        { "internalType": "string", "name": "ipfsHash", "type": "string" },
+        { "internalType": "uint8", "name": "proposalType", "type": "uint8" },
+        { "internalType": "address[]", "name": "targets", "type": "address[]" },
+        { "internalType": "bytes[]", "name": "calldatas", "type": "bytes[]" }
+      ],
+      "name": "createProposal",
+      "outputs": [
+        { "internalType": "uint256", "name": "", "type": "uint256" }
+      ],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        { "internalType": "uint256", "name": "proposalId", "type": "uint256" },
+        { "internalType": "uint8", "name": "voteType", "type": "uint8" }
+      ],
+      "name": "castVote",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        { "internalType": "uint256", "name": "proposalId", "type": "uint256" }
+      ],
+      "name": "getProposalState",
+      "outputs": [
+        { "internalType": "uint8", "name": "", "type": "uint8" }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        { "internalType": "uint256", "name": "proposalId", "type": "uint256" }
+      ],
+      "name": "queueProposal",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        { "internalType": "uint256", "name": "proposalId", "type": "uint256" }
+      ],
+      "name": "executeProposal",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        { "internalType": "uint256", "name": "proposalId", "type": "uint256" }
+      ],
+      "name": "cancelProposal",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        { "internalType": "uint256", "name": "proposalId", "type": "uint256" }
+      ],
+      "name": "getProposal",
+      "outputs": [
+        {
+          "components": [
+            { "internalType": "uint256", "name": "id", "type": "uint256" },
+            { "internalType": "address", "name": "proposer", "type": "address" },
+            { "internalType": "string", "name": "title", "type": "string" },
+            { "internalType": "string", "name": "description", "type": "string" },
+            { "internalType": "string", "name": "ipfsHash", "type": "string" },
+            { "internalType": "uint8", "name": "proposalType", "type": "uint8" },
+            { "internalType": "uint256", "name": "forVotes", "type": "uint256" },
+            { "internalType": "uint256", "name": "againstVotes", "type": "uint256" },
+            { "internalType": "uint256", "name": "abstainVotes", "type": "uint256" },
+            { "internalType": "uint256", "name": "startTime", "type": "uint256" },
+            { "internalType": "uint256", "name": "endTime", "type": "uint256" },
+            { "internalType": "uint256", "name": "executionTime", "type": "uint256" },
+            { "internalType": "bool", "name": "executed", "type": "bool" },
+            { "internalType": "bool", "name": "canceled", "type": "bool" }
+          ],
+          "internalType": "struct Governance.Proposal",
+          "name": "",
+          "type": "tuple"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        { "internalType": "uint256", "name": "proposalId", "type": "uint256" },
+        { "internalType": "address", "name": "voter", "type": "address" }
+      ],
+      "name": "getVote",
+      "outputs": [
+        {
+          "components": [
+            { "internalType": "bool", "name": "hasVoted", "type": "bool" },
+            { "internalType": "uint8", "name": "voteType", "type": "uint8" },
+            { "internalType": "uint256", "name": "weight", "type": "uint256" }
+          ],
+          "internalType": "struct Governance.Vote",
+          "name": "",
+          "type": "tuple"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        { "internalType": "address", "name": "user", "type": "address" }
+      ],
+      "name": "getStake",
+      "outputs": [
+        {
+          "components": [
+            { "internalType": "uint256", "name": "amount", "type": "uint256" },
+            { "internalType": "uint256", "name": "stakedAt", "type": "uint256" },
+            { "internalType": "uint256", "name": "lockPeriod", "type": "uint256" }
+          ],
+          "internalType": "struct Governance.Stake",
+          "name": "",
+          "type": "tuple"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        { "internalType": "address", "name": "user", "type": "address" }
+      ],
+      "name": "getVotingPower",
+      "outputs": [
+        { "internalType": "uint256", "name": "", "type": "uint256" }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "proposalCount",
+      "outputs": [
+        { "internalType": "uint256", "name": "", "type": "uint256" }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "totalStaked",
+      "outputs": [
+        { "internalType": "uint256", "name": "", "type": "uint256" }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        { "indexed": true, "internalType": "uint256", "name": "proposalId", "type": "uint256" },
+        { "indexed": true, "internalType": "address", "name": "proposer", "type": "address" },
+        { "indexed": false, "internalType": "string", "name": "title", "type": "string" },
+        { "indexed": false, "internalType": "uint8", "name": "proposalType", "type": "uint8" },
+        { "indexed": false, "internalType": "uint256", "name": "startTime", "type": "uint256" },
+        { "indexed": false, "internalType": "uint256", "name": "endTime", "type": "uint256" }
+      ],
+      "name": "ProposalCreated",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        { "indexed": true, "internalType": "uint256", "name": "proposalId", "type": "uint256" },
+        { "indexed": true, "internalType": "address", "name": "voter", "type": "address" },
+        { "indexed": false, "internalType": "uint8", "name": "voteType", "type": "uint8" },
+        { "indexed": false, "internalType": "uint256", "name": "weight", "type": "uint256" }
+      ],
+      "name": "VoteCast",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        { "indexed": true, "internalType": "uint256", "name": "proposalId", "type": "uint256" }
+      ],
+      "name": "ProposalExecuted",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        { "indexed": true, "internalType": "address", "name": "user", "type": "address" },
+        { "indexed": false, "internalType": "uint256", "name": "amount", "type": "uint256" },
+        { "indexed": false, "internalType": "uint256", "name": "lockPeriod", "type": "uint256" }
+      ],
+      "name": "Staked",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        { "indexed": true, "internalType": "address", "name": "user", "type": "address" },
+        { "indexed": false, "internalType": "uint256", "name": "amount", "type": "uint256" }
+      ],
+      "name": "Unstaked",
+      "type": "event"
+    }
+  ]
+}
