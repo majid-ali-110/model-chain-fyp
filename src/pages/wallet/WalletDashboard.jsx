@@ -56,18 +56,21 @@ import Badge from '../../components/ui/Badge';
 import Loading from '../../components/ui/Loading';
 import { useWallet } from '../../contexts/WalletContext';
 import { useAuth } from '../../contexts/AuthContext';
+import { useNotification } from '../../contexts/NotificationContext';
+import { ethers } from 'ethers';
 
 const WalletDashboard = () => {
   const navigate = useNavigate();
-  const { connected, address, balance, chainId } = useWallet();
+  const { connected, address, balance, chainId, signer, updateBalance } = useWallet();
   const { isAuthenticated } = useAuth();
+  const { showSuccess, showError } = useNotification();
   
   const [isLoading, setIsLoading] = useState(true);
   const [balanceVisible, setBalanceVisible] = useState(true);
   const [selectedTimeframe, setSelectedTimeframe] = useState('7d');
   const [showSendModal, setShowSendModal] = useState(false);
   const [showReceiveModal, setShowReceiveModal] = useState(false);
-  const [sendFormData, setSendFormData] = useState({ address: '', amount: '', asset: 'ETH' });
+  const [sendFormData, setSendFormData] = useState({ address: '', amount: '', asset: '' });
 
   // Get network info
   const getNetworkInfo = (chainId) => {
@@ -82,6 +85,10 @@ const WalletDashboard = () => {
   };
 
   const networkInfo = getNetworkInfo(chainId);
+
+  useEffect(() => {
+    setSendFormData((prev) => ({ ...prev, asset: networkInfo.currency }));
+  }, [networkInfo.currency]);
 
   // Wallet data from context - no fake USD for testnet
   const walletData = {
@@ -174,7 +181,7 @@ const WalletDashboard = () => {
   const getTransactionColor = (type, amount) => {
     if (amount > 0) return 'text-green-400';
     if (amount < 0) return 'text-red-400';
-    return 'text-gray-400';
+    return 'text-dark-text-muted';
   };
 
 
@@ -183,11 +190,33 @@ const WalletDashboard = () => {
     navigator.clipboard.writeText(text);
   };
 
-  const handleSendSubmit = (e) => {
+  const handleSendSubmit = async (e) => {
     e.preventDefault();
-    // TODO: Implement send logic with wallet context
-    setShowSendModal(false);
-    setSendFormData({ address: '', amount: '', asset: 'MCT' });
+
+    if (!signer) {
+      showError('Connect wallet to send funds.', { title: 'Wallet Required' });
+      return;
+    }
+
+    if (sendFormData.asset !== walletData.currency) {
+      showError(`Only ${walletData.currency} transfers are supported right now.`, { title: 'Asset Not Supported' });
+      return;
+    }
+
+    try {
+      const tx = await signer.sendTransaction({
+        to: sendFormData.address,
+        value: ethers.parseEther(sendFormData.amount || '0'),
+      });
+      await tx.wait();
+
+      await updateBalance();
+      showSuccess(`Sent ${sendFormData.amount} ${walletData.currency}`, { title: 'Transfer Complete' });
+      setShowSendModal(false);
+      setSendFormData({ address: '', amount: '', asset: walletData.currency });
+    } catch (error) {
+      showError(error.message || 'Transfer failed.', { title: 'Transfer Failed' });
+    }
   };
 
   // Main Balance Card Component
@@ -278,6 +307,10 @@ const WalletDashboard = () => {
     </Card>
   );
 
+  const assetBgMap = { purple: 'bg-purple-500/20', blue: 'bg-blue-500/20', green: 'bg-green-500/20' };
+  const assetTextMap = { purple: 'text-purple-400', blue: 'text-blue-400', green: 'text-green-400' };
+  const assetBarMap = { purple: 'bg-purple-500', blue: 'bg-blue-500', green: 'bg-green-500' };
+
   // Portfolio Breakdown Component
   const PortfolioBreakdown = () => (
     <Card className="p-6">
@@ -289,7 +322,7 @@ const WalletDashboard = () => {
         <select
           value={selectedTimeframe}
           onChange={(e) => setSelectedTimeframe(e.target.value)}
-          className="bg-gray-800 border border-gray-700 rounded-lg px-3 py-1 text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="bg-dark-surface border border-dark-border rounded-lg px-3 py-1 text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
         >
           <option value="24h">24h</option>
           <option value="7d">7d</option>
@@ -303,18 +336,18 @@ const WalletDashboard = () => {
           const Icon = asset.icon;
           
           return (
-            <div key={asset.symbol} className="p-4 bg-gray-800/50 rounded-lg">
+            <div key={asset.symbol} className="p-4 bg-dark-surface-elevated rounded-lg">
               <div className="flex items-center justify-between mb-3">
                 <div className="flex items-center">
                   <div className={clsx(
                     'h-10 w-10 rounded-lg flex items-center justify-center mr-3',
-                    `bg-${asset.color}-500/20`
+                    assetBgMap[asset.color]
                   )}>
-                    <Icon className={clsx('h-5 w-5', `text-${asset.color}-400`)} />
+                    <Icon className={clsx('h-5 w-5', assetTextMap[asset.color])} />
                   </div>
                   <div>
                     <p className="text-white font-medium">{asset.name}</p>
-                    <p className="text-gray-400 text-sm">{asset.symbol}</p>
+                    <p className="text-dark-text-muted text-sm">{asset.symbol}</p>
                   </div>
                 </div>
                 
@@ -340,21 +373,21 @@ const WalletDashboard = () => {
               
               <div className="mb-2">
                 <div className="flex justify-between text-sm mb-1">
-                  <span className="text-gray-400">
+                  <span className="text-dark-text-muted">
                     {balanceVisible ? `${asset.balance.toLocaleString()} ${asset.symbol}` : '****'}
                   </span>
-                  <span className="text-gray-400">100.0%</span>
+                  <span className="text-dark-text-muted">100.0%</span>
                 </div>
-                <div className="w-full bg-gray-700 rounded-full h-2">
+                <div className="w-full bg-dark-border rounded-full h-2">
                   <div
-                    className={clsx('h-2 rounded-full', `bg-${asset.color}-500`)}
+                    className={clsx('h-2 rounded-full', assetBarMap[asset.color])}
                     style={{ width: '100%' }}
                   />
                 </div>
               </div>
               
               <div className="flex items-center justify-between text-sm">
-                <span className="text-gray-400">{walletData.isTestnet ? 'Testnet Token' : 'Native Token'}</span>
+                <span className="text-dark-text-muted">{walletData.isTestnet ? 'Testnet Token' : 'Native Token'}</span>
                 <Button variant="ghost" size="sm">
                   <ChevronRightIcon className="h-4 w-4" />
                 </Button>
@@ -375,8 +408,8 @@ const WalletDashboard = () => {
       </h3>
       
       <div className="grid grid-cols-2 gap-4">
-        <div className="p-3 bg-gray-800/50 rounded-lg">
-          <p className="text-gray-400 text-sm">24h</p>
+        <div className="p-3 bg-dark-surface-elevated rounded-lg">
+          <p className="text-dark-text-muted text-sm">24h</p>
           <div className="flex items-center">
             {walletData.performance.daily >= 0 ? (
               <ArrowTrendingUpIcon className="h-4 w-4 text-green-400 mr-1" />
@@ -392,8 +425,8 @@ const WalletDashboard = () => {
           </div>
         </div>
         
-        <div className="p-3 bg-gray-800/50 rounded-lg">
-          <p className="text-gray-400 text-sm">7d</p>
+        <div className="p-3 bg-dark-surface-elevated rounded-lg">
+          <p className="text-dark-text-muted text-sm">7d</p>
           <div className="flex items-center">
             {walletData.performance.weekly >= 0 ? (
               <ArrowTrendingUpIcon className="h-4 w-4 text-green-400 mr-1" />
@@ -409,8 +442,8 @@ const WalletDashboard = () => {
           </div>
         </div>
         
-        <div className="p-3 bg-gray-800/50 rounded-lg">
-          <p className="text-gray-400 text-sm">30d</p>
+        <div className="p-3 bg-dark-surface-elevated rounded-lg">
+          <p className="text-dark-text-muted text-sm">30d</p>
           <div className="flex items-center">
             {walletData.performance.monthly >= 0 ? (
               <ArrowTrendingUpIcon className="h-4 w-4 text-green-400 mr-1" />
@@ -426,8 +459,8 @@ const WalletDashboard = () => {
           </div>
         </div>
         
-        <div className="p-3 bg-gray-800/50 rounded-lg">
-          <p className="text-gray-400 text-sm">All Time</p>
+        <div className="p-3 bg-dark-surface-elevated rounded-lg">
+          <p className="text-dark-text-muted text-sm">All Time</p>
           <div className="flex items-center">
             <ArrowTrendingUpIcon className="h-4 w-4 text-green-400 mr-1" />
             <span className="font-medium text-green-400">+{walletData.performance.allTime}%</span>
@@ -453,27 +486,27 @@ const WalletDashboard = () => {
       </div>
       
       <div className="space-y-4">
-        <div className="p-3 bg-gray-800/50 rounded-lg">
-          <p className="text-gray-400 text-sm">Total Staked</p>
+        <div className="p-3 bg-dark-surface-elevated rounded-lg">
+          <p className="text-dark-text-muted text-sm">Total Staked</p>
           <p className="text-white font-medium">
             {formatTokens(walletData.staking.totalStaked, 'MCG')}
           </p>
         </div>
         
-        <div className="p-3 bg-gray-800/50 rounded-lg">
-          <p className="text-gray-400 text-sm">Rewards Earned</p>
+        <div className="p-3 bg-dark-surface-elevated rounded-lg">
+          <p className="text-dark-text-muted text-sm">Rewards Earned</p>
           <p className="text-green-400 font-medium">
             {formatTokens(walletData.staking.stakingRewards, 'MCG')}
           </p>
         </div>
         
         <div className="grid grid-cols-2 gap-3">
-          <div className="p-3 bg-gray-800/50 rounded-lg">
-            <p className="text-gray-400 text-sm">APY</p>
+          <div className="p-3 bg-dark-surface-elevated rounded-lg">
+            <p className="text-dark-text-muted text-sm">APY</p>
             <p className="text-white font-medium">{walletData.staking.apy}%</p>
           </div>
-          <div className="p-3 bg-gray-800/50 rounded-lg">
-            <p className="text-gray-400 text-sm">Next Reward</p>
+          <div className="p-3 bg-dark-surface-elevated rounded-lg">
+            <p className="text-dark-text-muted text-sm">Next Reward</p>
             <p className="text-white font-medium">{walletData.staking.nextReward}</p>
           </div>
         </div>
@@ -498,7 +531,7 @@ const WalletDashboard = () => {
         {transactions.slice(0, 5).map((tx) => {
           const Icon = getTransactionIcon(tx.type);
           return (
-            <div key={tx.id} className="flex items-center justify-between p-3 bg-gray-800/50 rounded-lg hover:bg-gray-800/70 transition-colors">
+            <div key={tx.id} className="flex items-center justify-between p-3 bg-dark-surface-elevated rounded-lg hover:bg-dark-surface/70 transition-colors">
               <div className="flex items-center">
                 <div className={clsx(
                   'h-10 w-10 rounded-lg flex items-center justify-center mr-3',
@@ -513,7 +546,7 @@ const WalletDashboard = () => {
                 <div>
                   <p className="text-white font-medium">{tx.counterparty}</p>
                   <div className="flex items-center">
-                    <p className="text-gray-400 text-sm mr-2">{formatTimeAgo(tx.timestamp)}</p>
+                    <p className="text-dark-text-muted text-sm mr-2">{formatTimeAgo(tx.timestamp)}</p>
                     <Badge
                       variant={tx.status === 'completed' ? 'success' : tx.status === 'pending' ? 'warning' : 'danger'}
                       size="sm"
@@ -528,7 +561,7 @@ const WalletDashboard = () => {
                 <p className={clsx('font-medium', getTransactionColor(tx.type, tx.amount))}>
                   {tx.amount > 0 ? '+' : ''}{tx.amount} {tx.asset}
                 </p>
-                <p className="text-gray-400 text-sm">
+                <p className="text-dark-text-muted text-sm">
                   {formatCurrency(Math.abs(tx.amountUSD))}
                 </p>
               </div>
@@ -592,7 +625,7 @@ const WalletDashboard = () => {
           <h3 className="text-lg font-semibold text-white">Send Tokens</h3>
           <button
             onClick={() => setShowSendModal(false)}
-            className="text-gray-400 hover:text-white"
+            className="text-dark-text-muted hover:text-white"
           >
             <XCircleIcon className="h-6 w-6" />
           </button>
@@ -600,11 +633,11 @@ const WalletDashboard = () => {
         
         <form onSubmit={handleSendSubmit} className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-300 mb-2">Asset</label>
+            <label className="block text-sm font-medium text-dark-text-secondary mb-2">Asset</label>
             <select
               value={sendFormData.asset}
               onChange={(e) => setSendFormData(prev => ({ ...prev, asset: e.target.value }))}
-              className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full bg-dark-surface border border-dark-border rounded-lg px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
               {walletData.assets.map((asset) => (
                 <option key={asset.symbol} value={asset.symbol}>
@@ -659,7 +692,7 @@ const WalletDashboard = () => {
           <h3 className="text-lg font-semibold text-white">Receive Tokens</h3>
           <button
             onClick={() => setShowReceiveModal(false)}
-            className="text-gray-400 hover:text-white"
+            className="text-dark-text-muted hover:text-white"
           >
             <XCircleIcon className="h-6 w-6" />
           </button>
@@ -668,14 +701,14 @@ const WalletDashboard = () => {
         <div className="text-center">
           <div className="bg-white p-4 rounded-lg mb-4 inline-block">
             {/* QR Code placeholder */}
-            <div className="w-48 h-48 bg-gray-200 flex items-center justify-center">
-              <span className="text-gray-500">QR Code</span>
+            <div className="w-48 h-48 bg-dark-border flex items-center justify-center">
+              <span className="text-dark-text-muted">QR Code</span>
             </div>
           </div>
           
-          <p className="text-gray-400 text-sm mb-4">Scan QR code or copy address below</p>
+          <p className="text-dark-text-muted text-sm mb-4">Scan QR code or copy address below</p>
           
-          <div className="bg-gray-800 border border-gray-700 rounded-lg p-3 mb-4">
+          <div className="bg-dark-surface border border-dark-border rounded-lg p-3 mb-4">
             <div className="flex items-center justify-between">
               <code className="text-sm text-white break-all">{walletData.address}</code>
               <button
@@ -714,7 +747,7 @@ const WalletDashboard = () => {
       <div className="flex items-center justify-between mb-8">
         <div>
           <h1 className="text-3xl font-bold text-white mb-2">Wallet</h1>
-          <p className="text-gray-400">Manage your digital assets and transactions</p>
+          <p className="text-dark-text-muted">Manage your digital assets and transactions</p>
         </div>
         <Link to="/wallet/settings">
           <Button variant="ghost">
@@ -723,6 +756,12 @@ const WalletDashboard = () => {
           </Button>
         </Link>
       </div>
+
+      <Card className="p-4 mb-6 border-yellow-500/30 bg-yellow-500/10">
+        <p className="text-sm text-yellow-300">
+          Note: Balance and transfers are live. Portfolio performance, staking summary, and transaction analytics cards are placeholder metrics until analytics/staking backends are integrated.
+        </p>
+      </Card>
 
       {/* Main Content */}
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">

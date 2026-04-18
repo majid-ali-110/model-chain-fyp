@@ -28,14 +28,14 @@ const Slider = React.forwardRef(({
       {label && (
         <div className="flex items-center justify-between">
           <label className={clsx(
-            'block text-sm font-medium leading-6 text-secondary-900',
+            'block text-sm font-medium leading-6 text-dark-text-primary',
             disabled && 'opacity-50'
           )}>
             {label}
           </label>
           {showValue && (
             <span className={clsx(
-              'text-sm text-secondary-600',
+              'text-sm text-dark-text-muted',
               disabled && 'opacity-50'
             )}>
               {sliderValue}
@@ -54,17 +54,16 @@ const Slider = React.forwardRef(({
           onChange={handleChange}
           disabled={disabled}
           className={clsx(
-            'w-full h-2 bg-secondary-200 rounded-lg appearance-none cursor-pointer',
-            'slider:bg-primary-600 slider:rounded-lg',
+            'w-full h-2 bg-dark-border rounded-lg appearance-none cursor-pointer',
             disabled && 'opacity-50 cursor-not-allowed'
           )}
           style={{
-            background: `linear-gradient(to right, #3b82f6 0%, #3b82f6 ${percentage}%, #e5e7eb ${percentage}%, #e5e7eb 100%)`
+            background: `linear-gradient(to right, var(--color-primary-500) 0%, var(--color-primary-500) ${percentage}%, var(--color-dark-border) ${percentage}%, var(--color-dark-border) 100%)`
           }}
           {...props}
         />
       </div>
-      <div className="flex justify-between text-xs text-secondary-500">
+      <div className="flex justify-between text-xs text-dark-text-muted">
         <span>{min}</span>
         <span>{max}</span>
       </div>

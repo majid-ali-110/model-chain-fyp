@@ -21,10 +21,10 @@ const Tooltip = ({
   };
 
   const arrows = {
-    top: 'top-full left-1/2 transform -translate-x-1/2 border-l-4 border-r-4 border-t-4 border-transparent border-t-secondary-900',
-    bottom: 'bottom-full left-1/2 transform -translate-x-1/2 border-l-4 border-r-4 border-b-4 border-transparent border-b-secondary-900',
-    left: 'left-full top-1/2 transform -translate-y-1/2 border-t-4 border-b-4 border-l-4 border-transparent border-l-secondary-900',
-    right: 'right-full top-1/2 transform -translate-y-1/2 border-t-4 border-b-4 border-r-4 border-transparent border-r-secondary-900',
+    top: 'top-full left-1/2 transform -translate-x-1/2 border-l-4 border-r-4 border-t-4 border-transparent border-t-dark-surface-elevated',
+    bottom: 'bottom-full left-1/2 transform -translate-x-1/2 border-l-4 border-r-4 border-b-4 border-transparent border-b-dark-surface-elevated',
+    left: 'left-full top-1/2 transform -translate-y-1/2 border-t-4 border-b-4 border-l-4 border-transparent border-l-dark-surface-elevated',
+    right: 'right-full top-1/2 transform -translate-y-1/2 border-t-4 border-b-4 border-r-4 border-transparent border-r-dark-surface-elevated',
   };
 
   const showTooltip = () => {
@@ -60,7 +60,7 @@ const Tooltip = ({
         {children}
       </div>
       {isVisible && content && (
-        <div className={clsx('absolute z-50 px-2 py-1 text-sm text-white bg-secondary-900 rounded shadow-lg whitespace-nowrap', positions[position])}>
+        <div role="tooltip" className={clsx('absolute z-50 px-3 py-1.5 text-sm text-dark-text-primary bg-dark-surface-elevated border border-dark-border rounded-lg shadow-lg whitespace-nowrap animate-fade-in', positions[position])}>
           {content}
           <div className={clsx('absolute w-0 h-0', arrows[position])} />
         </div>

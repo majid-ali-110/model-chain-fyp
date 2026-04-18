@@ -9,10 +9,9 @@ import Footer from '../components/layout/Footer';
  */
 const CleanLayout = () => {
   return (
-    <div className="min-h-screen flex flex-col" style={{ backgroundColor: '#0a0c10' }}>
+    <div className="min-h-screen flex flex-col bg-dark-bg-primary text-dark-text-primary">
       <Navbar />
-      {/* Add padding-top to account for fixed navbar (80px = h-20) */}
-      <main className="flex-1" style={{ paddingTop: '80px' }}>
+      <main className="flex-1 pt-[var(--navbar-height)]">
         <Outlet />
       </main>
       <Footer />

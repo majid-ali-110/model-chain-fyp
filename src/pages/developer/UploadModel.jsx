@@ -286,7 +286,7 @@ const UploadModel = () => {
     <div className="space-y-6">
       <div>
         <h3 className="text-lg font-semibold text-white mb-2">Upload Model Files</h3>
-        <p className="text-gray-400">Upload your trained model files, weights, and configuration</p>
+        <p className="text-dark-text-muted">Upload your trained model files, weights, and configuration</p>
       </div>
 
       {/* File Upload Zone */}
@@ -295,16 +295,16 @@ const UploadModel = () => {
           'border-2 border-dashed rounded-lg p-8 text-center transition-colors',
           dragActive
             ? 'border-blue-500 bg-blue-500/10'
-            : 'border-gray-600 hover:border-gray-500'
+            : 'border-dark-border-light hover:border-gray-500'
         )}
         onDragEnter={handleDrag}
         onDragLeave={handleDrag}
         onDragOver={handleDrag}
         onDrop={handleDrop}
       >
-        <CloudArrowUpIcon className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+        <CloudArrowUpIcon className="h-12 w-12 text-dark-text-muted mx-auto mb-4" />
         <p className="text-white font-medium mb-2">Drag and drop files here</p>
-        <p className="text-gray-400 text-sm mb-4">or click to browse</p>
+        <p className="text-dark-text-muted text-sm mb-4">or click to browse</p>
         <input
           type="file"
           multiple
@@ -325,12 +325,12 @@ const UploadModel = () => {
         <div className="space-y-2">
           <h4 className="text-white font-medium">Uploaded Files</h4>
           {formData.files.map((file, index) => (
-            <div key={index} className="flex items-center justify-between p-3 bg-gray-800 rounded-lg">
+            <div key={index} className="flex items-center justify-between p-3 bg-dark-surface rounded-lg">
               <div className="flex items-center">
                 <DocumentArrowUpIcon className="h-5 w-5 text-blue-400 mr-3" />
                 <div>
                   <p className="text-white text-sm">{file.name}</p>
-                  <p className="text-gray-400 text-xs">{formatFileSize(file.size)}</p>
+                  <p className="text-dark-text-muted text-xs">{formatFileSize(file.size)}</p>
                 </div>
               </div>
               <button
@@ -347,11 +347,11 @@ const UploadModel = () => {
       {/* Model Type Selection */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
-          <label className="block text-sm font-medium text-gray-300 mb-2">Model Category</label>
+          <label className="block text-sm font-medium text-dark-text-secondary mb-2">Model Category</label>
           <select
             value={formData.modelType}
             onChange={(e) => updateFormData('modelType', e.target.value)}
-            className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full bg-dark-surface border border-dark-border rounded-lg px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
           >
             <option value="">Select category</option>
             {modelCategories.map((category) => (
@@ -363,11 +363,11 @@ const UploadModel = () => {
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-300 mb-2">Framework</label>
+          <label className="block text-sm font-medium text-dark-text-secondary mb-2">Framework</label>
           <select
             value={formData.framework}
             onChange={(e) => updateFormData('framework', e.target.value)}
-            className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full bg-dark-surface border border-dark-border rounded-lg px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
           >
             <option value="">Select framework</option>
             {frameworks.map((framework) => (
@@ -385,7 +385,7 @@ const UploadModel = () => {
           <InformationCircleIcon className="h-5 w-5 text-blue-400 mr-3 mt-0.5 flex-shrink-0" />
           <div>
             <h4 className="text-blue-400 font-medium mb-1">Upload Tips</h4>
-            <ul className="text-sm text-gray-300 space-y-1">
+            <ul className="text-sm text-dark-text-secondary space-y-1">
               <li>• Include model weights, configuration, and tokenizer files</li>
               <li>• Supported formats: .pkl, .h5, .pt, .pth, .onnx, .tflite, .pb</li>
               <li>• Maximum file size: 5GB per file</li>
@@ -412,7 +412,7 @@ const UploadModel = () => {
       <div className="space-y-6">
         <div>
           <h3 className="text-lg font-semibold text-white mb-2">Model Information</h3>
-          <p className="text-gray-400">Provide detailed information about your model</p>
+          <p className="text-dark-text-muted">Provide detailed information about your model</p>
         </div>
 
         {/* Basic Information */}
@@ -432,12 +432,12 @@ const UploadModel = () => {
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-300 mb-2">Description *</label>
+          <label className="block text-sm font-medium text-dark-text-secondary mb-2">Description *</label>
           <textarea
             value={formData.description}
             onChange={(e) => updateFormData('description', e.target.value)}
             rows={4}
-            className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full bg-dark-surface border border-dark-border rounded-lg px-3 py-2 text-white placeholder-dark-text-muted focus:outline-none focus:ring-2 focus:ring-blue-500"
             placeholder="Describe your model's capabilities, use cases, and key features..."
           />
         </div>
@@ -445,11 +445,11 @@ const UploadModel = () => {
         {/* Category and License */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <label className="block text-sm font-medium text-gray-300 mb-2">Category *</label>
+            <label className="block text-sm font-medium text-dark-text-secondary mb-2">Category *</label>
             <select
               value={formData.category}
               onChange={(e) => updateFormData('category', e.target.value)}
-              className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full bg-dark-surface border border-dark-border rounded-lg px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
               <option value="">Select category</option>
               {modelCategories.map((category) => (
@@ -461,11 +461,11 @@ const UploadModel = () => {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-300 mb-2">License</label>
+            <label className="block text-sm font-medium text-dark-text-secondary mb-2">License</label>
             <select
               value={formData.license}
               onChange={(e) => updateFormData('license', e.target.value)}
-              className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full bg-dark-surface border border-dark-border rounded-lg px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
               {licenses.map((license) => (
                 <option key={license} value={license}>
@@ -478,13 +478,13 @@ const UploadModel = () => {
 
         {/* Tags */}
         <div>
-          <label className="block text-sm font-medium text-gray-300 mb-2">Tags</label>
+          <label className="block text-sm font-medium text-dark-text-secondary mb-2">Tags</label>
           <form onSubmit={handleAddTag} className="flex gap-2 mb-2">
             <input
               type="text"
               value={tagInput}
               onChange={(e) => setTagInput(e.target.value)}
-              className="flex-1 bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="flex-1 bg-dark-surface border border-dark-border rounded-lg px-3 py-2 text-white placeholder-dark-text-muted focus:outline-none focus:ring-2 focus:ring-blue-500"
               placeholder="Add tags (e.g., nlp, classification, computer-vision)"
             />
             <Button type="submit" size="sm">Add</Button>
@@ -495,7 +495,7 @@ const UploadModel = () => {
                 {tag}
                 <button
                   onClick={() => removeTag(tag)}
-                  className="ml-2 text-gray-400 hover:text-gray-300"
+                  className="ml-2 text-dark-text-muted hover:text-dark-text-secondary"
                 >
                   <XCircleIcon className="h-3 w-3" />
                 </button>
@@ -583,12 +583,12 @@ const UploadModel = () => {
     <div className="space-y-6">
       <div>
         <h3 className="text-lg font-semibold text-white mb-2">Pricing & Monetization</h3>
-        <p className="text-gray-400">Choose how you want to monetize your model</p>
+        <p className="text-dark-text-muted">Choose how you want to monetize your model</p>
       </div>
 
       {/* Pricing Model Selection */}
       <div>
-        <label className="block text-sm font-medium text-gray-300 mb-4">Pricing Model</label>
+        <label className="block text-sm font-medium text-dark-text-secondary mb-4">Pricing Model</label>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {[
             {
@@ -629,14 +629,14 @@ const UploadModel = () => {
                   'p-4 rounded-lg border text-left transition-colors',
                   formData.pricingModel === model.value
                     ? 'border-blue-500 bg-blue-500/10 text-blue-400'
-                    : 'border-gray-700 bg-gray-800/50 text-gray-300 hover:border-gray-600'
+                    : 'border-dark-border bg-dark-surface-elevated text-dark-text-secondary hover:border-dark-border-light'
                 )}
               >
                 <div className="flex items-center mb-2">
                   <Icon className="h-5 w-5 mr-2" />
                   <span className="font-medium">{model.title}</span>
                 </div>
-                <p className="text-sm text-gray-400">{model.description}</p>
+                <p className="text-sm text-dark-text-muted">{model.description}</p>
               </button>
             );
           })}
@@ -647,7 +647,7 @@ const UploadModel = () => {
       {formData.pricingModel !== 'free' && (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <label className="block text-sm font-medium text-gray-300 mb-2">
+            <label className="block text-sm font-medium text-dark-text-secondary mb-2">
               {formData.pricingModel === 'usage-based' ? 'Price per Call' : 'Price'}
             </label>
             <div className="relative">
@@ -655,23 +655,23 @@ const UploadModel = () => {
                 type="number"
                 value={formData.price}
                 onChange={(e) => updateFormData('price', e.target.value)}
-                className="w-full bg-gray-800 border border-gray-700 rounded-lg pl-3 pr-16 py-2 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full bg-dark-surface border border-dark-border rounded-lg pl-3 pr-16 py-2 text-white placeholder-dark-text-muted focus:outline-none focus:ring-2 focus:ring-blue-500"
                 placeholder="0.00"
                 step="0.01"
                 min="0"
               />
-              <div className="absolute right-3 top-2 text-gray-400">
+              <div className="absolute right-3 top-2 text-dark-text-muted">
                 {formData.currency}
               </div>
             </div>
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-300 mb-2">Currency</label>
+            <label className="block text-sm font-medium text-dark-text-secondary mb-2">Currency</label>
             <select
               value={formData.currency}
               onChange={(e) => updateFormData('currency', e.target.value)}
-              className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full bg-dark-surface border border-dark-border rounded-lg px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
               <option value="MCT">MCT (ModelChain Token)</option>
               <option value="USD">USD</option>
@@ -688,10 +688,10 @@ const UploadModel = () => {
           <h4 className="text-white font-medium mb-4">Subscription Tiers</h4>
           <div className="space-y-3">
             {['Basic', 'Pro', 'Enterprise'].map((tier) => (
-              <div key={tier} className="flex items-center justify-between p-3 bg-gray-800/50 rounded-lg">
+              <div key={tier} className="flex items-center justify-between p-3 bg-dark-surface-elevated rounded-lg">
                 <div>
                   <p className="text-white font-medium">{tier}</p>
-                  <p className="text-sm text-gray-400">Configure {tier.toLowerCase()} tier pricing</p>
+                  <p className="text-sm text-dark-text-muted">Configure {tier.toLowerCase()} tier pricing</p>
                 </div>
                 <Button variant="outline" size="sm">Configure</Button>
               </div>
@@ -705,7 +705,7 @@ const UploadModel = () => {
         <Card className="p-4">
           <h4 className="text-white font-medium mb-4">Usage Tiers</h4>
           <div className="space-y-3">
-            <div className="grid grid-cols-3 gap-3 text-sm text-gray-400 font-medium">
+            <div className="grid grid-cols-3 gap-3 text-sm text-dark-text-muted font-medium">
               <div>Calls/Month</div>
               <div>Price per Call</div>
               <div>Actions</div>
@@ -715,7 +715,7 @@ const UploadModel = () => {
               { calls: '1,001 - 10,000', price: '0.008' },
               { calls: '10,001+', price: '0.005' }
             ].map((tier, index) => (
-              <div key={index} className="grid grid-cols-3 gap-3 items-center p-2 bg-gray-800/50 rounded">
+              <div key={index} className="grid grid-cols-3 gap-3 items-center p-2 bg-dark-surface-elevated rounded">
                 <div className="text-white text-sm">{tier.calls}</div>
                 <div className="text-white text-sm">{tier.price} MCT</div>
                 <Button variant="ghost" size="sm">Edit</Button>
@@ -730,17 +730,17 @@ const UploadModel = () => {
         <h4 className="text-white font-medium mb-4">Revenue Sharing</h4>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <label className="block text-sm font-medium text-gray-300 mb-2">Platform Fee</label>
-            <div className="p-3 bg-gray-800/50 rounded-lg">
+            <label className="block text-sm font-medium text-dark-text-secondary mb-2">Platform Fee</label>
+            <div className="p-3 bg-dark-surface-elevated rounded-lg">
               <p className="text-white">10% of revenue</p>
-              <p className="text-sm text-gray-400">Standard ModelChain platform fee</p>
+              <p className="text-sm text-dark-text-muted">Standard ModelChain platform fee</p>
             </div>
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-300 mb-2">Your Revenue</label>
+            <label className="block text-sm font-medium text-dark-text-secondary mb-2">Your Revenue</label>
             <div className="p-3 bg-green-900/20 rounded-lg border border-green-500/30">
               <p className="text-green-400 font-medium">90% of revenue</p>
-              <p className="text-sm text-gray-400">After platform fee</p>
+              <p className="text-sm text-dark-text-muted">After platform fee</p>
             </div>
           </div>
         </div>
@@ -751,17 +751,17 @@ const UploadModel = () => {
         <h4 className="text-blue-400 font-medium mb-2">Pricing Summary</h4>
         <div className="space-y-2 text-sm">
           <div className="flex justify-between">
-            <span className="text-gray-400">Model:</span>
+            <span className="text-dark-text-muted">Model:</span>
             <span className="text-white capitalize">{formData.pricingModel}</span>
           </div>
           {formData.pricingModel !== 'free' && formData.price && (
             <div className="flex justify-between">
-              <span className="text-gray-400">Price:</span>
+              <span className="text-dark-text-muted">Price:</span>
               <span className="text-white">{formData.price} {formData.currency}</span>
             </div>
           )}
           <div className="flex justify-between">
-            <span className="text-gray-400">Platform Fee:</span>
+            <span className="text-dark-text-muted">Platform Fee:</span>
             <span className="text-white">10%</span>
           </div>
         </div>
@@ -773,7 +773,7 @@ const UploadModel = () => {
     <div className="space-y-6">
       <div>
         <h3 className="text-lg font-semibold text-white mb-2">Review & Deploy</h3>
-        <p className="text-gray-400">Review your model information before deploying to the blockchain</p>
+        <p className="text-dark-text-muted">Review your model information before deploying to the blockchain</p>
       </div>
 
       {/* Model Summary */}
@@ -781,37 +781,37 @@ const UploadModel = () => {
         <div className="flex items-start justify-between mb-4">
           <div>
             <h4 className="text-xl font-bold text-white">{formData.name || 'Unnamed Model'}</h4>
-            <p className="text-gray-400">{formData.category && modelCategories.find(c => c.value === formData.category)?.label}</p>
+            <p className="text-dark-text-muted">{formData.category && modelCategories.find(c => c.value === formData.category)?.label}</p>
           </div>
           <Badge variant="primary">v{formData.version}</Badge>
         </div>
 
         {formData.description && (
-          <p className="text-gray-300 mb-4">{formData.description}</p>
+          <p className="text-dark-text-secondary mb-4">{formData.description}</p>
         )}
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           <div>
-            <p className="text-sm text-gray-400">Framework</p>
+            <p className="text-sm text-dark-text-muted">Framework</p>
             <p className="text-white font-medium">{formData.framework}</p>
           </div>
           <div>
-            <p className="text-sm text-gray-400">License</p>
+            <p className="text-sm text-dark-text-muted">License</p>
             <p className="text-white font-medium">{formData.license}</p>
           </div>
           <div>
-            <p className="text-sm text-gray-400">Files</p>
+            <p className="text-sm text-dark-text-muted">Files</p>
             <p className="text-white font-medium">{formData.files.length} files</p>
           </div>
           <div>
-            <p className="text-sm text-gray-400">Pricing</p>
+            <p className="text-sm text-dark-text-muted">Pricing</p>
             <p className="text-white font-medium capitalize">{formData.pricingModel}</p>
           </div>
         </div>
 
         {formData.tags.length > 0 && (
           <div className="mt-4">
-            <p className="text-sm text-gray-400 mb-2">Tags</p>
+            <p className="text-sm text-dark-text-muted mb-2">Tags</p>
             <div className="flex flex-wrap gap-2">
               {formData.tags.map((tag) => (
                 <Badge key={tag} variant="secondary">{tag}</Badge>
@@ -830,17 +830,17 @@ const UploadModel = () => {
 
         <div className="space-y-4">
           {/* IPFS Upload */}
-          <div className="flex items-center justify-between p-3 bg-gray-800/50 rounded-lg">
+          <div className="flex items-center justify-between p-3 bg-dark-surface-elevated rounded-lg">
             <div className="flex items-center">
               <div className={clsx(
                 'h-8 w-8 rounded-full flex items-center justify-center mr-3',
-                ipfsHash ? 'bg-green-500/20 text-green-400' : 'bg-gray-600 text-gray-400'
+                ipfsHash ? 'bg-green-500/20 text-green-400' : 'bg-dark-border-light text-dark-text-muted'
               )}>
                 {ipfsHash ? <CheckCircleIcon className="h-5 w-5" /> : <FolderIcon className="h-5 w-5" />}
               </div>
               <div>
                 <p className="text-white font-medium">IPFS Storage</p>
-                <p className="text-sm text-gray-400">
+                <p className="text-sm text-dark-text-muted">
                   {ipfsHash ? `Stored: ${ipfsHash}` : 'Upload files to IPFS'}
                 </p>
               </div>
@@ -853,17 +853,17 @@ const UploadModel = () => {
           </div>
 
           {/* Blockchain Registration */}
-          <div className="flex items-center justify-between p-3 bg-gray-800/50 rounded-lg">
+          <div className="flex items-center justify-between p-3 bg-dark-surface-elevated rounded-lg">
             <div className="flex items-center">
               <div className={clsx(
                 'h-8 w-8 rounded-full flex items-center justify-center mr-3',
-                blockchainTxHash ? 'bg-green-500/20 text-green-400' : 'bg-gray-600 text-gray-400'
+                blockchainTxHash ? 'bg-green-500/20 text-green-400' : 'bg-dark-border-light text-dark-text-muted'
               )}>
                 {blockchainTxHash ? <CheckCircleIcon className="h-5 w-5" /> : <LinkIcon className="h-5 w-5" />}
               </div>
               <div>
                 <p className="text-white font-medium">Blockchain Registration</p>
-                <p className="text-sm text-gray-400">
+                <p className="text-sm text-dark-text-muted">
                   {blockchainTxHash ? `Tx: ${blockchainTxHash.slice(0, 20)}...` : 'Register on blockchain'}
                 </p>
               </div>
@@ -879,10 +879,10 @@ const UploadModel = () => {
           {isUploading && !ipfsHash && (
             <div>
               <div className="flex justify-between text-sm mb-2">
-                <span className="text-gray-400">Uploading to IPFS...</span>
+                <span className="text-dark-text-muted">Uploading to IPFS...</span>
                 <span className="text-white">{uploadProgress}%</span>
               </div>
-              <div className="w-full bg-gray-700 rounded-full h-2">
+              <div className="w-full bg-dark-border rounded-full h-2">
                 <div
                   className="bg-blue-500 h-2 rounded-full transition-all duration-300"
                   style={{ width: `${uploadProgress}%` }}
@@ -902,14 +902,14 @@ const UploadModel = () => {
           </h4>
           <div className="space-y-3 text-sm">
             <div>
-              <p className="text-gray-400">IPFS Hash:</p>
-              <code className="text-green-400 bg-gray-800 px-2 py-1 rounded text-xs break-all">
+              <p className="text-dark-text-muted">IPFS Hash:</p>
+              <code className="text-green-400 bg-dark-surface px-2 py-1 rounded text-xs break-all">
                 {ipfsHash}
               </code>
             </div>
             <div>
-              <p className="text-gray-400">Transaction Hash:</p>
-              <code className="text-green-400 bg-gray-800 px-2 py-1 rounded text-xs break-all">
+              <p className="text-dark-text-muted">Transaction Hash:</p>
+              <code className="text-green-400 bg-dark-surface px-2 py-1 rounded text-xs break-all">
                 {blockchainTxHash}
               </code>
             </div>
@@ -962,12 +962,12 @@ const UploadModel = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-900 p-4">
+    <div className="min-h-screen bg-dark-bg-primary p-4">
       <div className="max-w-4xl mx-auto">
         {/* Header */}
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-white mb-2">Upload Model</h1>
-          <p className="text-gray-400">Deploy your AI model to the ModelChain marketplace</p>
+          <p className="text-dark-text-muted">Deploy your AI model to the ModelChain marketplace</p>
         </div>
 
         {/* Progress Steps */}
@@ -987,7 +987,7 @@ const UploadModel = () => {
                       'flex items-center justify-center w-12 h-12 rounded-full border-2 transition-colors',
                       isActive && 'border-blue-500 bg-blue-500 text-white',
                       isCompleted && !isActive && 'border-green-500 bg-green-500 text-white',
-                      !isActive && !isCompleted && 'border-gray-600 bg-gray-800 text-gray-400'
+                      !isActive && !isCompleted && 'border-dark-border-light bg-dark-surface text-dark-text-muted'
                     )}
                     disabled={!isAvailable}
                   >
@@ -1001,15 +1001,15 @@ const UploadModel = () => {
                   <div className="ml-3 hidden md:block">
                     <p className={clsx(
                       'text-sm font-medium',
-                      isActive ? 'text-white' : 'text-gray-400'
+                      isActive ? 'text-white' : 'text-dark-text-muted'
                     )}>
                       {step.title}
                     </p>
-                    <p className="text-xs text-gray-500">{step.description}</p>
+                    <p className="text-xs text-dark-text-muted">{step.description}</p>
                   </div>
                   
                   {index < steps.length - 1 && (
-                    <div className="w-8 h-0.5 bg-gray-600 mx-4 hidden md:block" />
+                    <div className="w-8 h-0.5 bg-dark-border-light mx-4 hidden md:block" />
                   )}
                 </div>
               );
@@ -1042,7 +1042,7 @@ const UploadModel = () => {
               <ArrowRightIcon className="h-4 w-4 ml-2" />
             </Button>
           ) : (
-            <div className="text-sm text-gray-400">
+            <div className="text-sm text-dark-text-muted">
               {ipfsHash && blockchainTxHash ? 'Model deployed successfully!' : 'Click deploy to publish your model'}
             </div>
           )}

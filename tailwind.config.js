@@ -14,6 +14,30 @@ export default {
           secondary: '#161b22',
           hover: '#1f242c'
         },
+        dark: {
+          bg: {
+            primary: '#0a0c10',
+            secondary: '#111827',
+            tertiary: '#1f2937',
+          },
+          surface: {
+            DEFAULT: '#161b22',
+            primary: '#0d1117',
+            elevated: '#1f2937',
+            hover: '#374151',
+          },
+          text: {
+            primary: '#f9fafb',
+            secondary: '#d1d5db',
+            tertiary: '#9ca3af',
+            muted: '#6b7280',
+          },
+          border: {
+            DEFAULT: '#374151',
+            light: '#4b5563',
+            focus: '#3b82f6',
+          },
+        },
         text: {
           primary: '#ffffff',
           secondary: '#e5e7eb',

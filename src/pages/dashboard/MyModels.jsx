@@ -6,12 +6,16 @@ import Button from '../../components/ui/Button';
 import Dropdown from '../../components/ui/Dropdown';
 import Modal from '../../components/ui/Modal';
 import { useWallet } from '../../contexts/WalletContext';
+import { useModel } from '../../contexts/ModelContext';
+import { useNotification } from '../../contexts/NotificationContext';
 import { PlusIcon, EllipsisVerticalIcon, PencilIcon, TrashIcon, CubeIcon } from '@heroicons/react/24/outline';
 
 const MyModels = () => {
   const [selectedModel, setSelectedModel] = useState(null);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
-  const { chainId, isConnected } = useWallet();
+  const { chainId, isConnected, address } = useWallet();
+  const { models, loading, delistModel } = useModel();
+  const { showSuccess, showError } = useNotification();
 
   // Get network currency based on chainId
   const getNetworkCurrency = (chainId) => {
@@ -21,10 +25,9 @@ const MyModels = () => {
 
   const currency = getNetworkCurrency(chainId);
 
-  // Models would come from ModelRegistry contract in production
-  const models = [
-    // Empty - will be populated from blockchain
-  ];
+  const ownedModels = (models || []).filter(
+    (model) => model.owner?.toLowerCase() === address?.toLowerCase()
+  );
 
   const getStatusColor = (status) => {
     switch (status) {
@@ -40,18 +43,37 @@ const MyModels = () => {
     setShowDeleteModal(true);
   };
 
-  const confirmDelete = () => {
-    // TODO: Implement delete logic
+  const confirmDelete = async () => {
+    if (!selectedModel) return;
+
+    const result = await delistModel(selectedModel.id);
+    if (result.success) {
+      showSuccess('Model listing removed from marketplace.', { title: 'Model Delisted' });
+    } else {
+      showError(result.error || 'Failed to delist model.', { title: 'Action Failed' });
+    }
+
     setShowDeleteModal(false);
     setSelectedModel(null);
   };
+
+  if (loading) {
+    return (
+      <div className="space-y-6">
+        <h1 className="text-2xl font-bold text-dark-text-primary">My Models</h1>
+        <Card>
+          <Card.Content className="py-10 text-center text-dark-text-tertiary">Loading models...</Card.Content>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-secondary-900">My Models</h1>
-          <p className="text-secondary-600">Manage and monitor your AI models</p>
+          <h1 className="text-2xl font-bold text-dark-text-primary">My Models</h1>
+          <p className="text-dark-text-tertiary">Manage and monitor your AI models</p>
         </div>
         <Link to="/developer/upload">
           <Button>
@@ -62,12 +84,12 @@ const MyModels = () => {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
-        {models.length === 0 ? (
+        {ownedModels.length === 0 ? (
           <Card className="col-span-full">
             <Card.Content className="text-center py-12">
-              <CubeIcon className="h-16 w-16 mx-auto mb-4 text-secondary-400" />
-              <h3 className="text-lg font-medium text-secondary-900 mb-2">No models yet</h3>
-              <p className="text-secondary-600 mb-4">Get started by uploading your first AI model</p>
+              <CubeIcon className="h-16 w-16 mx-auto mb-4 text-dark-text-muted" />
+              <h3 className="text-lg font-medium text-dark-text-primary mb-2">No models yet</h3>
+              <p className="text-dark-text-tertiary mb-4">Get started by uploading your first AI model</p>
               <Link to="/developer/upload">
                 <Button>
                   <PlusIcon className="h-4 w-4" />
@@ -76,13 +98,13 @@ const MyModels = () => {
               </Link>
             </Card.Content>
           </Card>
-        ) : models.map(model => (
+        ) : ownedModels.map(model => (
           <Card key={model.id}>
             <Card.Header>
               <div className="flex items-start justify-between">
                 <div className="flex-1">
                   <Card.Title className="text-lg">{model.name}</Card.Title>
-                  <p className="text-sm text-secondary-600 mt-1">{model.description}</p>
+                  <p className="text-sm text-dark-text-tertiary mt-1">{model.description}</p>
                 </div>
                 <Dropdown
                   trigger={(
@@ -118,20 +140,20 @@ const MyModels = () => {
                 
                 <div className="grid grid-cols-2 gap-4 text-sm">
                   <div>
-                    <span className="text-secondary-600">Downloads</span>
+                    <span className="text-dark-text-tertiary">Downloads</span>
                     <p className="font-medium">{model.downloads}</p>
                   </div>
                   <div>
-                    <span className="text-secondary-600">Earnings</span>
-                    <p className="font-medium text-primary-600">{model.earnings}</p>
+                    <span className="text-dark-text-tertiary">Earnings</span>
+                    <p className="font-medium text-primary-400">{model.isListed ? `${model.price} ${currency}` : `0 ${currency}`}</p>
                   </div>
                   <div>
-                    <span className="text-secondary-600">Rating</span>
+                    <span className="text-dark-text-tertiary">Rating</span>
                     <p className="font-medium">{model.rating > 0 ? `${model.rating}/5` : 'N/A'}</p>
                   </div>
                   <div>
-                    <span className="text-secondary-600">Updated</span>
-                    <p className="font-medium">{new Date(model.lastUpdated).toLocaleDateString()}</p>
+                    <span className="text-dark-text-tertiary">Updated</span>
+                    <p className="font-medium">{new Date(model.updatedAt || model.createdAt).toLocaleDateString()}</p>
                   </div>
                 </div>
                 
@@ -154,12 +176,12 @@ const MyModels = () => {
       </div>
 
       {/* Empty State */}
-      {models.length === 0 && (
+      {ownedModels.length === 0 && (
         <Card>
           <Card.Content className="text-center py-12">
-            <CubeIcon className="h-12 w-12 text-secondary-400 mx-auto mb-4" />
-            <h3 className="text-lg font-medium text-secondary-900 mb-2">No models yet</h3>
-            <p className="text-secondary-600 mb-4">Upload your first AI model to get started</p>
+            <CubeIcon className="h-12 w-12 text-dark-text-muted mx-auto mb-4" />
+            <h3 className="text-lg font-medium text-dark-text-primary mb-2">No models yet</h3>
+            <p className="text-dark-text-tertiary mb-4">Upload your first AI model to get started</p>
             <Link to="/developer/upload">
               <Button>
                 <PlusIcon className="h-4 w-4" />
@@ -176,7 +198,7 @@ const MyModels = () => {
           <Modal.Title>Delete Model</Modal.Title>
         </Modal.Header>
         <Modal.Content>
-          <p className="text-secondary-600">
+          <p className="text-dark-text-tertiary">
             Are you sure you want to delete "{selectedModel?.name}"? This action cannot be undone.
           </p>
         </Modal.Content>

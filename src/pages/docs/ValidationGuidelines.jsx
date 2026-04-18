@@ -91,7 +91,7 @@ const ValidationGuidelines = () => {
             {validationProcess.map((phase, index) => (
               <div key={phase.step} className="flex items-start gap-6">
                 <div className="flex-shrink-0">
-                  <div className="w-12 h-12 rounded-full bg-primary-500/20 border-2 border-primary-400 flex items-center justify-center">
+                  <div className="w-12 h-12 rounded-full bg-primary-500/100/20 border-2 border-primary-400 flex items-center justify-center">
                     <span className="text-lg font-bold text-primary-400">{phase.step}</span>
                   </div>
                 </div>
@@ -124,7 +124,7 @@ const ValidationGuidelines = () => {
             {validationCriteria.map((category, index) => (
               <Card key={index} variant="elevated" className="p-6">
                 <div className="flex items-center mb-6">
-                  <div className="bg-primary-500/20 rounded-lg p-3 mr-4">
+                  <div className="bg-primary-500/100/20 rounded-lg p-3 mr-4">
                     <category.icon className="h-6 w-6 text-primary-400" />
                   </div>
                   <h3 className="text-xl font-bold text-dark-text-primary">{category.category}</h3>
@@ -136,7 +136,7 @@ const ValidationGuidelines = () => {
                       {check.required ? (
                         <CheckCircleIcon className="h-5 w-5 text-green-400 flex-shrink-0 mt-0.5" />
                       ) : (
-                        <XCircleIcon className="h-5 w-5 text-gray-500 flex-shrink-0 mt-0.5" />
+                        <XCircleIcon className="h-5 w-5 text-dark-text-muted flex-shrink-0 mt-0.5" />
                       )}
                       <div className="flex-1">
                         <p className="text-dark-text-secondary">{check.name}</p>

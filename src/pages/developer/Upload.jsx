@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Card from '../../components/ui/Card';
 import Button from '../../components/ui/Button';
@@ -7,12 +7,11 @@ import Dropdown from '../../components/ui/Dropdown';
 import { CloudArrowUpIcon, DocumentIcon, CheckCircleIcon, ExclamationCircleIcon } from '@heroicons/react/24/outline';
 import { useWallet } from '../../contexts/WalletContext';
 import { useModels } from '../../contexts/ModelContext';
-import { uploadFile, uploadJSON } from '../../services/ipfs';
 
 const Upload = () => {
   const navigate = useNavigate();
   const { address, isConnected } = useWallet();
-  const { uploadModel } = useModels();
+  const { uploadModel, listModelForSale } = useModels();
   
   const [formData, setFormData] = useState({
     name: '',
@@ -27,14 +26,15 @@ const Upload = () => {
   const [uploadStep, setUploadStep] = useState(null); // 'file', 'metadata', 'contract', 'complete'
   const [error, setError] = useState(null);
   const [dragActive, setDragActive] = useState(false);
+  const fileInputRef = useRef(null);
 
   const categories = [
-    { value: 'language', label: 'Language Models' },
-    { value: 'computer-vision', label: 'Computer Vision' },
+    { value: 'text', label: 'Language Models' },
+    { value: 'image', label: 'Computer Vision' },
     { value: 'audio', label: 'Audio & Speech' },
+    { value: 'video', label: 'Video' },
     { value: 'multimodal', label: 'Multimodal' },
-    { value: 'analytics', label: 'Analytics & Prediction' },
-    { value: 'research', label: 'Research & Experimental' }
+    { value: 'other', label: 'Other' }
   ];
 
   const licenses = [
@@ -83,39 +83,50 @@ const Upload = () => {
     setError(null);
     
     try {
-      // Step 1: Upload model file to IPFS
+      const numericPrice = parseFloat(formData.price || '0');
+      if (!Number.isFinite(numericPrice) || numericPrice < 0) {
+        throw new Error('Price must be a valid non-negative number');
+      }
+      if (numericPrice > 0 && numericPrice < 0.001) {
+        throw new Error('Paid listings must be at least 0.001 ETH');
+      }
+
+      // Step 1: Prepare upload payload
       setUploadStep('file');
-      const modelFileHash = await uploadFile(formData.file);
+      const tags = formData.tags.split(',').map(t => t.trim()).filter(Boolean);
       
-      // Step 2: Create and upload metadata to IPFS
+      // Step 2: Register model + metadata via ModelContext
       setUploadStep('metadata');
-      const metadata = {
+      const modelPayload = {
         name: formData.name,
         description: formData.description,
         category: formData.category,
         license: formData.license,
-        tags: formData.tags.split(',').map(t => t.trim()).filter(Boolean),
-        modelFile: modelFileHash,
+        tags,
         creator: address,
-        createdAt: new Date().toISOString(),
         version: '1.0.0',
+        file: formData.file,
+        framework: 'custom',
+        price: numericPrice
       };
       
-      const metadataHash = await uploadJSON(metadata);
-      
-      // Step 3: Mint NFT on blockchain
+      // Step 3: Mint model NFT on blockchain
       setUploadStep('contract');
-      const result = await uploadModel({
-        ...metadata,
-        metadataURI: metadataHash,
-        price: formData.price,
-      });
+      const result = await uploadModel(modelPayload);
       
       if (result.success) {
+        // Step 4: Create marketplace listing for paid models
+        if (numericPrice > 0 && result.tokenId) {
+          const listingResult = await listModelForSale(result.tokenId, numericPrice, 300, 1000);
+          if (!listingResult.success) {
+            throw new Error(listingResult.error || 'Model uploaded but listing failed');
+          }
+        }
+
         setUploadStep('complete');
         // Redirect to my models page after short delay
         setTimeout(() => {
-          navigate('/developer/my-models');
+          navigate('/developer/models');
         }, 2000);
       } else {
         throw new Error(result.error || 'Failed to mint model NFT');
@@ -132,50 +143,60 @@ const Upload = () => {
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 
+  const missingRequiredFields = [
+    !formData.file ? 'Model file' : null,
+    !formData.name ? 'Model name' : null,
+    !formData.category ? 'Category' : null,
+    !formData.price ? 'Price' : null,
+    !formData.description ? 'Description' : null,
+    !formData.license ? 'License' : null,
+  ].filter(Boolean);
+
   return (
     <div className="max-w-4xl mx-auto space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-secondary-900">Upload New Model</h1>
-        <p className="text-secondary-600">Share your AI model with the ModelChain community</p>
+        <h1 className="text-2xl font-bold text-dark-text-primary">Upload New Model</h1>
+        <p className="text-dark-text-secondary">Share your AI model with the ModelChain community</p>
+        <p className="mt-1 text-sm text-dark-text-tertiary">Fields marked with * are required.</p>
       </div>
 
       {/* Error Alert */}
       {error && (
-        <Card className="border-red-200 bg-red-50">
+        <Card className="border-red-500/40 bg-red-500/10" role="alert" aria-live="assertive">
           <Card.Content className="flex items-center gap-3 py-3">
             <ExclamationCircleIcon className="h-5 w-5 text-red-500" />
-            <p className="text-red-700">{error}</p>
+            <p className="text-red-200">{error}</p>
           </Card.Content>
         </Card>
       )}
 
       {/* Upload Progress */}
       {uploadStep && (
-        <Card className="border-primary-200 bg-primary-50">
+        <Card className="border-primary-500/40 bg-primary-500/100/10" aria-live="polite">
           <Card.Content className="py-4">
-            <h3 className="font-medium text-primary-900 mb-3">Upload Progress</h3>
+            <h3 className="font-medium text-primary-200 mb-3">Upload Progress</h3>
             <div className="space-y-2">
               <div className="flex items-center gap-2">
                 <CheckCircleIcon className={`h-5 w-5 ${uploadStep === 'file' || uploadStep === 'metadata' || uploadStep === 'contract' || uploadStep === 'complete' ? 'text-green-500' : 'text-secondary-300'}`} />
-                <span className={uploadStep === 'file' ? 'text-primary-700 font-medium' : 'text-secondary-600'}>
+                <span className={uploadStep === 'file' ? 'text-primary-200 font-medium' : 'text-dark-text-secondary'}>
                   Uploading model file to IPFS...
                 </span>
               </div>
               <div className="flex items-center gap-2">
                 <CheckCircleIcon className={`h-5 w-5 ${uploadStep === 'metadata' || uploadStep === 'contract' || uploadStep === 'complete' ? 'text-green-500' : 'text-secondary-300'}`} />
-                <span className={uploadStep === 'metadata' ? 'text-primary-700 font-medium' : 'text-secondary-600'}>
+                <span className={uploadStep === 'metadata' ? 'text-primary-200 font-medium' : 'text-dark-text-secondary'}>
                   Uploading metadata to IPFS...
                 </span>
               </div>
               <div className="flex items-center gap-2">
                 <CheckCircleIcon className={`h-5 w-5 ${uploadStep === 'contract' || uploadStep === 'complete' ? 'text-green-500' : 'text-secondary-300'}`} />
-                <span className={uploadStep === 'contract' ? 'text-primary-700 font-medium' : 'text-secondary-600'}>
+                <span className={uploadStep === 'contract' ? 'text-primary-200 font-medium' : 'text-dark-text-secondary'}>
                   Minting NFT on blockchain...
                 </span>
               </div>
               <div className="flex items-center gap-2">
                 <CheckCircleIcon className={`h-5 w-5 ${uploadStep === 'complete' ? 'text-green-500' : 'text-secondary-300'}`} />
-                <span className={uploadStep === 'complete' ? 'text-green-700 font-medium' : 'text-secondary-600'}>
+                <span className={uploadStep === 'complete' ? 'text-green-400 font-medium' : 'text-dark-text-secondary'}>
                   Upload complete!
                 </span>
               </div>
@@ -197,8 +218,8 @@ const Upload = () => {
             <div
               className={`border-2 border-dashed rounded-lg p-8 text-center transition-colors ${
                 dragActive 
-                  ? 'border-primary-400 bg-primary-50' 
-                  : 'border-secondary-300 hover:border-secondary-400'
+                  ? 'border-primary-400 bg-primary-500/10' 
+                  : 'border-dark-border-light hover:border-secondary-400'
               }`}
               onDragEnter={handleDrag}
               onDragLeave={handleDrag}
@@ -207,10 +228,10 @@ const Upload = () => {
             >
               {formData.file ? (
                 <div className="flex items-center justify-center gap-3">
-                  <DocumentIcon className="h-8 w-8 text-primary-600" />
+                  <DocumentIcon className="h-8 w-8 text-primary-400" />
                   <div>
-                    <p className="font-medium text-secondary-900">{formData.file.name}</p>
-                    <p className="text-sm text-secondary-600">
+                    <p className="font-medium text-dark-text-primary">{formData.file.name}</p>
+                    <p className="text-sm text-dark-text-secondary">
                       {(formData.file.size / (1024 * 1024)).toFixed(2)} MB
                     </p>
                   </div>
@@ -225,22 +246,25 @@ const Upload = () => {
                 </div>
               ) : (
                 <div>
-                  <CloudArrowUpIcon className="h-12 w-12 text-secondary-400 mx-auto mb-4" />
-                  <p className="text-lg font-medium text-secondary-900 mb-2">
+                  <CloudArrowUpIcon className="h-12 w-12 text-dark-text-muted mx-auto mb-4" />
+                  <p className="text-lg font-medium text-dark-text-primary mb-2">
                     Drop your model file here
                   </p>
-                  <p className="text-secondary-600 mb-4">or</p>
-                  <label className="cursor-pointer">
-                    <Button type="button" variant="outline">
+                  <p className="text-dark-text-secondary mb-4">or</p>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => fileInputRef.current?.click()}
+                  >
                       Browse Files
-                    </Button>
-                    <input
-                      type="file"
-                      className="hidden"
-                      accept=".pkl,.h5,.onnx,.pt,.safetensors"
-                      onChange={handleFileSelect}
-                    />
-                  </label>
+                  </Button>
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    className="hidden"
+                    accept=".pkl,.h5,.onnx,.pt,.safetensors"
+                    onChange={handleFileSelect}
+                  />
                 </div>
               )}
             </div>
@@ -254,7 +278,7 @@ const Upload = () => {
           </Card.Header>
           <Card.Content className="space-y-4">
             <Input
-              label="Model Name"
+              label="Model Name *"
               value={formData.name}
               onChange={(e) => handleChange('name', e.target.value)}
               placeholder="e.g., GPT-4 Clone"
@@ -263,7 +287,7 @@ const Upload = () => {
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-secondary-700 mb-2">
+                <label className="block text-sm font-medium text-dark-text-secondary mb-2">
                   Category
                 </label>
                 <Dropdown
@@ -283,22 +307,22 @@ const Upload = () => {
               </div>
               
               <Input
-                label="Price (ETH)"
+                label="Price (ETH) *"
                 type="number"
                 step="0.001"
                 value={formData.price}
                 onChange={(e) => handleChange('price', e.target.value)}
-                placeholder="0.05"
+                placeholder="0.00"
                 required
               />
             </div>
             
             <div>
-              <label className="block text-sm font-medium text-secondary-700 mb-2">
+              <label className="block text-sm font-medium text-dark-text-secondary mb-2">
                 Description
               </label>
               <textarea
-                className="w-full px-3 py-2 border border-secondary-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                className="w-full px-3 py-2 border border-dark-border bg-dark-surface text-dark-text-primary rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                 rows={4}
                 value={formData.description}
                 onChange={(e) => handleChange('description', e.target.value)}
@@ -308,7 +332,7 @@ const Upload = () => {
             </div>
             
             <div>
-              <label className="block text-sm font-medium text-secondary-700 mb-2">
+              <label className="block text-sm font-medium text-dark-text-secondary mb-2">
                 License
               </label>
               <Dropdown
@@ -337,6 +361,12 @@ const Upload = () => {
           </Card.Content>
         </Card>
 
+        {missingRequiredFields.length > 0 && !uploading && (
+          <p className="text-sm text-dark-text-tertiary" aria-live="polite">
+            Complete required fields: {missingRequiredFields.join(', ')}
+          </p>
+        )}
+
         {/* Submit */}
         <div className="flex justify-end gap-4">
           <Button type="button" variant="outline" onClick={() => navigate(-1)}>
@@ -345,7 +375,7 @@ const Upload = () => {
           <Button 
             type="submit" 
             loading={uploading}
-            disabled={!formData.file || !formData.name || !formData.category || !formData.price || uploading || uploadStep === 'complete'}
+            disabled={missingRequiredFields.length > 0 || uploading || uploadStep === 'complete'}
           >
             {uploading ? 'Uploading...' : uploadStep === 'complete' ? 'Upload Complete!' : 'Upload Model'}
           </Button>

@@ -60,28 +60,28 @@ const Toast = ({
   const types = {
     success: {
       icon: CheckCircleIcon,
-      bgColor: 'bg-gray-900/95 border-cyan-500/30',
+      bgColor: 'bg-dark-bg-primary/95 border-cyan-500/30',
       iconColor: 'text-cyan-400',
       titleColor: 'text-cyan-300',
-      messageColor: 'text-gray-300',
+      messageColor: 'text-dark-text-secondary',
       glowColor: 'shadow-[0_0_30px_rgba(6,182,212,0.4),0_0_60px_rgba(6,182,212,0.2)]',
       progressColor: 'bg-gradient-to-r from-cyan-500 to-blue-500'
     },
     error: {
       icon: XCircleIcon,
-      bgColor: 'bg-gray-900/95 border-red-500/30',
+      bgColor: 'bg-dark-bg-primary/95 border-red-500/30',
       iconColor: 'text-red-400',
       titleColor: 'text-red-300',
-      messageColor: 'text-gray-300',
+      messageColor: 'text-dark-text-secondary',
       glowColor: 'shadow-[0_0_30px_rgba(239,68,68,0.4),0_0_60px_rgba(239,68,68,0.2)]',
       progressColor: 'bg-gradient-to-r from-red-500 to-rose-500'
     },
     warning: {
       icon: ExclamationTriangleIcon,
-      bgColor: 'bg-gray-900/95 border-yellow-500/30',
+      bgColor: 'bg-dark-bg-primary/95 border-yellow-500/30',
       iconColor: 'text-yellow-400',
       titleColor: 'text-yellow-300',
-      messageColor: 'text-gray-300',
+      messageColor: 'text-dark-text-secondary',
       glowColor: 'shadow-[0_0_30px_rgba(245,158,11,0.4),0_0_60px_rgba(245,158,11,0.2)]',
       progressColor: 'bg-gradient-to-r from-yellow-500 to-amber-500'
     },
@@ -151,7 +151,7 @@ const Toast = ({
       >
         {/* Progress bar */}
         {autoClose && duration > 0 && (
-          <div className="absolute top-0 left-0 right-0 h-1.5 bg-gray-800/50 overflow-hidden">
+          <div className="absolute top-0 left-0 right-0 h-1.5 bg-dark-surface-elevated overflow-hidden">
             <div
               className={clsx(
                 'h-full transition-all duration-100 ease-linear',
@@ -254,8 +254,8 @@ const Toast = ({
                 type="button"
                 className={clsx(
                   'rounded-lg inline-flex p-1.5 transition-all duration-200',
-                  'text-gray-400 hover:text-white',
-                  'hover:bg-gray-700/50',
+                  'text-dark-text-muted hover:text-dark-text-primary',
+                  'hover:bg-dark-border/50',
                   'focus:outline-none focus:ring-2 focus:ring-cyan-500'
                 )}
                 onClick={handleClose}

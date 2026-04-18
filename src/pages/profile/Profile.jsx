@@ -15,6 +15,7 @@ import {
   ShareIcon,
   CpuChipIcon,
   DocumentTextIcon,
+  CodeBracketIcon,
   PhotoIcon,
   SpeakerWaveIcon,
   VideoCameraIcon,
@@ -218,7 +219,7 @@ const Profile = () => {
     return (
       <div className="w-full py-12 flex items-center justify-center">
         <Loading variant="spinner" size="lg" />
-        <span className="ml-3 text-gray-400">Loading profile...</span>
+        <span className="ml-3 text-dark-text-muted">Loading profile...</span>
       </div>
     );
   }
@@ -227,9 +228,9 @@ const Profile = () => {
     return (
       <div className="w-full py-12 flex items-center justify-center">
         <div className="text-center">
-          <ExclamationTriangleIcon className="h-16 w-16 text-gray-500 mx-auto mb-4" />
+          <ExclamationTriangleIcon className="h-16 w-16 text-dark-text-muted mx-auto mb-4" />
           <h2 className="text-xl font-semibold text-white mb-2">Profile not found</h2>
-          <p className="text-gray-400 mb-6">The user profile you're looking for doesn't exist.</p>
+          <p className="text-dark-text-muted mb-6">The user profile you're looking for doesn't exist.</p>
           <Button onClick={() => navigate('/marketplace/models')}>
             Browse Marketplace
           </Button>
@@ -239,7 +240,7 @@ const Profile = () => {
   }
 
   return (
-    <div className="w-full -mx-6 -my-6">
+    <div className="page-content">
       {/* Cover Image & Header */}
       <div className="relative">
         {/* Cover Image */}
@@ -265,7 +266,7 @@ const Profile = () => {
         </div>
 
         {/* Profile Header */}
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="page-shell max-w-4xl">
           <div className="relative -mt-24 sm:-mt-32">
             {/* Avatar */}
             <div className="flex items-end space-x-6">
@@ -274,7 +275,7 @@ const Profile = () => {
                   {profile.avatar || <UserSolidIcon className="h-20 w-20 text-dark-text-muted" />}
                 </div>
                 {profile.verified && (
-                  <div className="absolute -bottom-1 -right-1 w-8 h-8 bg-primary-500 rounded-full flex items-center justify-center border-2 border-dark-surface-primary">
+                  <div className="absolute -bottom-1 -right-1 w-8 h-8 bg-primary-500/100 rounded-full flex items-center justify-center border-2 border-dark-surface-primary">
                     <CheckBadgeSolidIcon className="h-5 w-5 text-white" />
                   </div>
                 )}
@@ -311,7 +312,7 @@ const Profile = () => {
                   {isCurrentUser && (
                     <Button
                       variant="outline"
-                      onClick={() => navigate('/settings/profile')}
+                      onClick={() => navigate('/profile/edit')}
                     >
                       <PencilIcon className="h-4 w-4 mr-2" />
                       Edit Profile
@@ -437,7 +438,7 @@ const Profile = () => {
                   
                   <Card variant="elevated" className="p-4">
                     <div className="text-center">
-                      <ArrowDownTrayIcon className="h-6 w-6 text-secondary-400 mx-auto mb-2" />
+                      <ArrowDownTrayIcon className="h-6 w-6 text-dark-text-muted mx-auto mb-2" />
                       <p className="text-xl font-bold text-dark-text-primary">
                         {(profile.stats.totalDownloads / 1000).toFixed(0)}K
                       </p>
@@ -473,7 +474,7 @@ const Profile = () => {
 
       {/* Content Tabs */}
       <div className="border-b border-dark-surface-elevated">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="page-shell max-w-4xl">
           <nav className="flex space-x-8">
             {tabs.map((tab) => {
               const IconComponent = tab.icon;
@@ -503,7 +504,7 @@ const Profile = () => {
       </div>
 
       {/* Tab Content */}
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="page-shell max-w-4xl py-8">
         {/* Models Tab */}
         {activeTab === 'models' && (
           <div>
@@ -611,7 +612,7 @@ const Profile = () => {
                         <Button
                           variant="ghost"
                           size="sm"
-                          onClick={() => navigate(`/marketplace/model/${review.modelId}`)}
+                          onClick={() => navigate(`/marketplace/models/${review.modelId}`)}
                         >
                           View Model
                           <ArrowTopRightOnSquareIcon className="h-4 w-4 ml-1" />

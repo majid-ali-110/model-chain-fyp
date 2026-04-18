@@ -30,21 +30,25 @@ const Models = () => {
   // Filter and sort models
   const filteredModels = useMemo(() => {
     return models.filter(model => {
+      const price = parseFloat(model.price || '0');
+      const rating = parseFloat(model.rating || '0');
       const matchesSearch = model.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
                           model.description?.toLowerCase().includes(searchTerm.toLowerCase());
       const matchesCategory = selectedCategory === 'all' || model.category === selectedCategory;
-      const matchesPrice = (model.price || 0) >= minPrice && (model.price || 0) <= maxPrice;
-      const matchesRating = (model.rating || 0) >= minRating;
+      const matchesPrice = price >= minPrice && price <= maxPrice;
+      const matchesRating = rating >= minRating;
       
       return matchesSearch && matchesCategory && matchesPrice && matchesRating;
     }).sort((a, b) => {
+      const priceA = parseFloat(a.price || '0');
+      const priceB = parseFloat(b.price || '0');
       switch (sortBy) {
         case 'newest':
           return new Date(b.createdAt || 0) - new Date(a.createdAt || 0);
         case 'price-low':
-          return (a.price || 0) - (b.price || 0);
+          return priceA - priceB;
         case 'price-high':
-          return (b.price || 0) - (a.price || 0);
+          return priceB - priceA;
         case 'popular':
         default:
           return (b.downloads || 0) - (a.downloads || 0);
@@ -205,8 +209,10 @@ const Models = () => {
                         {model.name}
                       </Card.Title>
                       <div className="flex items-center gap-2 mt-1">
-                        <p className="text-sm text-dark-text-muted">by {model.developer.name}</p>
-                        {model.developer.verified && (
+                        <p className="text-sm text-dark-text-muted">
+                          by {model.owner ? `${model.owner.slice(0, 6)}...${model.owner.slice(-4)}` : 'Unknown'}
+                        </p>
+                        {model.verified && (
                           <Badge variant="outline" size="sm" className="text-xs">Verified Developer</Badge>
                         )}
                       </div>
@@ -229,26 +235,28 @@ const Models = () => {
                         <div className="flex items-center gap-1">
                           <StarIcon className="h-4 w-4 text-yellow-400" />
                           <span className="font-medium">{model.rating}</span>
-                          <span className="text-xs">({model.reviewCount})</span>
+                          <span className="text-xs">({model.totalRatings || 0})</span>
                         </div>
-                        <span>{model.downloads.toLocaleString()} downloads</span>
+                        <span>{(model.downloads || 0).toLocaleString()} downloads</span>
                       </div>
-                      <Badge variant="outline" size="sm" className="text-xs">
-                        {model.accuracy}% Accuracy
-                      </Badge>
+                      {model.verified && (
+                        <Badge variant="outline" size="sm" className="text-xs">
+                          Validated
+                        </Badge>
+                      )}
                     </div>
                   </div>
                   
                   {/* Tags */}
                   <div className="flex flex-wrap gap-1 mb-4">
-                    {model.tags.map(tag => (
+                    {(model.tags || []).map(tag => (
                       <Badge key={tag} variant="outline" size="sm">{tag}</Badge>
                     ))}
                   </div>
                   
                   <div className="flex items-center justify-between mt-auto">
                     <span className="text-lg font-bold text-primary-500">
-                      {model.price === 0 ? 'Free' : `${model.price} ${model.currency}`}
+                      {parseFloat(model.price || '0') === 0 ? 'Free' : `${model.price} ETH`}
                     </span>
                     <div className="flex gap-2">
                       <Link to={`/sandbox?model=${model.id}`}>

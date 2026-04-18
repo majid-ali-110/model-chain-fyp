@@ -5,8 +5,8 @@ const Terms = () => {
   return (
     <div className="max-w-4xl mx-auto space-y-6">
       <div>
-        <h1 className="text-3xl font-bold text-secondary-900 mb-4">Terms of Service</h1>
-        <p className="text-secondary-600">Last updated: January 1, 2024</p>
+        <h1 className="text-3xl font-bold text-dark-text-primary mb-4">Terms of Service</h1>
+        <p className="text-dark-text-tertiary">Last updated: January 1, 2024</p>
       </div>
 
       <Card>

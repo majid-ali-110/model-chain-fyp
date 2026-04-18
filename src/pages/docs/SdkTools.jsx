@@ -11,37 +11,38 @@ import {
 } from '@heroicons/react/24/outline';
 import Card from '../../components/ui/Card';
 import Button from '../../components/ui/Button';
+import Badge from '../../components/ui/Badge';
 
 const SdkTools = () => {
   const sdks = [
     {
       name: 'JavaScript SDK',
       language: 'JavaScript/TypeScript',
-      version: 'v2.5.0',
+      version: 'Planned',
       icon: CodeBracketIcon,
       install: 'npm install @modelchain/sdk',
-      docs: '/docs/sdk/javascript',
-      github: 'https://github.com/modelchain/sdk-javascript',
+      docs: 'Planned',
+      github: 'Planned',
       features: ['TypeScript support', 'Promise-based API', 'Browser & Node.js', 'Auto-retry logic']
     },
     {
       name: 'Python SDK',
       language: 'Python',
-      version: 'v2.3.1',
+      version: 'Planned',
       icon: CommandLineIcon,
       install: 'pip install modelchain-sdk',
-      docs: '/docs/sdk/python',
-      github: 'https://github.com/modelchain/sdk-python',
+      docs: 'Planned',
+      github: 'Planned',
       features: ['Async/await support', 'Type hints', 'Pandas integration', 'CLI tools']
     },
     {
       name: 'Go SDK',
       language: 'Go',
-      version: 'v1.8.0',
+      version: 'Planned',
       icon: CubeIcon,
       install: 'go get github.com/modelchain/sdk-go',
-      docs: '/docs/sdk/go',
-      github: 'https://github.com/modelchain/sdk-go',
+      docs: 'Planned',
+      github: 'Planned',
       features: ['Native concurrency', 'Zero dependencies', 'High performance', 'Idiomatic Go']
     }
   ];
@@ -86,10 +87,19 @@ const SdkTools = () => {
               SDKs
             </span> & Developer Tools
           </h1>
+          <div className="mb-4">
+            <Badge variant="warning">Planned / Not Published Yet</Badge>
+          </div>
           <p className="text-xl text-dark-text-secondary max-w-3xl">
-            Official SDKs and tools to accelerate your development with ModelChain.
+            This page lists planned SDK/tooling surfaces that are not currently published as production packages.
           </p>
         </div>
+
+        <Card variant="elevated" className="p-6 mb-8 border-yellow-500/30">
+          <p className="text-dark-text-secondary">
+            Installation commands and repository links below are roadmap placeholders. Use the web dApp routes for currently available functionality.
+          </p>
+        </Card>
 
         {/* SDKs */}
         <div className="mb-12">
@@ -119,11 +129,11 @@ const SdkTools = () => {
                 </div>
 
                 <div className="flex gap-3">
-                  <Button variant="primary" size="sm" className="flex-1">
-                    Documentation
+                  <Button variant="primary" size="sm" className="flex-1" disabled>
+                    Planned Docs
                   </Button>
-                  <Button variant="secondary" size="sm">
-                    GitHub
+                  <Button variant="secondary" size="sm" disabled>
+                    Planned Repo
                   </Button>
                 </div>
               </Card>
@@ -138,7 +148,7 @@ const SdkTools = () => {
             {tools.map((tool, index) => (
               <Card key={index} variant="elevated" className="p-6">
                 <div className="flex items-start gap-6">
-                  <div className="bg-primary-500/20 rounded-lg p-4">
+                  <div className="bg-primary-500/100/20 rounded-lg p-4">
                     <tool.icon className="h-8 w-8 text-primary-400" />
                   </div>
                   
@@ -159,7 +169,7 @@ const SdkTools = () => {
                     </div>
                   </div>
 
-                  <Button variant="primary">Install</Button>
+                  <Button variant="primary" disabled>Planned</Button>
                 </div>
               </Card>
             ))}

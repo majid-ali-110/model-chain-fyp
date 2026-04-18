@@ -45,6 +45,7 @@ import DeveloperMyModels from './pages/developer/MyModels';
 
 // Validator Pages
 import ValidatorDashboard from './pages/validator/Dashboard';
+import ValidatorReview from './pages/validator/Review';
 
 // Sandbox Page
 import Sandbox from './pages/sandbox/Sandbox';
@@ -59,6 +60,7 @@ import WalletDashboard from './pages/wallet/WalletDashboard';
 // Profile Pages
 import Profile from './pages/profile/Profile';
 import Settings from './pages/profile/Settings';
+import EditProfile from './pages/profile/EditProfile';
 
 // Legal Pages
 import Terms from './pages/legal/Terms';
@@ -84,7 +86,6 @@ import FAQ from './pages/FAQ';
 import { Blog, Careers, Contact, Press, Status, Community, Documentation, Support, DeveloperSupport, CookiePolicy } from './pages/TemplatePagesindex';
 
 import WalletAuthSync from './components/auth/WalletAuthSync';
-import './App.css';
 
 function App() {
   return (
@@ -97,7 +98,7 @@ function App() {
                 <WalletAuthSync />
                 <Router>
                   <ScrollToTop />
-                  <div style={{ minHeight: '100vh', backgroundColor: '#0a0c10', color: '#ffffff' }}>
+                  <div className="min-h-screen bg-dark-bg-primary text-dark-text-primary">
                     <Routes>
                       {/* Public Routes with Main Layout */}
                       <Route path="/" element={<MainLayout />}>
@@ -124,6 +125,11 @@ function App() {
                         {/* Profile Routes */}
                         <Route path="profile" element={<Profile />} />
                         <Route path="profile/:userId" element={<Profile />} />
+                        <Route path="profile/edit" element={
+                          <ProtectedRoute>
+                            <EditProfile />
+                          </ProtectedRoute>
+                        } />
                         <Route path="settings" element={<Settings />} />
 
                         {/* Legal Routes */}
@@ -210,6 +216,7 @@ function App() {
                       }>
                         <Route index element={<ValidatorDashboard />} />
                         <Route path="dashboard" element={<ValidatorDashboard />} />
+                        <Route path="review/:modelId" element={<ValidatorReview />} />
                       </Route>
 
                       {/* Protected Admin Routes */}

@@ -29,7 +29,7 @@ const Security = () => {
               <p className="text-dark-text-secondary">All transactions secured by smart contracts on immutable blockchain.</p>
             </div>
             <div>
-              <LockClosedIcon className="h-12 w-12 text-secondary-400 mb-4" />
+              <LockClosedIcon className="h-12 w-12 text-dark-text-muted mb-4" />
               <h3 className="text-xl font-bold text-dark-text-primary mb-3">Data Encryption</h3>
               <p className="text-dark-text-secondary">End-to-end encryption for all model files and user data.</p>
             </div>

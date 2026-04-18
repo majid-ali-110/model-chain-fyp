@@ -552,6 +552,7 @@ export const WalletProvider = ({ children }) => {
 
   const value = {
     ...state,
+    isConnected: state.connected,
     connectWallet,
     disconnectWallet,
     updateBalance,

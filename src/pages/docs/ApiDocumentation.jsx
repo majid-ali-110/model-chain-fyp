@@ -12,6 +12,7 @@ import {
 } from '@heroicons/react/24/outline';
 import Card from '../../components/ui/Card';
 import Button from '../../components/ui/Button';
+import Badge from '../../components/ui/Badge';
 import { clsx } from 'clsx';
 
 const ApiDocumentation = () => {
@@ -187,11 +188,21 @@ curl -X POST "https://api.modelchain.io/v1/models/model_123/execute" \\
               API
             </span> Documentation
           </h1>
+          <div className="mb-4">
+            <Badge variant="warning">Planned / Not Live Yet</Badge>
+          </div>
           <p className="text-xl text-dark-text-secondary max-w-3xl">
-            Complete REST API reference for integrating ModelChain into your applications.
-            Get started with our powerful API endpoints and SDKs.
+            This page describes the planned REST API surface for future backend releases.
+            Current production functionality is available through the on-chain dApp flows.
           </p>
         </div>
+
+        <Card variant="elevated" className="p-6 mb-8 border-yellow-500/30">
+          <h3 className="text-lg font-semibold text-dark-text-primary mb-2">Implementation Status</h3>
+          <p className="text-dark-text-secondary">
+            These endpoints and code snippets are roadmap documentation only. They are not currently deployed as a public API service.
+          </p>
+        </Card>
 
         {/* Quick Start */}
         <Card variant="elevated" className="p-8 mb-8">
@@ -202,18 +213,18 @@ curl -X POST "https://api.modelchain.io/v1/models/model_123/execute" \\
           
           <div className="space-y-4">
             <div className="bg-dark-surface rounded-lg p-6 border border-dark-border">
-              <h3 className="text-lg font-semibold text-dark-text-primary mb-2">1. Get Your API Key</h3>
+              <h3 className="text-lg font-semibold text-dark-text-primary mb-2">1. Planned API Key Flow</h3>
               <p className="text-dark-text-secondary mb-4">
-                Generate your API key from your <Link to="/dashboard" className="text-primary-400 hover:text-primary-300">Dashboard</Link>
+                API key issuance will be added in a future backend release.
               </p>
               <div className="bg-dark-bg-primary p-4 rounded font-mono text-sm text-green-400">
-                API_KEY=mck_live_1234567890abcdef
+                API_KEY=planned_future_release
               </div>
             </div>
 
             <div className="bg-dark-surface rounded-lg p-6 border border-dark-border">
-              <h3 className="text-lg font-semibold text-dark-text-primary mb-2">2. Base URL</h3>
-              <p className="text-dark-text-secondary mb-4">All API requests should be made to:</p>
+              <h3 className="text-lg font-semibold text-dark-text-primary mb-2">2. Planned Base URL</h3>
+              <p className="text-dark-text-secondary mb-4">Reserved API host (not active yet):</p>
               <div className="bg-dark-bg-primary p-4 rounded font-mono text-sm text-cyan-400 flex items-center justify-between">
                 <span>https://api.modelchain.io/v1</span>
                 <button
@@ -230,7 +241,7 @@ curl -X POST "https://api.modelchain.io/v1/models/model_123/execute" \\
             </div>
 
             <div className="bg-dark-surface rounded-lg p-6 border border-dark-border">
-              <h3 className="text-lg font-semibold text-dark-text-primary mb-2">3. Authentication</h3>
+              <h3 className="text-lg font-semibold text-dark-text-primary mb-2">3. Planned Authentication</h3>
               <p className="text-dark-text-secondary mb-4">Include your API key in the Authorization header:</p>
               <div className="bg-dark-bg-primary p-4 rounded font-mono text-sm text-purple-400">
                 Authorization: Bearer YOUR_API_KEY
@@ -242,7 +253,7 @@ curl -X POST "https://api.modelchain.io/v1/models/model_123/execute" \\
         {/* Code Examples */}
         <Card variant="elevated" className="p-8 mb-8">
           <div className="flex items-center mb-6">
-            <CodeBracketIcon className="h-8 w-8 text-secondary-400 mr-3" />
+            <CodeBracketIcon className="h-8 w-8 text-dark-text-muted mr-3" />
             <h2 className="text-2xl font-bold text-dark-text-primary">Code Examples</h2>
           </div>
 
@@ -254,7 +265,7 @@ curl -X POST "https://api.modelchain.io/v1/models/model_123/execute" \\
                 className={clsx(
                   'px-6 py-2 rounded-lg font-semibold transition-all',
                   selectedLanguage === lang
-                    ? 'bg-primary-500 text-white'
+                    ? 'bg-primary-500/100 text-white'
                     : 'bg-dark-surface text-dark-text-secondary hover:bg-dark-surface-hover'
                 )}
               >
@@ -307,6 +318,7 @@ curl -X POST "https://api.modelchain.io/v1/models/model_123/execute" \\
                       {endpoint.method}
                     </span>
                     <code className="text-primary-400 font-mono text-sm">{endpoint.endpoint}</code>
+                    <Badge variant="warning" size="sm">Planned</Badge>
                   </div>
                   <button
                     onClick={() => copyToClipboard(endpoint.endpoint, `endpoint-${index}`)}
@@ -348,7 +360,7 @@ curl -X POST "https://api.modelchain.io/v1/models/model_123/execute" \\
 
         {/* Rate Limits */}
         <Card variant="elevated" className="p-8 mb-8">
-          <h2 className="text-2xl font-bold text-dark-text-primary mb-6">Rate Limits</h2>
+          <h2 className="text-2xl font-bold text-dark-text-primary mb-6">Planned Rate Limits</h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div className="bg-dark-surface rounded-lg p-6 border border-dark-border">
               <h3 className="text-lg font-semibold text-primary-400 mb-2">Free Tier</h3>
@@ -356,7 +368,7 @@ curl -X POST "https://api.modelchain.io/v1/models/model_123/execute" \\
               <p className="text-dark-text-secondary">requests per hour</p>
             </div>
             <div className="bg-dark-surface rounded-lg p-6 border border-primary-400/50">
-              <h3 className="text-lg font-semibold text-secondary-400 mb-2">Pro Tier</h3>
+              <h3 className="text-lg font-semibold text-dark-text-muted mb-2">Pro Tier</h3>
               <p className="text-3xl font-bold text-dark-text-primary mb-2">1,000</p>
               <p className="text-dark-text-secondary">requests per hour</p>
             </div>
@@ -372,7 +384,7 @@ curl -X POST "https://api.modelchain.io/v1/models/model_123/execute" \\
         <Card variant="elevated" className="p-8 text-center">
           <h2 className="text-2xl font-bold text-dark-text-primary mb-4">Need Help?</h2>
           <p className="text-dark-text-secondary mb-6">
-            Join our developer community or contact our support team for assistance.
+            API support links will become active when the backend API is released.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link to="/support/developers">

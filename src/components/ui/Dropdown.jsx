@@ -5,6 +5,7 @@ import { clsx } from 'clsx';
 
 const Dropdown = ({ 
   trigger, 
+  items,
   children, 
   align = 'left',
   className = '',
@@ -33,17 +34,24 @@ const Dropdown = ({
       >
         <Menu.Items
           className={clsx(
-            'absolute mt-2 w-56 rounded-md shadow-lg focus:outline-none',
+            'absolute mt-2 w-56 rounded-lg shadow-lg focus:outline-none z-50 bg-dark-surface border border-dark-border shadow-black/50',
             alignments[align]
           )}
-          style={{
-            backgroundColor: '#0d1117',
-            border: '1px solid #21262d',
-            boxShadow: '0 10px 25px rgba(0, 0, 0, 0.5)',
-            zIndex: 9999
-          }}
         >
-          <div className="py-1">{children}</div>
+          <div className="py-1">
+            {Array.isArray(items)
+              ? items.map((item) => (
+                  <DropdownItem
+                    key={item.key || item.label}
+                    onClick={item.onClick}
+                    disabled={item.disabled}
+                    className={item.className}
+                  >
+                    {item.label}
+                  </DropdownItem>
+                ))
+              : children}
+          </div>
         </Menu.Items>
       </Transition>
     </Menu>
@@ -71,14 +79,11 @@ const DropdownItem = ({ children, onClick, disabled = false, className = '', ...
         <button
           type="button"
           className={clsx(
-            'block w-full px-4 py-2 text-left text-sm transition-colors flex items-center',
+            'block w-full px-4 py-2 text-left text-sm transition-colors duration-200 flex items-center rounded',
+            active ? 'bg-dark-surface-elevated text-dark-text-primary' : 'text-dark-text-secondary',
             disabled && 'opacity-50 cursor-not-allowed',
             className
           )}
-          style={{
-            backgroundColor: active ? '#161b22' : 'transparent',
-            color: active ? '#f0f6fc' : '#c9d1d9'
-          }}
           onClick={handleClick}
           disabled={disabled}
           {...props}

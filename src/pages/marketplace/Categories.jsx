@@ -20,7 +20,7 @@ const Categories = () => {
       icon: ChatBubbleLeftRightIcon,
       modelCount: 156,
       trending: true,
-      color: 'bg-blue-50 text-blue-600'
+      color: 'bg-blue-500/10 text-blue-400'
     },
     {
       id: 'computer-vision',
@@ -29,7 +29,7 @@ const Categories = () => {
       icon: EyeIcon,
       modelCount: 89,
       trending: true,
-      color: 'bg-green-50 text-green-600'
+      color: 'bg-green-500/10 text-green-400'
     },
     {
       id: 'audio',
@@ -38,7 +38,7 @@ const Categories = () => {
       icon: SpeakerWaveIcon,
       modelCount: 45,
       trending: false,
-      color: 'bg-purple-50 text-purple-600'
+      color: 'bg-purple-500/10 text-purple-400'
     },
     {
       id: 'multimodal',
@@ -47,7 +47,7 @@ const Categories = () => {
       icon: CubeIcon,
       modelCount: 23,
       trending: true,
-      color: 'bg-orange-50 text-orange-600'
+      color: 'bg-orange-500/10 text-orange-400'
     },
     {
       id: 'analytics',
@@ -56,7 +56,7 @@ const Categories = () => {
       icon: ChartBarIcon,
       modelCount: 67,
       trending: false,
-      color: 'bg-indigo-50 text-indigo-600'
+      color: 'bg-indigo-500/10 text-indigo-400'
     },
     {
       id: 'research',
@@ -65,15 +65,15 @@ const Categories = () => {
       icon: BeakerIcon,
       modelCount: 34,
       trending: false,
-      color: 'bg-red-50 text-red-600'
+      color: 'bg-red-500/10 text-red-400'
     }
   ];
 
   return (
     <div className="space-y-6">
       <div className="text-center">
-        <h1 className="text-3xl font-bold text-secondary-900 mb-4">Model Categories</h1>
-        <p className="text-lg text-secondary-600 max-w-2xl mx-auto">
+        <h1 className="text-3xl font-bold text-dark-text-primary mb-4">Model Categories</h1>
+        <p className="text-lg text-dark-text-tertiary max-w-2xl mx-auto">
           Explore AI models organized by category. Find the perfect model for your specific use case.
         </p>
       </div>
@@ -97,7 +97,7 @@ const Categories = () => {
                           <Badge variant="success" size="sm">Trending</Badge>
                         )}
                       </div>
-                      <p className="text-sm text-secondary-600 mt-2">
+                      <p className="text-sm text-dark-text-tertiary mt-2">
                         {category.description}
                       </p>
                     </div>
@@ -106,10 +106,10 @@ const Categories = () => {
                 
                 <Card.Content>
                   <div className="flex items-center justify-between">
-                    <span className="text-sm text-secondary-600">
+                    <span className="text-sm text-dark-text-tertiary">
                       {category.modelCount} models available
                     </span>
-                    <span className="text-primary-600 font-medium hover:text-primary-700">
+                    <span className="text-primary-400 font-medium hover:text-primary-300">
                       Explore →
                     </span>
                   </div>
@@ -129,20 +129,20 @@ const Categories = () => {
           <Card.Content>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
               <div className="text-center">
-                <div className="text-2xl font-bold text-primary-600">414</div>
-                <div className="text-sm text-secondary-600">Total Models</div>
+                <div className="text-2xl font-bold text-primary-400">414</div>
+                <div className="text-sm text-dark-text-tertiary">Total Models</div>
               </div>
               <div className="text-center">
-                <div className="text-2xl font-bold text-primary-600">1.2k</div>
-                <div className="text-sm text-secondary-600">Active Developers</div>
+                <div className="text-2xl font-bold text-primary-400">1.2k</div>
+                <div className="text-sm text-dark-text-tertiary">Active Developers</div>
               </div>
               <div className="text-center">
-                <div className="text-2xl font-bold text-primary-600">89%</div>
-                <div className="text-sm text-secondary-600">Uptime</div>
+                <div className="text-2xl font-bold text-primary-400">89%</div>
+                <div className="text-sm text-dark-text-tertiary">Uptime</div>
               </div>
               <div className="text-center">
-                <div className="text-2xl font-bold text-primary-600">50k+</div>
-                <div className="text-sm text-secondary-600">Downloads</div>
+                <div className="text-2xl font-bold text-primary-400">50k+</div>
+                <div className="text-sm text-dark-text-tertiary">Downloads</div>
               </div>
             </div>
           </Card.Content>

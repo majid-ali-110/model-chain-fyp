@@ -114,8 +114,8 @@ const Analytics = () => {
       {/* Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-secondary-900">Analytics</h1>
-          <p className="text-secondary-600">Track your model performance and earnings</p>
+          <h1 className="text-2xl font-bold text-dark-text-primary">Analytics</h1>
+          <p className="text-dark-text-tertiary">Track your model performance and earnings</p>
         </div>
         
         <div className="flex gap-2">
@@ -150,17 +150,19 @@ const Analytics = () => {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {stats.map((stat, index) => {
           const IconComponent = stat.icon;
+          const iconBgMap = { blue: 'bg-blue-500/10', green: 'bg-green-500/10', purple: 'bg-purple-500/10', yellow: 'bg-yellow-500/10' };
+          const iconTextMap = { blue: 'text-blue-400', green: 'text-green-400', purple: 'text-purple-400', yellow: 'text-yellow-400' };
           return (
             <Card key={index}>
               <Card.Content className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm font-medium text-secondary-600">{stat.title}</p>
-                    <p className="text-2xl font-bold text-secondary-900">{stat.value}</p>
-                    <p className="text-sm text-green-600 font-medium">{stat.change}</p>
+                    <p className="text-sm font-medium text-dark-text-tertiary">{stat.title}</p>
+                    <p className="text-2xl font-bold text-dark-text-primary">{stat.value}</p>
+                    <p className="text-sm text-green-400 font-medium">{stat.change}</p>
                   </div>
-                  <div className={`p-3 rounded-lg bg-${stat.color}-50`}>
-                    <IconComponent className={`h-6 w-6 text-${stat.color}-600`} />
+                  <div className={`p-3 rounded-lg ${iconBgMap[stat.color] || 'bg-primary-500/10'}`}>
+                    <IconComponent className={`h-6 w-6 ${iconTextMap[stat.color] || 'text-primary-400'}`} />
                   </div>
                 </div>
               </Card.Content>
@@ -178,10 +180,10 @@ const Analytics = () => {
           <Card.Content>
             <div className="space-y-4">
               {topModels.map((model, index) => (
-                <div key={index} className="flex items-center gap-4 p-4 border border-secondary-100 rounded-lg">
+                <div key={index} className="flex items-center gap-4 p-4 border border-dark-border rounded-lg">
                   <div className="flex-1">
-                    <h4 className="font-medium text-secondary-900">{model.name}</h4>
-                    <div className="flex items-center gap-4 text-sm text-secondary-600 mt-1">
+                    <h4 className="font-medium text-dark-text-primary">{model.name}</h4>
+                    <div className="flex items-center gap-4 text-sm text-dark-text-tertiary mt-1">
                       <span>{model.downloads} downloads</span>
                       <span>{model.earnings}</span>
                       <div className="flex items-center gap-1">
@@ -209,19 +211,19 @@ const Analytics = () => {
           <Card.Content>
             <div className="space-y-4">
               {recentActivity.map((activity, index) => (
-                <div key={index} className="flex items-center gap-3 py-3 border-b border-secondary-100 last:border-0">
+                <div key={index} className="flex items-center gap-3 py-3 border-b border-dark-border last:border-0">
                   <div className={`w-2 h-2 rounded-full ${
                     activity.type === 'download' ? 'bg-blue-500' : 'bg-yellow-500'
                   }`} />
                   <div className="flex-1">
-                    <p className="text-sm font-medium text-secondary-900">
+                    <p className="text-sm font-medium text-dark-text-primary">
                       {activity.type === 'download' ? 'Download' : 'Review'} on {activity.model}
                     </p>
-                    <p className="text-xs text-secondary-600">
+                    <p className="text-xs text-dark-text-tertiary">
                       by {activity.user} • {activity.time}
                     </p>
                   </div>
-                  <div className="text-sm font-medium text-primary-600">
+                  <div className="text-sm font-medium text-primary-400">
                     {activity.amount || `${activity.rating}★`}
                   </div>
                 </div>
@@ -239,7 +241,7 @@ const Analytics = () => {
         <Card.Content>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div>
-              <h4 className="font-medium text-secondary-900 mb-4">Download Growth</h4>
+              <h4 className="font-medium text-dark-text-primary mb-4">Download Growth</h4>
               <div className="space-y-3">
                 <div>
                   <div className="flex justify-between text-sm mb-1">
@@ -259,7 +261,7 @@ const Analytics = () => {
             </div>
             
             <div>
-              <h4 className="font-medium text-secondary-900 mb-4">User Engagement</h4>
+              <h4 className="font-medium text-dark-text-primary mb-4">User Engagement</h4>
               <div className="space-y-3">
                 <div>
                   <div className="flex justify-between text-sm mb-1">
@@ -279,7 +281,7 @@ const Analytics = () => {
             </div>
             
             <div>
-              <h4 className="font-medium text-secondary-900 mb-4">Revenue Growth</h4>
+              <h4 className="font-medium text-dark-text-primary mb-4">Revenue Growth</h4>
               <div className="space-y-3">
                 <div>
                   <div className="flex justify-between text-sm mb-1">

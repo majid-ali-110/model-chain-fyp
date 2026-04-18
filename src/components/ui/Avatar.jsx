@@ -54,15 +54,10 @@ const Avatar = ({
     return (
       <div 
         className={clsx(
-          'flex items-center justify-center font-semibold',
+          'flex items-center justify-center font-semibold bg-primary-500 text-white border-2 border-dark-border',
           variants[variant],
           sizes[size]
         )}
-        style={{
-          backgroundColor: '#58a6ff',
-          color: '#ffffff',
-          border: '2px solid #21262d'
-        }}
       >
         {initials || '?'}
       </div>
@@ -70,7 +65,7 @@ const Avatar = ({
   };
 
   return (
-    <div className={clsx('flex-shrink-0', className)} style={{ position: 'relative', zIndex: 1 }}>
+    <div className={clsx('flex-shrink-0 relative z-[1]', className)}>
       {renderContent()}
     </div>
   );

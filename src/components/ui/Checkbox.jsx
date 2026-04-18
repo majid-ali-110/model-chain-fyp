@@ -16,8 +16,8 @@ const Checkbox = React.forwardRef(({
           ref={ref}
           type="checkbox"
           className={clsx(
-            'h-4 w-4 rounded border-secondary-300 text-primary-600 focus:ring-primary-600',
-            error && 'border-red-300 focus:ring-red-500',
+            'h-4 w-4 rounded border-dark-border-light bg-dark-surface text-primary-500 focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 focus:ring-offset-dark-bg-primary',
+            error && 'border-red-500 focus:ring-red-500',
             disabled && 'opacity-50 cursor-not-allowed'
           )}
           disabled={disabled}
@@ -28,8 +28,8 @@ const Checkbox = React.forwardRef(({
         <div className="ml-3 text-sm leading-6">
           {label && (
             <label className={clsx(
-              'font-medium',
-              error ? 'text-red-900' : 'text-secondary-900',
+              'font-medium text-sm',
+              error ? 'text-red-400' : 'text-dark-text-primary',
               disabled && 'opacity-50'
             )}>
               {label}
@@ -37,7 +37,7 @@ const Checkbox = React.forwardRef(({
           )}
           {description && (
             <p className={clsx(
-              error ? 'text-red-600' : 'text-secondary-500',
+              error ? 'text-red-400' : 'text-dark-text-muted',
               disabled && 'opacity-50'
             )}>
               {description}

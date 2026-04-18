@@ -64,8 +64,8 @@ const Overview = () => {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-secondary-900">Dashboard Overview</h1>
-        <p className="text-secondary-600">Welcome back! Here's what's happening with your models.</p>
+        <h1 className="text-2xl font-bold text-dark-text-primary">Dashboard Overview</h1>
+        <p className="text-dark-text-tertiary">Welcome back! Here's what's happening with your models.</p>
       </div>
 
       {/* Stats Grid */}
@@ -77,11 +77,11 @@ const Overview = () => {
               <Card.Content className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm font-medium text-secondary-600">{stat.title}</p>
-                    <p className="text-2xl font-bold text-secondary-900">{stat.value}</p>
+                    <p className="text-sm font-medium text-dark-text-tertiary">{stat.title}</p>
+                    <p className="text-2xl font-bold text-dark-text-primary">{stat.value}</p>
                   </div>
-                  <div className="p-3 bg-primary-50 rounded-lg">
-                    <IconComponent className="h-6 w-6 text-primary-600" />
+                  <div className="p-3 bg-primary-500/10 rounded-lg">
+                    <IconComponent className="h-6 w-6 text-primary-400" />
                   </div>
                 </div>
                 <div className="mt-4 flex items-center">
@@ -95,7 +95,7 @@ const Overview = () => {
                   }`}>
                     {stat.change}
                   </span>
-                  <span className="text-sm text-secondary-600 ml-1">vs last month</span>
+                  <span className="text-sm text-dark-text-tertiary ml-1">vs last month</span>
                 </div>
               </Card.Content>
             </Card>
@@ -112,15 +112,15 @@ const Overview = () => {
           <Card.Content>
             <div className="space-y-4">
               {recentModels.length === 0 ? (
-                <div className="text-center py-8 text-secondary-500">
+                <div className="text-center py-8 text-dark-text-muted">
                   <CubeIcon className="h-12 w-12 mx-auto mb-2 opacity-50" />
                   <p>No models yet</p>
                   <p className="text-sm">Upload your first model to get started</p>
                 </div>
               ) : recentModels.map(model => (
-                <div key={model.id} className="flex items-center justify-between py-3 border-b border-secondary-100 last:border-0">
+                <div key={model.id} className="flex items-center justify-between py-3 border-b border-dark-border last:border-0">
                   <div>
-                    <p className="font-medium text-secondary-900">{model.name}</p>
+                    <p className="font-medium text-dark-text-primary">{model.name}</p>
                     <div className="flex items-center gap-2 mt-1">
                       <Badge 
                         variant={model.status === 'active' ? 'success' : 'warning'}
@@ -128,13 +128,13 @@ const Overview = () => {
                       >
                         {model.status}
                       </Badge>
-                      <span className="text-sm text-secondary-600">
+                      <span className="text-sm text-dark-text-tertiary">
                         {model.downloads} downloads
                       </span>
                     </div>
                   </div>
                   <div className="text-right">
-                    <p className="font-bold text-primary-600">{model.earnings}</p>
+                    <p className="font-bold text-primary-400">{model.earnings}</p>
                   </div>
                 </div>
               ))}
@@ -152,7 +152,7 @@ const Overview = () => {
           </Card.Header>
           <Card.Content>
             <div className="space-y-4">
-              <div className="text-center py-8 text-secondary-500">
+              <div className="text-center py-8 text-dark-text-muted">
                 <ChartBarIcon className="h-12 w-12 mx-auto mb-2 opacity-50" />
                 <p>No performance data</p>
                 <p className="text-sm">Upload models to track their performance</p>

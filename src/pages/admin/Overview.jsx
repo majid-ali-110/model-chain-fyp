@@ -102,17 +102,17 @@ const Overview = () => {
       case 'error': return <ExclamationTriangleIcon className="h-5 w-5 text-red-500" />;
       case 'warning': return <ExclamationTriangleIcon className="h-5 w-5 text-yellow-500" />;
       case 'info': return <ShieldCheckIcon className="h-5 w-5 text-blue-500" />;
-      default: return <ShieldCheckIcon className="h-5 w-5 text-secondary-500" />;
+      default: return <ShieldCheckIcon className="h-5 w-5 text-dark-text-muted" />;
     }
   };
 
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-3">
-        <ShieldCheckIcon className="h-8 w-8 text-primary-600" />
+        <ShieldCheckIcon className="h-8 w-8 text-primary-400" />
         <div>
-          <h1 className="text-2xl font-bold text-secondary-900">Admin Overview</h1>
-          <p className="text-secondary-600">Monitor and manage the ModelChain platform</p>
+          <h1 className="text-2xl font-bold text-dark-text-primary">Admin Overview</h1>
+          <p className="text-dark-text-tertiary">Monitor and manage the ModelChain platform</p>
         </div>
       </div>
 
@@ -120,20 +120,22 @@ const Overview = () => {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {stats.map((stat, index) => {
           const IconComponent = stat.icon;
+          const iconBgMap = { blue: 'bg-blue-500/10', green: 'bg-green-500/10', purple: 'bg-purple-500/10' };
+          const iconTextMap = { blue: 'text-blue-400', green: 'text-green-400', purple: 'text-purple-400' };
           return (
             <Card key={index}>
               <Card.Content className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm font-medium text-secondary-600">{stat.title}</p>
-                    <p className="text-2xl font-bold text-secondary-900">{stat.value}</p>
+                    <p className="text-sm font-medium text-dark-text-tertiary">{stat.title}</p>
+                    <p className="text-2xl font-bold text-dark-text-primary">{stat.value}</p>
                     <div className="flex items-center gap-1 mt-1">
-                      <ArrowTrendingUpIcon className="h-3 w-3 text-green-500" />
-                      <span className="text-sm text-green-600 font-medium">{stat.change}</span>
+                      <ArrowTrendingUpIcon className="h-3 w-3 text-green-400" />
+                      <span className="text-sm text-green-400 font-medium">{stat.change}</span>
                     </div>
                   </div>
-                  <div className={`p-3 rounded-lg bg-${stat.color}-50`}>
-                    <IconComponent className={`h-6 w-6 text-${stat.color}-600`} />
+                  <div className={`p-3 rounded-lg ${iconBgMap[stat.color] || 'bg-primary-500/10'}`}>
+                    <IconComponent className={`h-6 w-6 ${iconTextMap[stat.color] || 'text-primary-400'}`} />
                   </div>
                 </div>
               </Card.Content>
@@ -154,11 +156,11 @@ const Overview = () => {
           <Card.Content>
             <div className="space-y-4">
               {alerts.map(alert => (
-                <div key={alert.id} className="flex items-start gap-3 p-3 border border-secondary-200 rounded-lg">
+                <div key={alert.id} className="flex items-start gap-3 p-3 border border-dark-border rounded-lg">
                   {getAlertIcon(alert.type)}
                   <div className="flex-1">
-                    <p className="text-sm font-medium text-secondary-900">{alert.message}</p>
-                    <p className="text-xs text-secondary-600">{alert.time}</p>
+                    <p className="text-sm font-medium text-dark-text-primary">{alert.message}</p>
+                    <p className="text-xs text-dark-text-tertiary">{alert.time}</p>
                   </div>
                   <Button size="sm" variant="outline">
                     Resolve
@@ -177,12 +179,12 @@ const Overview = () => {
           <Card.Content>
             <div className="space-y-4">
               {recentActivity.map(activity => (
-                <div key={activity.id} className="flex items-center justify-between py-3 border-b border-secondary-100 last:border-0">
+                <div key={activity.id} className="flex items-center justify-between py-3 border-b border-dark-border last:border-0">
                   <div>
-                    <p className="text-sm font-medium text-secondary-900">
+                    <p className="text-sm font-medium text-dark-text-primary">
                       {activity.action}: {activity.target}
                     </p>
-                    <p className="text-xs text-secondary-600">
+                    <p className="text-xs text-dark-text-tertiary">
                       by {activity.user} • {activity.time}
                     </p>
                   </div>
@@ -211,8 +213,8 @@ const Overview = () => {
             {systemMetrics.map((metric, index) => (
               <div key={index}>
                 <div className="flex justify-between text-sm mb-2">
-                  <span className="font-medium text-secondary-900">{metric.name}</span>
-                  <span className="text-secondary-600">{metric.value}{metric.unit}</span>
+                  <span className="font-medium text-dark-text-primary">{metric.name}</span>
+                  <span className="text-dark-text-tertiary">{metric.value}{metric.unit}</span>
                 </div>
                 <Progress 
                   value={metric.value} 

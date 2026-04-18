@@ -60,28 +60,29 @@ const AccordionItem = ({
   ...props 
 }) => {
   return (
-    <div className={clsx('border border-secondary-200 rounded-lg', className)} {...props}>
+    <div className={clsx('border border-dark-border rounded-lg', className)} {...props}>
       <button
         type="button"
         className={clsx(
-          'flex w-full items-center justify-between px-4 py-3 text-left text-sm font-medium transition-colors',
-          'hover:bg-secondary-50 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-inset',
+          'flex w-full items-center justify-between px-4 py-3 text-left text-sm font-medium transition-colors duration-200',
+          'hover:bg-dark-surface-hover focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 focus:ring-offset-dark-bg-primary',
           disabled && 'opacity-50 cursor-not-allowed'
         )}
         onClick={onToggle}
         disabled={disabled}
+        aria-expanded={isOpen}
       >
-        <span className="text-secondary-900">{title}</span>
+        <span className="text-dark-text-primary">{title}</span>
         <ChevronDownIcon
           className={clsx(
-            'h-5 w-5 text-secondary-500 transition-transform duration-200',
+            'h-5 w-5 text-dark-text-muted transition-transform duration-200',
             isOpen && 'rotate-180'
           )}
         />
       </button>
       {isOpen && (
-        <div className="px-4 pb-3 pt-1 border-t border-secondary-200">
-          <div className="text-sm text-secondary-700">
+        <div className="px-4 pb-3 pt-1 border-t border-dark-border">
+          <div className="text-sm text-dark-text-secondary">
             {children}
           </div>
         </div>

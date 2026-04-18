@@ -137,7 +137,7 @@ nano config.yaml
             {setupSteps.map((step, index) => (
               <Card key={index} variant="elevated" className="p-6">
                 <div className="flex items-start gap-4 mb-4">
-                  <div className="w-10 h-10 rounded-full bg-primary-500/20 border-2 border-primary-400 flex items-center justify-center flex-shrink-0">
+                  <div className="w-10 h-10 rounded-full bg-primary-500/100/20 border-2 border-primary-400 flex items-center justify-center flex-shrink-0">
                     <span className="font-bold text-primary-400">{index + 1}</span>
                   </div>
                   <div className="flex-1">

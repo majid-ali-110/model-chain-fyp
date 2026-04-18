@@ -22,7 +22,7 @@ const Radio = React.forwardRef(({
       {label && (
         <legend className={clsx(
           'text-sm font-medium leading-6',
-          error ? 'text-red-900' : 'text-secondary-900'
+          error ? 'text-red-400' : 'text-dark-text-primary'
         )}>
           {label}
         </legend>
@@ -47,8 +47,8 @@ const Radio = React.forwardRef(({
                 onChange={() => handleChange(optionValue)}
                 disabled={optionDisabled}
                 className={clsx(
-                  'h-4 w-4 border-secondary-300 text-primary-600 focus:ring-primary-600',
-                  error && 'border-red-300 focus:ring-red-500',
+                  'h-4 w-4 border-dark-border-light bg-dark-surface text-primary-500 focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 focus:ring-offset-dark-bg-primary',
+                  error && 'border-red-500 focus:ring-red-500',
                   optionDisabled && 'opacity-50 cursor-not-allowed'
                 )}
               />
@@ -56,7 +56,7 @@ const Radio = React.forwardRef(({
                 htmlFor={`${name}-${index}`}
                 className={clsx(
                   'ml-3 block text-sm font-medium leading-6',
-                  error ? 'text-red-900' : 'text-secondary-900',
+                  error ? 'text-red-400' : 'text-dark-text-primary',
                   optionDisabled && 'opacity-50 cursor-not-allowed'
                 )}
               >

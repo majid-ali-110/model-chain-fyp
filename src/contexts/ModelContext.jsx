@@ -98,6 +98,39 @@ export const ModelProvider = ({ children }) => {
   const [state, dispatch] = useReducer(modelReducer, initialModelState);
   const { provider, signer, connected, chainId } = useWallet();
 
+  const buildTransactionOverrides = useCallback(async () => {
+    if (!signer?.provider) return {};
+
+    const feeData = await signer.provider.getFeeData();
+    const currentChainId = Number(chainId || 0);
+    const minPriorityFeeAmoy = ethers.parseUnits('25', 'gwei');
+    const minFee = currentChainId === 80002 ? minPriorityFeeAmoy : 0n;
+
+    const hasEip1559 = feeData.maxFeePerGas != null || feeData.maxPriorityFeePerGas != null;
+
+    if (hasEip1559) {
+      let maxPriorityFeePerGas = feeData.maxPriorityFeePerGas ?? minFee;
+      let maxFeePerGas = feeData.maxFeePerGas ?? maxPriorityFeePerGas;
+
+      if (maxPriorityFeePerGas < minFee) {
+        maxPriorityFeePerGas = minFee;
+      }
+
+      if (maxFeePerGas < maxPriorityFeePerGas) {
+        maxFeePerGas = maxPriorityFeePerGas * 2n;
+      }
+
+      return { maxPriorityFeePerGas, maxFeePerGas };
+    }
+
+    let gasPrice = feeData.gasPrice ?? minFee;
+    if (gasPrice < minFee) {
+      gasPrice = minFee;
+    }
+
+    return gasPrice > 0n ? { gasPrice } : {};
+  }, [signer, chainId]);
+
   // Initialize contracts when provider is available
   useEffect(() => {
     if (provider && chainId) {
@@ -114,17 +147,17 @@ export const ModelProvider = ({ children }) => {
 
   const initializeContracts = useCallback(async () => {
     try {
-      const addresses = getContracts(chainId);
+      const addresses = getContracts(parseInt(chainId, 10));
       
       // Initialize read-only contracts with provider
       const modelRegistry = new ethers.Contract(
-        addresses.modelRegistry,
+        addresses.ModelRegistry,
         ModelRegistryABI.abi,
         provider
       );
       
       const marketplace = new ethers.Contract(
-        addresses.marketplace,
+        addresses.Marketplace,
         MarketplaceABI.abi,
         provider
       );
@@ -216,9 +249,9 @@ export const ModelProvider = ({ children }) => {
     }
 
     try {
-      const addresses = getContracts(chainId);
+      const addresses = getContracts(parseInt(chainId, 10));
       const modelRegistry = new ethers.Contract(
-        addresses.modelRegistry,
+        addresses.ModelRegistry,
         ModelRegistryABI.abi,
         signer
       );
@@ -250,13 +283,15 @@ export const ModelProvider = ({ children }) => {
       // 3. Register model on blockchain
       const categoryEnum = CATEGORY_TO_ENUM[modelData.category] || 5;
       const priceWei = modelData.price ? ethers.parseEther(modelData.price.toString()) : 0n;
+      const txOverrides = await buildTransactionOverrides();
 
       const tx = await modelRegistry.registerModel(
         modelData.name,
         modelFileHash || metadataResult.hash, // Use metadata hash if no file
         metadataResult.hash,
         categoryEnum,
-        priceWei
+        priceWei,
+        txOverrides
       );
 
       const receipt = await tx.wait();
@@ -293,9 +328,9 @@ export const ModelProvider = ({ children }) => {
     }
 
     try {
-      const addresses = getContracts(chainId);
+      const addresses = getContracts(parseInt(chainId, 10));
       const modelRegistry = new ethers.Contract(
-        addresses.modelRegistry,
+        addresses.ModelRegistry,
         ModelRegistryABI.abi,
         signer
       );
@@ -303,8 +338,9 @@ export const ModelProvider = ({ children }) => {
       // Upload new metadata to IPFS
       const metadataResult = await uploadJSON(updates.metadata || updates);
       const priceWei = updates.price ? ethers.parseEther(updates.price.toString()) : 0n;
+      const txOverrides = await buildTransactionOverrides();
 
-      const tx = await modelRegistry.updateModel(tokenId, metadataResult.hash, priceWei);
+      const tx = await modelRegistry.updateModel(tokenId, metadataResult.hash, priceWei, txOverrides);
       await tx.wait();
 
       // Reload models
@@ -322,15 +358,40 @@ export const ModelProvider = ({ children }) => {
     }
 
     try {
-      const addresses = getContracts(chainId);
+      const addresses = getContracts(parseInt(chainId, 10));
       const marketplace = new ethers.Contract(
-        addresses.marketplace,
+        addresses.Marketplace,
         MarketplaceABI.abi,
         signer
       );
 
       const priceWei = ethers.parseEther(basePrice.toString());
-      const tx = await marketplace.listModel(tokenId, priceWei, commercialMultiplier, enterpriseMultiplier);
+      const txOverrides = await buildTransactionOverrides();
+      const tx = await marketplace.listModel(tokenId, priceWei, commercialMultiplier, enterpriseMultiplier, txOverrides);
+      await tx.wait();
+
+      await loadModels();
+      return { success: true };
+    } catch (error) {
+      return { success: false, error: error.message };
+    }
+  };
+
+  const delistModel = async (tokenId) => {
+    if (!signer || !connected) {
+      return { success: false, error: 'Wallet not connected' };
+    }
+
+    try {
+      const addresses = getContracts(parseInt(chainId, 10));
+      const marketplace = new ethers.Contract(
+        addresses.Marketplace,
+        MarketplaceABI.abi,
+        signer
+      );
+
+      const txOverrides = await buildTransactionOverrides();
+      const tx = await marketplace.delistModel(tokenId, txOverrides);
       await tx.wait();
 
       await loadModels();
@@ -346,15 +407,16 @@ export const ModelProvider = ({ children }) => {
     }
 
     try {
-      const addresses = getContracts(chainId);
+      const addresses = getContracts(parseInt(chainId, 10));
       const marketplace = new ethers.Contract(
-        addresses.marketplace,
+        addresses.Marketplace,
         MarketplaceABI.abi,
         signer
       );
 
       const price = await marketplace.calculatePrice(tokenId, licenseType);
-      const tx = await marketplace.purchaseModel(tokenId, licenseType, { value: price });
+      const txOverrides = await buildTransactionOverrides();
+      const tx = await marketplace.purchaseModel(tokenId, licenseType, { ...txOverrides, value: price });
       await tx.wait();
 
       await loadModels();
@@ -370,14 +432,15 @@ export const ModelProvider = ({ children }) => {
     }
 
     try {
-      const addresses = getContracts(chainId);
+      const addresses = getContracts(parseInt(chainId, 10));
       const modelRegistry = new ethers.Contract(
-        addresses.modelRegistry,
+        addresses.ModelRegistry,
         ModelRegistryABI.abi,
         signer
       );
 
-      const tx = await modelRegistry.rateModel(tokenId, rating);
+      const txOverrides = await buildTransactionOverrides();
+      const tx = await modelRegistry.rateModel(tokenId, rating, txOverrides);
       await tx.wait();
 
       await loadModels();
@@ -471,6 +534,7 @@ export const ModelProvider = ({ children }) => {
     getFilteredModels,
     loadModels,
     listModelForSale,
+    delistModel,
     purchaseModel,
     rateModel,
   };

@@ -2,14 +2,15 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { TrophyIcon, CurrencyDollarIcon, ChevronRightIcon, GiftIcon, ChartBarIcon } from '@heroicons/react/24/outline';
 import Card from '../../components/ui/Card';
+import Badge from '../../components/ui/Badge';
 
 const RewardsProgram = () => {
   const rewardTiers = [
-    { tier: 'Bronze', minValidations: 100, rewardRate: '1.5x', bonus: '500 MCT', color: 'orange-600' },
-    { tier: 'Silver', minValidations: 500, rewardRate: '2.0x', bonus: '2,500 MCT', color: 'gray-400' },
-    { tier: 'Gold', minValidations: 1000, rewardRate: '2.5x', bonus: '7,500 MCT', color: 'yellow-400' },
-    { tier: 'Platinum', minValidations: 5000, rewardRate: '3.0x', bonus: '25,000 MCT', color: 'cyan-400' },
-    { tier: 'Diamond', minValidations: 10000, rewardRate: '4.0x', bonus: '75,000 MCT', color: 'purple-400' }
+    { tier: 'Bronze', minValidations: 100, rewardRate: '1.5x', bonus: '500 MCT', color: 'orange-600', bgClass: 'from-orange-600 to-orange-600/50', textClass: 'text-orange-600', iconClass: 'text-orange-600' },
+    { tier: 'Silver', minValidations: 500, rewardRate: '2.0x', bonus: '2,500 MCT', color: 'gray-400', bgClass: 'from-gray-400 to-gray-400/50', textClass: 'text-dark-text-muted', iconClass: 'text-dark-text-muted' },
+    { tier: 'Gold', minValidations: 1000, rewardRate: '2.5x', bonus: '7,500 MCT', color: 'yellow-400', bgClass: 'from-yellow-400 to-yellow-400/50', textClass: 'text-yellow-400', iconClass: 'text-yellow-400' },
+    { tier: 'Platinum', minValidations: 5000, rewardRate: '3.0x', bonus: '25,000 MCT', color: 'cyan-400', bgClass: 'from-cyan-400 to-cyan-400/50', textClass: 'text-cyan-400', iconClass: 'text-cyan-400' },
+    { tier: 'Diamond', minValidations: 10000, rewardRate: '4.0x', bonus: '75,000 MCT', color: 'purple-400', bgClass: 'from-purple-400 to-purple-400/50', textClass: 'text-purple-400', iconClass: 'text-purple-400' }
   ];
 
   const rewardTypes = [
@@ -56,17 +57,26 @@ const RewardsProgram = () => {
               Validator Rewards
             </span> Program
           </h1>
+          <div className="mb-4">
+            <Badge variant="warning">Planned / Mock Preview</Badge>
+          </div>
           <p className="text-xl text-dark-text-secondary max-w-3xl">
-            Earn tokens and bonuses for securing the ModelChain network through validation.
+            Rewards economics shown on this page are illustrative preview values until on-chain rewards distribution is implemented.
           </p>
         </div>
+
+        <Card variant="elevated" className="p-6 mb-8 border-yellow-500/30">
+          <p className="text-dark-text-secondary">
+            Current validator flow supports queue/review submission. Automated reward payouts and tier multipliers are not active in production yet.
+          </p>
+        </Card>
 
         {/* Reward Types */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-12">
           {rewardTypes.map((type, index) => (
             <Card key={index} variant="elevated" className="p-6">
               <div className="flex items-start gap-4">
-                <div className="bg-primary-500/20 rounded-lg p-3 flex-shrink-0">
+                <div className="bg-primary-500/100/20 rounded-lg p-3 flex-shrink-0">
                   <type.icon className="h-8 w-8 text-primary-400" />
                 </div>
                 <div>
@@ -87,11 +97,11 @@ const RewardsProgram = () => {
               <div key={index} className="bg-dark-surface rounded-lg p-6 border border-dark-border hover:border-primary-400/50 transition-all">
                 <div className="flex items-center justify-between flex-wrap gap-4">
                   <div className="flex items-center gap-4">
-                    <div className={`w-12 h-12 rounded-full bg-gradient-to-br from-${tier.color} to-${tier.color}/50 flex items-center justify-center`}>
-                      <TrophyIcon className={`h-6 w-6 text-${tier.color}`} />
+                    <div className={`w-12 h-12 rounded-full bg-gradient-to-br ${tier.bgClass} flex items-center justify-center`}>
+                      <TrophyIcon className={`h-6 w-6 ${tier.iconClass}`} />
                     </div>
                     <div>
-                      <h3 className={`text-xl font-bold text-${tier.color}`}>{tier.tier}</h3>
+                      <h3 className={`text-xl font-bold ${tier.textClass}`}>{tier.tier}</h3>
                       <p className="text-dark-text-secondary text-sm">{tier.minValidations}+ validations required</p>
                     </div>
                   </div>
@@ -114,7 +124,7 @@ const RewardsProgram = () => {
 
         {/* Monthly Distribution */}
         <Card variant="elevated" className="p-8 mb-8">
-          <h2 className="text-2xl font-bold text-dark-text-primary mb-6">Monthly Reward Distribution</h2>
+          <h2 className="text-2xl font-bold text-dark-text-primary mb-6">Illustrative Monthly Reward Distribution</h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div className="text-center">
               <p className="text-dark-text-secondary mb-2">Total Pool</p>
@@ -123,7 +133,7 @@ const RewardsProgram = () => {
             </div>
             <div className="text-center">
               <p className="text-dark-text-secondary mb-2">Avg Per Validator</p>
-              <p className="text-4xl font-bold text-secondary-400 mb-1">2,850 MCT</p>
+              <p className="text-4xl font-bold text-dark-text-muted mb-1">2,850 MCT</p>
               <p className="text-sm text-dark-text-secondary">Based on performance</p>
             </div>
             <div className="text-center">
@@ -148,7 +158,7 @@ const RewardsProgram = () => {
               </button>
             </Link>
             <Link to="/validator/leaderboard">
-              <button className="border-2 border-primary-500 text-primary-400 px-8 py-3 rounded-lg font-semibold hover:bg-primary-500/10 transition-all">
+              <button className="border-2 border-primary-500 text-primary-400 px-8 py-3 rounded-lg font-semibold hover:bg-primary-500/100/10 transition-all">
                 View Leaderboard
               </button>
             </Link>

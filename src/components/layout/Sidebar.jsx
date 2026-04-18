@@ -20,7 +20,7 @@ import { useWallet } from '../../contexts/WalletContext';
 
 const Sidebar = ({ isOpen = true, className = '' }) => {
   const location = useLocation();
-  const { isAuthenticated, user: authUser } = useAuth();
+  const { user: authUser } = useAuth();
   const { walletProfile } = useWallet();
 
   // User data from contexts
@@ -164,9 +164,10 @@ const Sidebar = ({ isOpen = true, className = '' }) => {
         to={item.href}
         className={clsx(
           'group flex items-center px-3 py-2.5 text-sm font-semibold rounded-lg transition-all duration-300 relative overflow-hidden',
+          'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900',
           item.current
             ? 'bg-gradient-to-r from-cyan-600/20 to-blue-600/20 text-cyan-400 border border-cyan-500/30 shadow-lg shadow-cyan-500/20'
-            : 'text-gray-400 hover:text-white hover:bg-gray-800/50 border border-transparent hover:border-gray-700/50',
+            : 'text-dark-text-muted hover:text-dark-text-primary hover:bg-dark-surface-elevated border border-transparent hover:border-dark-border/50',
           'transform hover:scale-[1.02] hover:-translate-y-0.5'
         )}
       >
@@ -178,7 +179,7 @@ const Sidebar = ({ isOpen = true, className = '' }) => {
             'flex-shrink-0 h-5 w-5 transition-all duration-300',
             item.current 
               ? 'text-cyan-400 drop-shadow-[0_0_8px_rgba(6,182,212,0.6)]' 
-              : 'text-gray-500 group-hover:text-cyan-400 group-hover:drop-shadow-[0_0_6px_rgba(6,182,212,0.4)]',
+              : 'text-dark-text-muted group-hover:text-cyan-400 group-hover:drop-shadow-[0_0_6px_rgba(6,182,212,0.4)]',
             isOpen ? 'mr-3' : 'mx-auto'
           )}
           aria-hidden="true"
@@ -203,7 +204,7 @@ const Sidebar = ({ isOpen = true, className = '' }) => {
 
   return (
     <div className={clsx(
-      'flex flex-col h-full bg-gradient-to-b from-gray-900 via-slate-900 to-gray-900 border-r border-cyan-500/10 transition-all duration-300 backdrop-blur-sm shadow-2xl shadow-black/50',
+      'relative flex flex-col h-full bg-gradient-to-b from-gray-900 via-slate-900 to-gray-900 border-r border-cyan-500/10 transition-all duration-300 backdrop-blur-sm shadow-2xl shadow-black/50',
       isOpen ? 'w-64' : 'w-20',
       className
     )}>

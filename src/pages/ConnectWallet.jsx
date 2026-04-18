@@ -132,7 +132,7 @@ const ConnectWallet = () => {
           </div>
 
           {/* Security Notice */}
-          <div className="bg-primary-500/10 border border-primary-500/20 rounded-lg p-4 mb-6">
+          <div className="bg-primary-500/100/10 border border-primary-500/20 rounded-lg p-4 mb-6">
             <div className="flex items-start">
               <ShieldCheckIcon className="h-5 w-5 text-primary-400 mt-0.5 mr-3 flex-shrink-0" />
               <div className="text-sm">

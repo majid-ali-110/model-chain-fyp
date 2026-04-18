@@ -1,20 +1,17 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import Card from '../../components/ui/Card';
 import Badge from '../../components/ui/Badge';
 import Button from '../../components/ui/Button';
 import Dropdown from '../../components/ui/Dropdown';
 import { AdjustmentsHorizontalIcon, ViewColumnsIcon, ListBulletIcon } from '@heroicons/react/24/outline';
+import { useModel } from '../../contexts/ModelContext';
 
 const Browse = () => {
+  const { models, loading } = useModel();
   const [viewMode, setViewMode] = useState('grid');
-  const [_sortBy, setSortBy] = useState('popular');
-  const [_filterBy, setFilterBy] = useState('all');
-
-  // Models would come from ModelRegistry contract in production
-  const models = [
-    // Empty - will be populated from blockchain
-  ];
+  const [sortBy, setSortBy] = useState('popular');
+  const [filterBy, setFilterBy] = useState('all');
 
   const sortOptions = [
     { value: 'popular', label: 'Most Popular' },
@@ -26,19 +23,48 @@ const Browse = () => {
 
   const filterOptions = [
     { value: 'all', label: 'All Models' },
-    { value: 'featured', label: 'Featured' },
-    { value: 'trending', label: 'Trending' },
+    { value: 'verified', label: 'Verified' },
     { value: 'free', label: 'Free' },
-    { value: 'premium', label: 'Premium' }
+    { value: 'premium', label: 'Premium' },
+    { value: 'listed', label: 'Listed for Sale' }
   ];
+
+  const displayedModels = useMemo(() => {
+    const filtered = models.filter((model) => {
+      if (filterBy === 'all') return true;
+      if (filterBy === 'verified') return model.verified;
+      if (filterBy === 'free') return parseFloat(model.price || '0') === 0;
+      if (filterBy === 'premium') return parseFloat(model.price || '0') > 0;
+      if (filterBy === 'listed') return model.isListed;
+      return true;
+    });
+
+    return filtered.sort((a, b) => {
+      switch (sortBy) {
+        case 'newest':
+          return new Date(b.createdAt) - new Date(a.createdAt);
+        case 'price-low':
+          return parseFloat(a.price || '0') - parseFloat(b.price || '0');
+        case 'price-high':
+          return parseFloat(b.price || '0') - parseFloat(a.price || '0');
+        case 'rating':
+          return parseFloat(b.rating || '0') - parseFloat(a.rating || '0');
+        case 'popular':
+        default:
+          return (b.downloads || 0) - (a.downloads || 0);
+      }
+    });
+  }, [models, filterBy, sortBy]);
+
+  const featuredModels = displayedModels.filter((model) => model.verified).slice(0, 2);
 
   return (
     <div className="space-y-6">
       {/* Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-secondary-900">Browse Models</h1>
-          <p className="text-secondary-600">Discover AI models from the community</p>
+          <h1 className="text-2xl font-bold text-dark-text-primary">Browse Models</h1>
+          <p className="text-dark-text-tertiary">Discover AI models from the community</p>
         </div>
         
         <div className="flex items-center gap-2">
@@ -67,11 +93,11 @@ const Browse = () => {
             }))}
           />
           
-          <div className="flex border border-secondary-200 rounded-md">
+          <div className="flex border border-dark-border rounded-md">
             <Button
               variant="ghost"
               size="sm"
-              className={`${viewMode === 'grid' ? 'bg-secondary-100' : ''}`}
+              className={`${viewMode === 'grid' ? 'bg-dark-surface-elevated' : ''}`}
               onClick={() => setViewMode('grid')}
             >
               <ViewColumnsIcon className="h-4 w-4" />
@@ -79,7 +105,7 @@ const Browse = () => {
             <Button
               variant="ghost"
               size="sm"
-              className={`${viewMode === 'list' ? 'bg-secondary-100' : ''}`}
+              className={`${viewMode === 'list' ? 'bg-dark-surface-elevated' : ''}`}
               onClick={() => setViewMode('list')}
             >
               <ListBulletIcon className="h-4 w-4" />
@@ -90,21 +116,23 @@ const Browse = () => {
 
       {/* Featured Section */}
       <div>
-        <h2 className="text-lg font-semibold text-secondary-900 mb-4">Featured Models</h2>
+        <h2 className="text-lg font-semibold text-dark-text-primary mb-4">Featured Models</h2>
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {models.filter(model => model.featured).map(model => (
+          {featuredModels.map(model => (
             <Card key={model.id} className="relative">
               <Badge className="absolute top-4 right-4" variant="primary">Featured</Badge>
               <Card.Header>
                 <Card.Title>{model.name}</Card.Title>
                 <div className="flex items-center gap-2">
                   <Badge variant="secondary">{model.category}</Badge>
-                  {model.trending && <Badge variant="success">Trending</Badge>}
+                  {model.verified && <Badge variant="success">Verified</Badge>}
                 </div>
               </Card.Header>
               <Card.Content>
                 <div className="flex items-center justify-between">
-                  <span className="text-lg font-bold text-primary-600">{model.price}</span>
+                  <span className="text-lg font-bold text-primary-400">
+                    {parseFloat(model.price || '0') > 0 ? `${model.price} ETH` : 'Free'}
+                  </span>
                   <Link to={`/marketplace/models/${model.id}`}>
                     <Button>View Model</Button>
                   </Link>
@@ -112,31 +140,40 @@ const Browse = () => {
               </Card.Content>
             </Card>
           ))}
+          {!loading && featuredModels.length === 0 && (
+            <Card>
+              <Card.Content>
+                <p className="text-dark-text-tertiary">No featured models available yet.</p>
+              </Card.Content>
+            </Card>
+          )}
         </div>
       </div>
 
       {/* All Models */}
       <div>
-        <h2 className="text-lg font-semibold text-secondary-900 mb-4">All Models</h2>
+        <h2 className="text-lg font-semibold text-dark-text-primary mb-4">All Models</h2>
         <div className={`grid gap-6 ${
           viewMode === 'grid' 
             ? 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3' 
             : 'grid-cols-1'
         }`}>
-          {models.map(model => (
+          {displayedModels.map(model => (
             <Card key={model.id}>
               <Card.Header>
                 <div className="flex items-start justify-between">
                   <Card.Title>{model.name}</Card.Title>
                   <div className="flex gap-1">
                     <Badge variant="secondary">{model.category}</Badge>
-                    {model.trending && <Badge variant="success">Trending</Badge>}
+                    {model.verified && <Badge variant="success">Verified</Badge>}
                   </div>
                 </div>
               </Card.Header>
               <Card.Content>
                 <div className="flex items-center justify-between">
-                  <span className="text-lg font-bold text-primary-600">{model.price}</span>
+                  <span className="text-lg font-bold text-primary-400">
+                    {parseFloat(model.price || '0') > 0 ? `${model.price} ETH` : 'Free'}
+                  </span>
                   <Link to={`/marketplace/models/${model.id}`}>
                     <Button size="sm">View</Button>
                   </Link>
@@ -144,6 +181,13 @@ const Browse = () => {
               </Card.Content>
             </Card>
           ))}
+          {!loading && displayedModels.length === 0 && (
+            <Card>
+              <Card.Content>
+                <p className="text-dark-text-tertiary">No models match current filters.</p>
+              </Card.Content>
+            </Card>
+          )}
         </div>
       </div>
     </div>

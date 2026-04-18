@@ -17,8 +17,8 @@ const Tabs = ({
   };
 
   const variants = {
-    line: 'border-b border-secondary-200',
-    pills: 'bg-secondary-100 p-1 rounded-lg',
+    line: 'border-b border-dark-border',
+    pills: 'bg-dark-surface-elevated p-1 rounded-lg',
     underline: '',
   };
 
@@ -32,17 +32,17 @@ const Tabs = ({
               <button
                 key={child.props.key}
                 className={clsx(
-                  'px-4 py-2 text-sm font-medium rounded-md transition-colors',
+                  'px-4 py-2 text-sm font-medium rounded-md transition-colors duration-200',
                   variant === 'line' && [
                     'border-b-2 border-transparent',
-                    isActive ? 'border-primary-500 text-primary-600' : 'text-secondary-500 hover:text-secondary-700',
+                    isActive ? 'border-primary-500 text-primary-400' : 'text-dark-text-muted hover:text-dark-text-secondary',
                   ],
                   variant === 'pills' && [
-                    isActive ? 'bg-white text-primary-600 shadow-sm' : 'text-secondary-600 hover:text-secondary-800',
+                    isActive ? 'bg-dark-surface text-primary-400 shadow-sm' : 'text-dark-text-muted hover:text-dark-text-secondary',
                   ],
                   variant === 'underline' && [
                     'border-b-2 border-transparent',
-                    isActive ? 'border-primary-500 text-primary-600' : 'text-secondary-500 hover:text-secondary-700 hover:border-secondary-300',
+                    isActive ? 'border-primary-500 text-primary-400' : 'text-dark-text-muted hover:text-dark-text-secondary hover:border-dark-border-light',
                   ]
                 )}
                 onClick={() => handleTabChange(child.props.key)}

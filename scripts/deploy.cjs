@@ -1,4 +1,6 @@
 const hre = require("hardhat");
+const fs = require("fs");
+const path = require("path");
 
 async function main() {
   const [deployer] = await hre.ethers.getSigners();
@@ -48,6 +50,24 @@ async function main() {
   console.log(`UserRegistry: ${userRegistryAddress}`);
   console.log("=".repeat(50));
 
+  const deployment = {
+    network: hre.network.name,
+    deployedAt: new Date().toISOString(),
+    deployer: deployer.address,
+    contracts: {
+      ModelRegistry: modelRegistryAddress,
+      Marketplace: marketplaceAddress,
+      Governance: governanceAddress,
+      UserRegistry: userRegistryAddress,
+    },
+  };
+
+  const outputDir = path.join(__dirname, "..", "deployments");
+  fs.mkdirSync(outputDir, { recursive: true });
+  const outputFile = path.join(outputDir, `${hre.network.name}.json`);
+  fs.writeFileSync(outputFile, JSON.stringify(deployment, null, 2));
+  console.log(`\n💾 Deployment manifest written: ${outputFile}`);
+
   // Output for updating src/contracts/index.js
   console.log("\n📝 Update src/contracts/index.js with:");
   console.log(`
@@ -58,6 +78,9 @@ async function main() {
     UserRegistry: '${userRegistryAddress}',
   },
   `);
+
+  console.log("\n🔎 Verify deployment map + on-chain bytecode:");
+  console.log(`npm run verify:deployment -- ${hre.network.name}`);
 }
 
 main()

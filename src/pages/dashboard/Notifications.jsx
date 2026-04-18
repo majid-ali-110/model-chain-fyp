@@ -175,7 +175,7 @@ const Notifications = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-900 py-8">
+    <div className="min-h-screen bg-dark-bg-primary py-8">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-6xl">
         {/* Header */}
         <div className="mb-8 animate-fade-in-up">
@@ -186,7 +186,7 @@ const Notifications = () => {
               </div>
               <div>
                 <h1 className="text-3xl font-bold text-white">Notifications</h1>
-                <p className="text-gray-400 mt-1">
+                <p className="text-dark-text-muted mt-1">
                   {unreadCount > 0 ? `${unreadCount} unread notification${unreadCount > 1 ? 's' : ''}` : 'All caught up!'}
                 </p>
               </div>
@@ -236,8 +236,8 @@ const Notifications = () => {
         <div className="space-y-4">
           {filteredNotifications.length === 0 ? (
             <Card className="p-12 text-center">
-              <BellIcon className="h-16 w-16 text-gray-600 mx-auto mb-4" />
-              <p className="text-gray-400 text-lg">No notifications found</p>
+              <BellIcon className="h-16 w-16 text-dark-text-muted mx-auto mb-4" />
+              <p className="text-dark-text-muted text-lg">No notifications found</p>
             </Card>
           ) : (
             filteredNotifications.map((notification, index) => {
@@ -276,12 +276,12 @@ const Notifications = () => {
                         </Badge>
                       </div>
 
-                      <p className="text-gray-400 mb-3">
+                      <p className="text-dark-text-muted mb-3">
                         {notification.message}
                       </p>
 
                       <div className="flex items-center justify-between">
-                        <span className="text-sm text-gray-500">
+                        <span className="text-sm text-dark-text-muted">
                           {notification.time}
                         </span>
 

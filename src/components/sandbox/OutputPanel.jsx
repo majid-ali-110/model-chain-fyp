@@ -30,29 +30,19 @@ const OutputPanel = forwardRef(({
   };
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+    <div className="flex flex-col h-full">
       {/* Output Display */}
-      <div style={{ 
-        flex: 1,
-        backgroundColor: '#161b22', 
-        borderRadius: '0.5rem', 
-        border: '1px solid #30363d',
-        padding: '1rem',
-        overflowY: 'auto',
-        fontSize: '0.875rem',
-        color: '#f0f6fc',
-        fontFamily: 'monospace',
-        whiteSpace: 'pre-wrap',
-        wordBreak: 'break-word'
-      }}
-      ref={ref}>
+      <div
+        className="flex-1 bg-dark-surface rounded-lg border border-dark-border p-4 overflow-y-auto text-sm text-dark-text-primary font-mono whitespace-pre-wrap break-words"
+        ref={ref}
+      >
         {isLoading && (
-          <div style={{ color: '#8b949e', fontStyle: 'italic' }}>
+          <div className="text-dark-text-muted italic">
             ⏳ Processing...
           </div>
         )}
         {data ? data : (
-          <div style={{ color: '#8b949e', fontStyle: 'italic' }}>
+          <div className="text-dark-text-muted italic">
             Output will appear here after you run a test...
           </div>
         )}
@@ -60,27 +50,27 @@ const OutputPanel = forwardRef(({
 
       {/* Metadata */}
       {testInfo && (
-        <div style={{ marginTop: '1rem', padding: '0.75rem', backgroundColor: '#0d1117', borderRadius: '0.375rem', border: '1px solid #30363d', fontSize: '0.75rem', color: '#8b949e' }}>
+        <div className="mt-4 p-3 bg-dark-surface rounded-md border border-dark-border text-xs text-dark-text-muted">
           {testInfo.status === 'completed' && (
-            <div style={{ display: 'grid', gridTemplateColumns: 'auto auto', gap: '1rem' }}>
-              <div>Execution Time: <span style={{ color: '#58a6ff' }}>{testInfo.executionTime}ms</span></div>
-              <div>Tokens Used: <span style={{ color: '#58a6ff' }}>{testInfo.tokensUsed}</span></div>
+            <div className="grid grid-cols-2 gap-4">
+              <div>Execution Time: <span className="text-primary-400">{testInfo.executionTime}ms</span></div>
+              <div>Tokens Used: <span className="text-primary-400">{testInfo.tokensUsed}</span></div>
             </div>
           )}
         </div>
       )}
 
       {/* Action Buttons */}
-      <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.75rem' }}>
+      <div className="flex gap-2 mt-3">
         <Button 
           variant="outline"
           size="sm"
           onClick={copyToClipboard}
           disabled={!data}
-          style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.25rem' }}
+          className="flex-1 flex items-center justify-center gap-1"
           title="Copy to clipboard"
         >
-          <DocumentDuplicateIcon style={{ height: '0.875rem', width: '0.875rem' }} />
+          <DocumentDuplicateIcon className="h-3.5 w-3.5" />
           Copy
         </Button>
         <Button 
@@ -88,10 +78,10 @@ const OutputPanel = forwardRef(({
           size="sm"
           onClick={downloadOutput}
           disabled={!data}
-          style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.25rem' }}
+          className="flex-1 flex items-center justify-center gap-1"
           title="Download output"
         >
-          <ArrowDownTrayIcon style={{ height: '0.875rem', width: '0.875rem' }} />
+          <ArrowDownTrayIcon className="h-3.5 w-3.5" />
           Download
         </Button>
       </div>

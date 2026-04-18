@@ -74,7 +74,7 @@ const Navbar = () => {
         
         // Navigate based on role
         if (profileData.role === 'developer') {
-          navigate('/developer/my-models');
+          navigate('/developer/models');
         } else if (profileData.role === 'validator') {
           navigate('/validator/dashboard');
         } else {
@@ -229,18 +229,12 @@ const Navbar = () => {
   };
 
   return (
-    <nav style={{
-      position: 'fixed',
-      top: 0,
-      left: 0,
-      right: 0,
-      zIndex: 50,
-      backgroundColor: isScrolled ? 'rgba(10, 12, 16, 0.8)' : 'rgba(10, 12, 16, 0.6)',
-      backdropFilter: 'blur(12px)',
-      borderBottom: isScrolled ? '1px solid rgba(22, 27, 34, 0.3)' : 'none',
-      boxShadow: isScrolled ? '0 4px 12px rgba(0, 0, 0, 0.3)' : 'none',
-      transition: 'all 0.3s ease'
-    }}>
+    <nav className={clsx(
+      'fixed top-0 left-0 right-0 z-50 backdrop-blur-md transition-all duration-300 ease-in-out',
+      isScrolled
+        ? 'bg-dark-bg-primary/80 border-b border-dark-surface/30 shadow-[0_4px_12px_rgba(0,0,0,0.3)]'
+        : 'bg-dark-bg-primary/60'
+    )}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex h-20 justify-between items-center">
           <div className="flex items-center">
@@ -249,13 +243,10 @@ const Navbar = () => {
               <button
                 type="button"
                 className={clsx(
-                  'inline-flex items-center justify-center rounded-md p-2 transition-colors',
+                  'inline-flex items-center justify-center rounded-md p-2 transition-colors text-dark-text-muted hover:text-dark-text-primary',
                   'hover:bg-dark-surface-elevated/50',
                   'focus:outline-none focus:ring-2 focus:ring-primary-500'
                 )}
-                style={{ color: '#8b949e' }}
-                onMouseEnter={(e) => e.currentTarget.style.color = '#f0f6fc'}
-                onMouseLeave={(e) => e.currentTarget.style.color = '#8b949e'}
                 onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
               >
                 <span className="sr-only">Open main menu</span>
@@ -300,30 +291,17 @@ const Navbar = () => {
                   <Link
                     key={item.name}
                     to={item.href}
-                    className="group relative inline-flex items-center px-4 py-2 text-sm font-medium rounded-lg transition-all duration-300 transform hover:scale-105 hover:-translate-y-0.5"
-                    style={{
-                      color: isActive ? '#93c5fd' : '#8b949e',
-                      backgroundColor: isActive ? 'rgba(59, 130, 246, 0.1)' : 'transparent',
-                      boxShadow: isActive ? '0 0 20px rgba(59, 130, 246, 0.15)' : 'none'
-                    }}
-                    onMouseEnter={(e) => {
-                      if (!isActive) {
-                        e.currentTarget.style.color = '#f0f6fc';
-                        e.currentTarget.style.backgroundColor = 'rgba(22, 27, 34, 0.5)';
-                      }
-                    }}
-                    onMouseLeave={(e) => {
-                      if (!isActive) {
-                        e.currentTarget.style.color = '#8b949e';
-                        e.currentTarget.style.backgroundColor = 'transparent';
-                      }
-                    }}
+                    className={clsx(
+                      'group relative inline-flex items-center px-4 py-2 text-sm font-medium rounded-lg transition-all duration-300 transform hover:scale-105 hover:-translate-y-0.5',
+                      isActive
+                        ? 'text-primary-300 bg-primary-500/10 shadow-[0_0_20px_rgba(59,130,246,0.15)]'
+                        : 'text-dark-text-muted hover:text-dark-text-primary hover:bg-dark-surface/50'
+                    )}
                   >
                     <Icon className="h-4 w-4 mr-2" />
                     {item.name}
                     {isActive && (
-                      <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-8 h-0.5 rounded-full" 
-                           style={{ background: 'linear-gradient(to right, #3b82f6, #8b5cf6)' }} />
+                      <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-8 h-0.5 rounded-full bg-gradient-to-r from-primary-500 to-violet-500" />
                     )}
                   </Link>
                 );
@@ -380,30 +358,17 @@ const Navbar = () => {
                   <button
                     type="button"
                     onClick={() => setShowNotifications(!showNotifications)}
-                    className="relative rounded-lg p-2 transition-all focus:outline-none focus:ring-2 focus:ring-primary-500 hover:scale-105 transform"
-                    style={{ 
-                      color: showNotifications ? '#58a6ff' : '#f0f6fc', 
-                      backgroundColor: showNotifications ? 'rgba(22, 27, 34, 0.8)' : 'transparent',
-                      position: 'relative',
-                      zIndex: 10
-                    }}
-                    onMouseEnter={(e) => {
-                      if (!showNotifications) {
-                        e.currentTarget.style.color = '#58a6ff';
-                        e.currentTarget.style.backgroundColor = 'rgba(22, 27, 34, 0.8)';
-                      }
-                    }}
-                    onMouseLeave={(e) => {
-                      if (!showNotifications) {
-                        e.currentTarget.style.color = '#f0f6fc';
-                        e.currentTarget.style.backgroundColor = 'transparent';
-                      }
-                    }}
+                    className={clsx(
+                      'relative z-10 rounded-lg p-2 transition-all focus:outline-none focus:ring-2 focus:ring-primary-500 hover:scale-105 transform',
+                      showNotifications
+                        ? 'text-primary-400 bg-dark-surface/80'
+                        : 'text-dark-text-primary hover:text-primary-400 hover:bg-dark-surface/80'
+                    )}
                   >
                     <span className="sr-only">View notifications</span>
-                    <BellIcon className="h-6 w-6 animate-bounce-subtle" aria-hidden="true" style={{ strokeWidth: 2 }} />
+                    <BellIcon className="h-6 w-6 animate-bounce-subtle [stroke-width:2]" aria-hidden="true" />
                     {unreadCount > 0 && (
-                      <span className="absolute top-0 right-0 flex items-center justify-center h-5 w-5 text-xs font-bold rounded-full animate-pulse" style={{ backgroundColor: '#a371f7', color: '#fff', boxShadow: '0 0 10px rgba(163, 113, 247, 0.6)' }}>
+                      <span className="absolute top-0 right-0 flex items-center justify-center h-5 w-5 text-xs font-bold rounded-full animate-pulse bg-purple-400 text-white shadow-[0_0_10px_rgba(163,113,247,0.6)]">
                         {unreadCount}
                       </span>
                     )}
@@ -412,20 +377,15 @@ const Navbar = () => {
                   {/* Notification Dropdown */}
                   {showNotifications && (
                     <div 
-                      className="absolute right-0 mt-2 w-96 rounded-xl shadow-2xl border-2 border-gray-700 overflow-hidden z-50 animate-fade-in-scale"
-                      style={{ 
-                        backgroundColor: 'rgba(17, 24, 39, 0.95)',
-                        backdropFilter: 'blur(12px)',
-                        boxShadow: '0 0 30px rgba(6, 182, 212, 0.3), 0 20px 60px rgba(0, 0, 0, 0.5)'
-                      }}
+                      className="absolute right-0 mt-2 w-96 rounded-xl border-2 border-dark-border overflow-hidden z-50 animate-fade-in-scale bg-dark-bg-secondary/95 backdrop-blur-md shadow-[0_0_30px_rgba(6,182,212,0.3),0_20px_60px_rgba(0,0,0,0.5)]"
                       onClick={(e) => e.stopPropagation()}
                     >
                       {/* Header */}
-                      <div className="px-4 py-3 border-b border-gray-700 flex items-center justify-between bg-gray-800/50">
+                      <div className="px-4 py-3 border-b border-dark-border flex items-center justify-between bg-dark-surface-elevated">
                         <h3 className="text-lg font-bold text-white">Notifications</h3>
                         <button 
                           onClick={() => setShowNotifications(false)}
-                          className="text-gray-400 hover:text-white transition-colors p-1 rounded-lg hover:bg-gray-700"
+                          className="text-dark-text-muted hover:text-dark-text-primary transition-colors p-1 rounded-lg hover:bg-dark-border"
                         >
                           <XMarkIcon className="h-5 w-5" />
                         </button>
@@ -439,7 +399,7 @@ const Navbar = () => {
                             <div
                               key={notification.id}
                               className={clsx(
-                                'px-4 py-3 border-b border-gray-800 hover:bg-gray-800/50 transition-all cursor-pointer',
+                                'px-4 py-3 border-b border-dark-border hover:bg-dark-surface-elevated transition-all cursor-pointer',
                                 notification.unread && 'bg-cyan-500/5'
                               )}
                               onClick={() => {
@@ -464,10 +424,10 @@ const Navbar = () => {
                                       <span className="ml-2 h-2 w-2 rounded-full bg-cyan-400 animate-pulse" />
                                     )}
                                   </div>
-                                  <p className="text-sm text-gray-400 mt-1">
+                                  <p className="text-sm text-dark-text-muted mt-1">
                                     {notification.message}
                                   </p>
-                                  <p className="text-xs text-gray-500 mt-1">
+                                  <p className="text-xs text-dark-text-muted mt-1">
                                     {notification.time}
                                   </p>
                                 </div>
@@ -478,7 +438,7 @@ const Navbar = () => {
                       </div>
 
                       {/* Footer */}
-                      <div className="px-4 py-3 border-t border-gray-700 bg-gray-800/50">
+                      <div className="px-4 py-3 border-t border-dark-border bg-dark-surface-elevated">
                         <button 
                           className="w-full text-center text-sm text-cyan-400 hover:text-cyan-300 font-medium transition-colors"
                           onClick={() => {
@@ -497,45 +457,27 @@ const Navbar = () => {
                 <Dropdown
                   trigger={
                     <button 
-                      className="flex items-center space-x-2 rounded-lg p-1.5 text-sm focus:outline-none focus:ring-2 transition-all"
-                      style={{ 
-                        backgroundColor: 'transparent',
-                        position: 'relative',
-                        zIndex: 10,
-                        display: 'flex',
-                        visibility: 'visible',
-                        opacity: 1,
-                        minWidth: '40px',
-                        minHeight: '40px'
-                      }}
-                      onMouseEnter={(e) => {
-                        e.currentTarget.style.backgroundColor = 'rgba(22, 27, 34, 0.5)';
-                        e.currentTarget.style.borderColor = '#58a6ff';
-                      }}
-                      onMouseLeave={(e) => {
-                        e.currentTarget.style.backgroundColor = 'transparent';
-                        e.currentTarget.style.borderColor = 'transparent';
-                      }}
+                      className="flex items-center space-x-2 rounded-lg p-1.5 text-sm focus:outline-none focus:ring-2 transition-all relative z-10 min-w-[40px] min-h-[40px] hover:bg-dark-surface/50 hover:border-primary-400"
                     >
                       <Avatar 
                         src={user.avatar} 
                         name={user.name} 
                         size="sm"
                       />
-                      <div className="hidden md:block text-left" style={{ minWidth: '100px' }}>
-                        <p className="text-sm font-medium whitespace-nowrap" style={{ color: '#f0f6fc' }}>{user.name}</p>
-                        <p className="text-xs whitespace-nowrap" style={{ color: '#8b949e' }}>{user.reputation}</p>
+                      <div className="hidden md:block text-left min-w-[100px]">
+                        <p className="text-sm font-medium whitespace-nowrap text-dark-text-primary">{user.name}</p>
+                        <p className="text-xs whitespace-nowrap text-dark-text-muted">{user.reputation}</p>
                       </div>
-                      <ChevronDownIcon className="h-4 w-4 flex-shrink-0" style={{ color: '#8b949e' }} />
+                      <ChevronDownIcon className="h-4 w-4 flex-shrink-0 text-dark-text-muted" />
                     </button>
                   }
                   align="right"
                 >
-                  <div className="px-4 py-3 border-b" style={{ borderColor: '#21262d' }}>
-                    <p className="text-sm font-medium" style={{ color: '#f0f6fc' }}>
+                  <div className="px-4 py-3 border-b border-dark-surface-elevated">
+                    <p className="text-sm font-medium text-dark-text-primary">
                       {user.name}
                     </p>
-                    <p className="text-sm" style={{ color: '#8b949e' }}>
+                    <p className="text-sm text-dark-text-muted">
                       {user.email}
                     </p>
                   </div>
@@ -548,11 +490,10 @@ const Navbar = () => {
                           {({ active }) => (
                             <button
                               type="button"
-                              className="flex items-center w-full px-4 py-2 text-left text-sm transition-colors"
-                              style={{
-                                backgroundColor: active ? '#161b22' : 'transparent',
-                                color: active ? '#f0f6fc' : '#c9d1d9'
-                              }}
+                              className={clsx(
+                                'flex items-center w-full px-4 py-2 text-left text-sm transition-colors',
+                                active ? 'bg-dark-surface text-dark-text-primary' : 'text-dark-text-secondary'
+                              )}
                               onClick={() => {
                                 handleSignOut();
                               }}
@@ -570,12 +511,10 @@ const Navbar = () => {
                         {({ active }) => (
                           <Link
                             to={item.href}
-                            className="flex items-center w-full px-4 py-2 text-left text-sm transition-colors"
-                            style={{
-                              backgroundColor: active ? '#161b22' : 'transparent',
-                              color: active ? '#f0f6fc' : '#c9d1d9'
-                            }}
-                            
+                            className={clsx(
+                              'flex items-center w-full px-4 py-2 text-left text-sm transition-colors',
+                              active ? 'bg-dark-surface text-dark-text-primary' : 'text-dark-text-secondary'
+                            )}
                           >
                             <Icon className="h-4 w-4 mr-2 flex-shrink-0" />
                             <span>{item.name}</span>

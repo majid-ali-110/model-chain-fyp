@@ -40,15 +40,10 @@ const InputPanel = ({
   };
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+    <div className="flex flex-col gap-4">
       {/* Input Section */}
-      <div style={{ 
-        backgroundColor: '#0d1117', 
-        borderRadius: '0.5rem', 
-        border: '1px solid #30363d',
-        padding: '1rem'
-      }}>
-        <h3 style={{ fontSize: '1rem', fontWeight: '600', color: '#f0f6fc', margin: '0 0 1rem 0' }}>
+      <div className="bg-dark-surface rounded-lg border border-dark-border p-4">
+        <h3 className="text-base font-semibold text-dark-text-primary mb-4">
           Input
         </h3>
         
@@ -57,47 +52,29 @@ const InputPanel = ({
           onChange={(e) => onInputChange(e.target.value)}
           placeholder="Enter your test input here..."
           disabled={isLoading}
-          style={{
-            width: '100%',
-            minHeight: '200px',
-            padding: '0.75rem',
-            backgroundColor: '#161b22',
-            border: '1px solid #30363d',
-            borderRadius: '0.375rem',
-            color: '#f0f6fc',
-            fontSize: '0.875rem',
-            fontFamily: 'monospace',
-            resize: 'vertical',
-            opacity: isLoading ? 0.5 : 1,
-            cursor: isLoading ? 'not-allowed' : 'text'
-          }}
+          className={`w-full min-h-[200px] p-3 bg-dark-surface border border-dark-border rounded-md text-dark-text-primary text-sm font-mono resize-y ${isLoading ? 'opacity-50 cursor-not-allowed' : 'cursor-text'}`}
         />
 
-        <div style={{ marginTop: '0.75rem', fontSize: '0.75rem', color: '#8b949e' }}>
+        <div className="mt-3 text-xs text-dark-text-muted">
           {inputData.length} characters
         </div>
       </div>
 
       {/* Parameters Section */}
-      <div style={{ 
-        backgroundColor: '#0d1117', 
-        borderRadius: '0.5rem', 
-        border: '1px solid #30363d',
-        padding: '1rem'
-      }}>
-        <h3 style={{ fontSize: '1rem', fontWeight: '600', color: '#f0f6fc', margin: '0 0 1rem 0', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-          <AdjustmentsHorizontalIcon style={{ height: '1.25rem', width: '1.25rem' }} />
+      <div className="bg-dark-surface rounded-lg border border-dark-border p-4">
+        <h3 className="text-base font-semibold text-dark-text-primary mb-4 flex items-center gap-2">
+          <AdjustmentsHorizontalIcon className="h-5 w-5" />
           Parameters
         </h3>
 
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+        <div className="flex flex-col gap-4">
           {/* Temperature */}
           <div>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
-              <label style={{ fontSize: '0.875rem', fontWeight: '500', color: '#f0f6fc', margin: 0 }}>
+            <div className="flex items-center justify-between mb-2">
+              <label className="text-sm font-medium text-dark-text-primary">
                 Temperature
               </label>
-              <span style={{ fontSize: '0.875rem', color: '#58a6ff', fontWeight: 'bold' }}>
+              <span className="text-sm text-primary-400 font-bold">
                 {parameters.temperature?.toFixed(2) || '0.70'}
               </span>
             </div>
@@ -109,23 +86,16 @@ const InputPanel = ({
               value={parameters.temperature || 0.7}
               onChange={(e) => handleParameterChange('temperature', parseFloat(e.target.value))}
               disabled={isLoading}
-              style={{
-                width: '100%',
-                height: '0.5rem',
-                backgroundColor: '#30363d',
-                borderRadius: '0.5rem',
-                cursor: isLoading ? 'not-allowed' : 'pointer',
-                opacity: isLoading ? 0.5 : 1
-              }}
+              className={`w-full h-2 bg-dark-border rounded-lg ${isLoading ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'}`}
             />
-            <div style={{ fontSize: '0.75rem', color: '#8b949e', marginTop: '0.25rem' }}>
+            <div className="text-xs text-dark-text-muted mt-1">
               Controls randomness: 0 (deterministic) to 2 (creative)
             </div>
           </div>
 
           {/* Max Tokens */}
           <div>
-            <label style={{ fontSize: '0.875rem', fontWeight: '500', color: '#f0f6fc', display: 'block', marginBottom: '0.5rem' }}>
+            <label className="text-sm font-medium text-dark-text-primary block mb-2">
               Max Tokens
             </label>
             <input
@@ -135,27 +105,17 @@ const InputPanel = ({
               value={parameters.maxTokens || 150}
               onChange={(e) => handleParameterChange('maxTokens', parseInt(e.target.value))}
               disabled={isLoading}
-              style={{
-                width: '100%',
-                padding: '0.5rem 0.75rem',
-                backgroundColor: '#161b22',
-                border: '1px solid #30363d',
-                borderRadius: '0.375rem',
-                color: '#f0f6fc',
-                fontSize: '0.875rem',
-                opacity: isLoading ? 0.5 : 1,
-                cursor: isLoading ? 'not-allowed' : 'text'
-              }}
+              className={`w-full px-3 py-2 bg-dark-surface border border-dark-border rounded-md text-dark-text-primary text-sm ${isLoading ? 'opacity-50 cursor-not-allowed' : 'cursor-text'}`}
             />
           </div>
 
           {/* Top P */}
           <div>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
-              <label style={{ fontSize: '0.875rem', fontWeight: '500', color: '#f0f6fc', margin: 0 }}>
+            <div className="flex items-center justify-between mb-2">
+              <label className="text-sm font-medium text-dark-text-primary">
                 Top P
               </label>
-              <span style={{ fontSize: '0.875rem', color: '#58a6ff', fontWeight: 'bold' }}>
+              <span className="text-sm text-primary-400 font-bold">
                 {parameters.topP?.toFixed(2) || '1.00'}
               </span>
             </div>
@@ -167,24 +127,17 @@ const InputPanel = ({
               value={parameters.topP || 1.0}
               onChange={(e) => handleParameterChange('topP', parseFloat(e.target.value))}
               disabled={isLoading}
-              style={{
-                width: '100%',
-                height: '0.5rem',
-                backgroundColor: '#30363d',
-                borderRadius: '0.5rem',
-                cursor: isLoading ? 'not-allowed' : 'pointer',
-                opacity: isLoading ? 0.5 : 1
-              }}
+              className={`w-full h-2 bg-dark-border rounded-lg ${isLoading ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'}`}
             />
           </div>
 
           {/* Frequency Penalty */}
           <div>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
-              <label style={{ fontSize: '0.875rem', fontWeight: '500', color: '#f0f6fc', margin: 0 }}>
+            <div className="flex items-center justify-between mb-2">
+              <label className="text-sm font-medium text-dark-text-primary">
                 Frequency Penalty
               </label>
-              <span style={{ fontSize: '0.875rem', color: '#58a6ff', fontWeight: 'bold' }}>
+              <span className="text-sm text-primary-400 font-bold">
                 {parameters.frequencyPenalty?.toFixed(2) || '0.00'}
               </span>
             </div>
@@ -196,44 +149,31 @@ const InputPanel = ({
               value={parameters.frequencyPenalty || 0}
               onChange={(e) => handleParameterChange('frequencyPenalty', parseFloat(e.target.value))}
               disabled={isLoading}
-              style={{
-                width: '100%',
-                height: '0.5rem',
-                backgroundColor: '#30363d',
-                borderRadius: '0.5rem',
-                cursor: isLoading ? 'not-allowed' : 'pointer',
-                opacity: isLoading ? 0.5 : 1
-              }}
+              className={`w-full h-2 bg-dark-border rounded-lg ${isLoading ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'}`}
             />
           </div>
         </div>
       </div>
 
       {/* File Upload */}
-      <div style={{ 
-        backgroundColor: '#0d1117', 
-        borderRadius: '0.5rem', 
-        border: '1px solid #30363d',
-        padding: '1rem',
-        textAlign: 'center'
-      }}>
+      <div className="bg-dark-surface rounded-lg border border-dark-border p-4 text-center">
         <Button
           onClick={() => fileInputRef.current?.click()}
           variant="outline"
-          style={{ width: '100%' }}
+          className="w-full"
           disabled={isLoading}
         >
-          <DocumentTextIcon style={{ height: '1rem', width: '1rem', marginRight: '0.5rem' }} />
+          <DocumentTextIcon className="h-4 w-4 mr-2" />
           Upload File
         </Button>
         <input
           ref={fileInputRef}
           type="file"
           onChange={handleFileUpload}
-          style={{ display: 'none' }}
+          className="hidden"
           accept=".txt,.json,.md"
         />
-        <p style={{ fontSize: '0.75rem', color: '#8b949e', margin: '0.5rem 0 0 0' }}>
+        <p className="text-xs text-dark-text-muted mt-2">
           Supported: .txt, .json, .md
         </p>
       </div>

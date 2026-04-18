@@ -51,9 +51,9 @@ const Toggle = React.forwardRef(({
         onClick={handleToggle}
         disabled={disabled}
         className={clsx(
-          'relative inline-flex flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-primary-600 focus:ring-offset-2',
+          'relative inline-flex flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 focus:ring-offset-dark-bg-primary',
           sizeConfig.switch,
-          isChecked ? 'bg-primary-600' : 'bg-secondary-200',
+          isChecked ? 'bg-primary-600' : 'bg-dark-border',
           disabled && 'opacity-50 cursor-not-allowed'
         )}
         {...props}
@@ -71,7 +71,7 @@ const Toggle = React.forwardRef(({
         <div className="ml-3">
           {label && (
             <span className={clsx(
-              'text-sm font-medium text-secondary-900',
+              'text-sm font-medium text-dark-text-primary',
               disabled && 'opacity-50'
             )}>
               {label}
@@ -79,7 +79,7 @@ const Toggle = React.forwardRef(({
           )}
           {description && (
             <p className={clsx(
-              'text-sm text-secondary-500',
+              'text-sm text-dark-text-muted',
               disabled && 'opacity-50'
             )}>
               {description}

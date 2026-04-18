@@ -37,7 +37,7 @@ const About = () => {
               <p className="text-dark-text-secondary">Leading the AI revolution</p>
             </div>
             <div className="text-center">
-              <UsersIcon className="h-12 w-12 text-secondary-400 mx-auto mb-3" />
+              <UsersIcon className="h-12 w-12 text-dark-text-muted mx-auto mb-3" />
               <h3 className="text-xl font-bold text-dark-text-primary mb-2">50K+ Developers</h3>
               <p className="text-dark-text-secondary">Global community</p>
             </div>

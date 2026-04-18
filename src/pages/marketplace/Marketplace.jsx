@@ -601,7 +601,7 @@ const Marketplace = () => {
                       className={clsx(
                         'p-2 rounded-md transition-all duration-200',
                         viewMode === 'grid'
-                          ? 'bg-primary-500 text-white'
+                          ? 'bg-primary-500/100 text-white'
                           : 'text-dark-text-muted hover:text-dark-text-primary'
                       )}
                     >
@@ -612,7 +612,7 @@ const Marketplace = () => {
                       className={clsx(
                         'p-2 rounded-md transition-all duration-200',
                         viewMode === 'list'
-                          ? 'bg-primary-500 text-white'
+                          ? 'bg-primary-500/100 text-white'
                           : 'text-dark-text-muted hover:text-dark-text-primary'
                       )}
                     >

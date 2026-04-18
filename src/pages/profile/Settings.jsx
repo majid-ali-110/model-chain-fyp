@@ -36,7 +36,7 @@ import { useUser } from '../../contexts/UserContext';
 const Settings = () => {
   const navigate = useNavigate();
   const { connected, address, balance, chainId } = useWallet();
-  const { isAuthenticated, user, logout } = useAuth();
+  const { isAuthenticated, user } = useAuth();
   const { profile } = useUser();
   
   const [activeTab, setActiveTab] = useState('account');
@@ -230,12 +230,12 @@ const Settings = () => {
           />
           
           <div>
-            <label className="block text-sm font-medium text-gray-300 mb-2">Bio</label>
+            <label className="block text-sm font-medium text-dark-text-secondary mb-2">Bio</label>
             <textarea
               value={userInfo.bio}
               onChange={(e) => setUserInfo(prev => ({ ...prev, bio: e.target.value }))}
               rows={3}
-              className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full bg-dark-surface border border-dark-border rounded-lg px-3 py-2 text-white placeholder-dark-text-muted focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               placeholder="Tell us about yourself..."
             />
           </div>
@@ -256,7 +256,7 @@ const Settings = () => {
           </div>
           
           <div className="flex items-center justify-between pt-4">
-            <div className="text-sm text-gray-400">
+            <div className="text-sm text-dark-text-muted">
               Account created: {formatDate(userInfo.joinedDate)}
               {userInfo.verified && (
                 <Badge variant="success" className="ml-2">Verified</Badge>
@@ -291,7 +291,7 @@ const Settings = () => {
             <button
               type="button"
               onClick={() => setShowCurrentPassword(!showCurrentPassword)}
-              className="absolute right-3 top-8 text-gray-400 hover:text-gray-300"
+              className="absolute right-3 top-8 text-dark-text-muted hover:text-dark-text-secondary"
             >
               {showCurrentPassword ? <EyeSlashIcon className="h-5 w-5" /> : <EyeIcon className="h-5 w-5" />}
             </button>
@@ -306,7 +306,7 @@ const Settings = () => {
             <button
               type="button"
               onClick={() => setShowNewPassword(!showNewPassword)}
-              className="absolute right-3 top-8 text-gray-400 hover:text-gray-300"
+              className="absolute right-3 top-8 text-dark-text-muted hover:text-dark-text-secondary"
             >
               {showNewPassword ? <EyeSlashIcon className="h-5 w-5" /> : <EyeIcon className="h-5 w-5" />}
             </button>
@@ -321,7 +321,7 @@ const Settings = () => {
             <button
               type="button"
               onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-              className="absolute right-3 top-8 text-gray-400 hover:text-gray-300"
+              className="absolute right-3 top-8 text-dark-text-muted hover:text-dark-text-secondary"
             >
               {showConfirmPassword ? <EyeSlashIcon className="h-5 w-5" /> : <EyeIcon className="h-5 w-5" />}
             </button>
@@ -341,7 +341,7 @@ const Settings = () => {
               <ShieldCheckIcon className="h-5 w-5 mr-2" />
               Two-Factor Authentication
             </h3>
-            <p className="text-sm text-gray-400 mt-1">
+            <p className="text-sm text-dark-text-muted mt-1">
               Add an extra layer of security to your account
             </p>
           </div>
@@ -375,7 +375,7 @@ const Settings = () => {
           {activeSessions.map((session) => (
             <div
               key={session.id}
-              className="flex items-center justify-between p-3 bg-gray-800/50 rounded-lg"
+              className="flex items-center justify-between p-3 bg-dark-surface-elevated rounded-lg"
             >
               <div className="flex-1">
                 <div className="flex items-center">
@@ -384,10 +384,10 @@ const Settings = () => {
                     <Badge variant="success" className="ml-2">Current</Badge>
                   )}
                 </div>
-                <p className="text-sm text-gray-400">
+                <p className="text-sm text-dark-text-muted">
                   {session.location} • {formatRelativeTime(session.lastActive)}
                 </p>
-                <p className="text-xs text-gray-500">{session.ip}</p>
+                <p className="text-xs text-dark-text-muted">{session.ip}</p>
               </div>
               
               {!session.current && (
@@ -418,16 +418,16 @@ const Settings = () => {
         </h3>
         
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="p-4 bg-gray-800/50 rounded-lg">
-            <p className="text-sm text-gray-400">{walletInfo.currency} Balance {walletInfo.isTestnet && <span className="text-xs text-yellow-500">(Testnet)</span>}</p>
+          <div className="p-4 bg-dark-surface-elevated rounded-lg">
+            <p className="text-sm text-dark-text-muted">{walletInfo.currency} Balance {walletInfo.isTestnet && <span className="text-xs text-yellow-500">(Testnet)</span>}</p>
             <p className="text-2xl font-bold text-white">{walletInfo.balance} {walletInfo.currency}</p>
-            <p className="text-sm text-gray-400">{walletInfo.network}</p>
+            <p className="text-sm text-dark-text-muted">{walletInfo.network}</p>
           </div>
           
-          <div className="p-4 bg-gray-800/50 rounded-lg">
-            <p className="text-sm text-gray-400">Wallet Address</p>
+          <div className="p-4 bg-dark-surface-elevated rounded-lg">
+            <p className="text-sm text-dark-text-muted">Wallet Address</p>
             <div className="flex items-center mt-2">
-              <code className="text-sm text-white bg-gray-700 px-2 py-1 rounded flex-1 truncate">
+              <code className="text-sm text-white bg-dark-border px-2 py-1 rounded flex-1 truncate">
                 {walletInfo.address}
               </code>
               <Button
@@ -451,15 +451,15 @@ const Settings = () => {
           {walletInfo.connectedWallets.map((wallet, index) => (
             <div
               key={index}
-              className="flex items-center justify-between p-3 bg-gray-800/50 rounded-lg"
+              className="flex items-center justify-between p-3 bg-dark-surface-elevated rounded-lg"
             >
               <div className="flex items-center">
-                <div className="h-10 w-10 bg-gray-700 rounded-lg flex items-center justify-center mr-3">
-                  <WalletIcon className="h-5 w-5 text-gray-400" />
+                <div className="h-10 w-10 bg-dark-border rounded-lg flex items-center justify-center mr-3">
+                  <WalletIcon className="h-5 w-5 text-dark-text-muted" />
                 </div>
                 <div>
                   <p className="text-white font-medium">{wallet.type}</p>
-                  <p className="text-sm text-gray-400">{wallet.address}</p>
+                  <p className="text-sm text-dark-text-muted">{wallet.address}</p>
                 </div>
               </div>
               
@@ -495,7 +495,7 @@ const Settings = () => {
           ].map((tx, index) => (
             <div
               key={index}
-              className="flex items-center justify-between p-3 bg-gray-800/50 rounded-lg"
+              className="flex items-center justify-between p-3 bg-dark-surface-elevated rounded-lg"
             >
               <div className="flex items-center">
                 <div className={clsx(
@@ -510,7 +510,7 @@ const Settings = () => {
                 </div>
                 <div>
                   <p className="text-white font-medium">{tx.model}</p>
-                  <p className="text-sm text-gray-400">{tx.date}</p>
+                  <p className="text-sm text-dark-text-muted">{tx.date}</p>
                 </div>
               </div>
               
@@ -542,17 +542,17 @@ const Settings = () => {
             { key: 'modelUpdates', label: 'Model Updates', description: 'Notifications about model updates and new releases' },
             { key: 'purchases', label: 'Purchase Confirmations', description: 'Confirmations for purchases and transactions' }
           ].map((setting) => (
-            <div key={setting.key} className="flex items-center justify-between p-3 bg-gray-800/50 rounded-lg">
+            <div key={setting.key} className="flex items-center justify-between p-3 bg-dark-surface-elevated rounded-lg">
               <div className="flex-1">
                 <p className="text-white font-medium">{setting.label}</p>
-                <p className="text-sm text-gray-400">{setting.description}</p>
+                <p className="text-sm text-dark-text-muted">{setting.description}</p>
               </div>
               
               <button
                 onClick={() => handleNotificationChange(setting.key)}
                 className={clsx(
                   'relative inline-flex h-6 w-11 items-center rounded-full transition-colors',
-                  notifications[setting.key] ? 'bg-blue-600' : 'bg-gray-600'
+                  notifications[setting.key] ? 'bg-blue-600' : 'bg-dark-border-light'
                 )}
               >
                 <span
@@ -578,7 +578,7 @@ const Settings = () => {
         <div className="space-y-6">
           {/* Profile Visibility */}
           <div>
-            <label className="block text-sm font-medium text-gray-300 mb-2">Profile Visibility</label>
+            <label className="block text-sm font-medium text-dark-text-secondary mb-2">Profile Visibility</label>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
               {['public', 'followers', 'private'].map((option) => (
                 <button
@@ -588,11 +588,11 @@ const Settings = () => {
                     'p-3 rounded-lg border text-left transition-colors',
                     privacy.profileVisibility === option
                       ? 'border-blue-500 bg-blue-500/10 text-blue-400'
-                      : 'border-gray-700 bg-gray-800/50 text-gray-300 hover:border-gray-600'
+                      : 'border-dark-border bg-dark-surface-elevated text-dark-text-secondary hover:border-dark-border-light'
                   )}
                 >
                   <p className="font-medium capitalize">{option}</p>
-                  <p className="text-xs text-gray-400 mt-1">
+                  <p className="text-xs text-dark-text-muted mt-1">
                     {option === 'public' && 'Anyone can view your profile'}
                     {option === 'followers' && 'Only followers can view your profile'}
                     {option === 'private' && 'Only you can view your profile'}
@@ -609,17 +609,17 @@ const Settings = () => {
               { key: 'showActivity', label: 'Show Activity', description: 'Show your recent activity to other users' },
               { key: 'allowIndexing', label: 'Search Engine Indexing', description: 'Allow search engines to index your profile' }
             ].map((setting) => (
-              <div key={setting.key} className="flex items-center justify-between p-3 bg-gray-800/50 rounded-lg">
+              <div key={setting.key} className="flex items-center justify-between p-3 bg-dark-surface-elevated rounded-lg">
                 <div className="flex-1">
                   <p className="text-white font-medium">{setting.label}</p>
-                  <p className="text-sm text-gray-400">{setting.description}</p>
+                  <p className="text-sm text-dark-text-muted">{setting.description}</p>
                 </div>
                 
                 <button
                   onClick={() => handlePrivacyChange(setting.key, !privacy[setting.key])}
                   className={clsx(
                     'relative inline-flex h-6 w-11 items-center rounded-full transition-colors',
-                    privacy[setting.key] ? 'bg-blue-600' : 'bg-gray-600'
+                    privacy[setting.key] ? 'bg-blue-600' : 'bg-dark-border-light'
                   )}
                 >
                   <span
@@ -646,7 +646,7 @@ const Settings = () => {
         <div className="space-y-6">
           {/* Theme */}
           <div>
-            <label className="block text-sm font-medium text-gray-300 mb-2">Theme</label>
+            <label className="block text-sm font-medium text-dark-text-secondary mb-2">Theme</label>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
               {['light', 'dark', 'auto'].map((option) => (
                 <button
@@ -656,7 +656,7 @@ const Settings = () => {
                     'p-3 rounded-lg border text-left transition-colors',
                     preferences.theme === option
                       ? 'border-blue-500 bg-blue-500/10 text-blue-400'
-                      : 'border-gray-700 bg-gray-800/50 text-gray-300 hover:border-gray-600'
+                      : 'border-dark-border bg-dark-surface-elevated text-dark-text-secondary hover:border-dark-border-light'
                   )}
                 >
                   <p className="font-medium capitalize">{option}</p>
@@ -667,11 +667,11 @@ const Settings = () => {
           
           {/* Language */}
           <div>
-            <label className="block text-sm font-medium text-gray-300 mb-2">Language</label>
+            <label className="block text-sm font-medium text-dark-text-secondary mb-2">Language</label>
             <select
               value={preferences.language}
               onChange={(e) => handlePreferenceChange('language', e.target.value)}
-              className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full bg-dark-surface border border-dark-border rounded-lg px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
               <option value="en">English</option>
               <option value="es">Spanish</option>
@@ -684,11 +684,11 @@ const Settings = () => {
           
           {/* Timezone */}
           <div>
-            <label className="block text-sm font-medium text-gray-300 mb-2">Timezone</label>
+            <label className="block text-sm font-medium text-dark-text-secondary mb-2">Timezone</label>
             <select
               value={preferences.timezone}
               onChange={(e) => handlePreferenceChange('timezone', e.target.value)}
-              className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full bg-dark-surface border border-dark-border rounded-lg px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
               <option value="UTC-12">UTC-12 (Baker Island)</option>
               <option value="UTC-8">UTC-8 (Pacific Time)</option>
@@ -702,11 +702,11 @@ const Settings = () => {
           
           {/* Currency */}
           <div>
-            <label className="block text-sm font-medium text-gray-300 mb-2">Currency</label>
+            <label className="block text-sm font-medium text-dark-text-secondary mb-2">Currency</label>
             <select
               value={preferences.currency}
               onChange={(e) => handlePreferenceChange('currency', e.target.value)}
-              className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full bg-dark-surface border border-dark-border rounded-lg px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
               <option value="USD">USD - US Dollar</option>
               <option value="EUR">EUR - Euro</option>
@@ -723,17 +723,17 @@ const Settings = () => {
               { key: 'autoSave', label: 'Auto-save', description: 'Automatically save your work' },
               { key: 'compactMode', label: 'Compact Mode', description: 'Use a more compact interface layout' }
             ].map((setting) => (
-              <div key={setting.key} className="flex items-center justify-between p-3 bg-gray-800/50 rounded-lg">
+              <div key={setting.key} className="flex items-center justify-between p-3 bg-dark-surface-elevated rounded-lg">
                 <div className="flex-1">
                   <p className="text-white font-medium">{setting.label}</p>
-                  <p className="text-sm text-gray-400">{setting.description}</p>
+                  <p className="text-sm text-dark-text-muted">{setting.description}</p>
                 </div>
                 
                 <button
                   onClick={() => handlePreferenceChange(setting.key, !preferences[setting.key])}
                   className={clsx(
                     'relative inline-flex h-6 w-11 items-center rounded-full transition-colors',
-                    preferences[setting.key] ? 'bg-blue-600' : 'bg-gray-600'
+                    preferences[setting.key] ? 'bg-blue-600' : 'bg-dark-border-light'
                   )}
                 >
                   <span
@@ -762,11 +762,11 @@ const Settings = () => {
         
         <div className="space-y-4">
           {/* Export Data */}
-          <div className="p-4 bg-gray-800/50 rounded-lg border border-gray-700">
+          <div className="p-4 bg-dark-surface-elevated rounded-lg border border-dark-border">
             <div className="flex items-center justify-between">
               <div>
                 <h4 className="text-white font-medium">Export Account Data</h4>
-                <p className="text-sm text-gray-400 mt-1">
+                <p className="text-sm text-dark-text-muted mt-1">
                   Download a copy of your account data including models, reviews, and activity
                 </p>
               </div>
@@ -781,7 +781,7 @@ const Settings = () => {
             <div className="flex items-center justify-between">
               <div>
                 <h4 className="text-yellow-400 font-medium">Deactivate Account</h4>
-                <p className="text-sm text-gray-400 mt-1">
+                <p className="text-sm text-dark-text-muted mt-1">
                   Temporarily deactivate your account. You can reactivate it anytime.
                 </p>
               </div>
@@ -796,7 +796,7 @@ const Settings = () => {
             <div className="flex items-center justify-between">
               <div>
                 <h4 className="text-red-400 font-medium">Delete Account</h4>
-                <p className="text-sm text-gray-400 mt-1">
+                <p className="text-sm text-dark-text-muted mt-1">
                   Permanently delete your account and all associated data. This action cannot be undone.
                 </p>
               </div>
@@ -813,7 +813,7 @@ const Settings = () => {
             <InformationCircleIcon className="h-5 w-5 text-blue-400 mr-3 mt-0.5 flex-shrink-0" />
             <div>
               <h4 className="text-blue-400 font-medium mb-1">Before you go...</h4>
-              <p className="text-sm text-gray-400">
+              <p className="text-sm text-dark-text-muted">
                 Make sure to export your data and cancel any active subscriptions. 
                 If you have published models, consider transferring ownership or archiving them.
               </p>
@@ -838,11 +838,11 @@ const Settings = () => {
   };
 
   return (
-    <div className="w-full">
+    <div className="page-content page-shell">
       {/* Header */}
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-white mb-2">Settings</h1>
-        <p className="text-gray-400">Manage your account settings and preferences</p>
+        <p className="text-dark-text-muted">Manage your account settings and preferences</p>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
@@ -859,7 +859,7 @@ const Settings = () => {
                     'w-full flex items-center px-3 py-2 text-left rounded-lg transition-colors',
                     activeTab === tab.id
                       ? 'bg-gradient-to-r from-cyan-600 to-blue-600 text-white shadow-lg shadow-cyan-500/50'
-                      : 'text-gray-300 hover:bg-gray-800/50 hover:text-white border border-transparent hover:border-cyan-500/30'
+                      : 'text-dark-text-secondary hover:bg-dark-surface-elevated hover:text-white border border-transparent hover:border-cyan-500/30'
                   )}
                 >
                   <Icon className="h-5 w-5 mr-3" />

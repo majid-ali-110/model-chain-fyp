@@ -34,16 +34,22 @@ const Progress = ({
       {(label || showValue) && (
         <div className="flex justify-between items-center mb-2">
           {label && (
-            <span className="text-sm font-medium text-secondary-700">{label}</span>
+            <span className="text-sm font-medium text-dark-text-secondary">{label}</span>
           )}
           {showValue && (
-            <span className="text-sm text-secondary-500">
+            <span className="text-sm text-dark-text-muted">
               {Math.round(percentage)}%
             </span>
           )}
         </div>
       )}
-      <div className={clsx('w-full bg-secondary-200 rounded-full overflow-hidden', sizes[size])}>
+      <div
+        className={clsx('w-full bg-dark-border rounded-full overflow-hidden', sizes[size])}
+        role="progressbar"
+        aria-valuenow={Math.round(percentage)}
+        aria-valuemin={0}
+        aria-valuemax={100}
+      >
         <div
           className={clsx('h-full transition-all duration-300 ease-in-out', variants[variant])}
           style={{ width: `${percentage}%` }}

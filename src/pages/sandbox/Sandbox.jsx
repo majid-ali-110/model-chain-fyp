@@ -54,6 +54,57 @@ import Badge from '../../components/ui/Badge';
 import Input from '../../components/ui/Input';
 import InputPanel from '../../components/sandbox/InputPanel';
 import OutputPanel from '../../components/sandbox/OutputPanel';
+import { runSandboxInference } from '../../services/inference';
+
+const parseSandboxInput = (value) => {
+  const trimmed = value.trim();
+  if (!trimmed) {
+    return { rawInput: '', features: null };
+  }
+
+  try {
+    const parsed = JSON.parse(trimmed);
+
+    if (Array.isArray(parsed)) {
+      return { rawInput: trimmed, features: parsed.map(Number) };
+    }
+
+    if (Array.isArray(parsed?.features)) {
+      return { rawInput: trimmed, features: parsed.features.map(Number) };
+    }
+
+    const irisKeys = ['sepal_length', 'sepal_width', 'petal_length', 'petal_width'];
+    if (irisKeys.every((key) => key in parsed)) {
+      return {
+        rawInput: trimmed,
+        features: irisKeys.map((key) => Number(parsed[key])),
+      };
+    }
+  } catch {
+    // Non-JSON text will be sent as raw input.
+  }
+
+  return { rawInput: trimmed, features: null };
+};
+
+const formatInferenceResult = (result) => {
+  const lines = [];
+
+  lines.push('Prediction completed.');
+  lines.push(`Predicted class: ${String(result.predictedClass)}`);
+
+  if (Array.isArray(result?.probabilities?.[0])) {
+    const pretty = result.probabilities[0]
+      .map((value, index) => `class_${index}: ${(Number(value) * 100).toFixed(2)}%`)
+      .join(', ');
+    lines.push(`Class probabilities: ${pretty}`);
+  }
+
+  lines.push(`Model path used by backend: ${result.modelPath}`);
+  lines.push(`Input features: ${JSON.stringify(result.inputFeatures)}`);
+
+  return lines.join('\n');
+};
 
 const Sandbox = () => {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -108,6 +159,7 @@ const Sandbox = () => {
       id: model.id,
       name: model.name,
       provider: model.owner || 'Unknown',
+      ipfsHash: model.ipfsHash,
       category: categoryMap[model.category] || 'text',
       description: model.description,
       pricing: {
@@ -192,6 +244,9 @@ const Sandbox = () => {
   const runTest = useCallback(async () => {
     if (!selectedModel || !inputData.trim()) return;
 
+    const { rawInput, features } = parseSandboxInput(inputData);
+    const startedAt = performance.now();
+
     setIsRunning(true);
     setCurrentTest({
       id: Date.now(),
@@ -204,48 +259,70 @@ const Sandbox = () => {
     });
 
     try {
-      // Simulate API call with streaming
-      let output = '';
-      const responses = [
-        'This is a simulated response from ',
-        selectedModel.name,
-        '. The model is processing your input: "',
-        inputData.substring(0, 50),
-        '..."\n\n',
-        'Key findings:\n',
-        '• Temperature setting: ' + parameters.temperature + '\n',
-        '• Max tokens: ' + parameters.maxTokens + '\n',
-        '• Processing complete\n\n',
-        'This is a mock response. Connect your backend API to see real results.'
-      ];
+      const result = await runSandboxInference({
+        input: rawInput,
+        features,
+        selectedModel,
+      });
 
-      for (const response of responses) {
-        await new Promise(resolve => setTimeout(resolve, 150));
-        output += response;
-        setOutputData(output);
-      }
+      const formattedOutput = formatInferenceResult(result);
+      const executionTime = Math.max(1, Math.round(performance.now() - startedAt));
+      const tokensUsed = Math.max(1, Math.ceil(inputData.length / 4));
+
+      setOutputData(formattedOutput);
 
       setCurrentTest(prev => ({
         ...prev,
         status: 'completed',
-        executionTime: Math.floor(Math.random() * 2000) + 500,
-        tokensUsed: Math.floor(inputData.length / 4) + 50
+        executionTime,
+        tokensUsed
       }));
+
+      const historyItem = {
+        id: Date.now(),
+        modelId: selectedModel.id,
+        modelName: selectedModel.name,
+        input: inputData,
+        output: formattedOutput,
+        parameters: { ...parameters },
+        timestamp: new Date().toISOString(),
+        status: 'completed',
+        tokensUsed,
+        executionTime,
+      };
+      setTestHistory(prev => [historyItem, ...prev].slice(0, 50));
 
       // Update usage stats
       setUsageStats(prev => ({
         ...prev,
-        tokensUsed: prev.tokensUsed + 50,
+        tokensUsed: prev.tokensUsed + tokensUsed,
         requestsUsed: prev.requestsUsed + 1
       }));
 
     } catch (error) {
+      const friendlyError = error.message?.includes('Failed to fetch')
+        ? 'Could not reach inference backend. Start it with: npm run inference:dev'
+        : error.message;
+
       console.error('Test error:', error);
+      setOutputData(`Inference failed.\n${friendlyError}\n\nExpected Iris input:\n{"features":[5.1,3.5,1.4,0.2]}`);
       setCurrentTest(prev => ({
         ...prev,
         status: 'failed',
-        error: error.message
+        error: friendlyError
       }));
+
+      const failedItem = {
+        id: Date.now(),
+        modelId: selectedModel?.id,
+        modelName: selectedModel?.name || 'Unknown model',
+        input: inputData,
+        output: '',
+        parameters: { ...parameters },
+        timestamp: new Date().toISOString(),
+        status: 'failed',
+      };
+      setTestHistory(prev => [failedItem, ...prev].slice(0, 50));
     } finally {
       setIsRunning(false);
     }
@@ -280,77 +357,67 @@ const Sandbox = () => {
 
   if (!selectedModel) {
     return (
-      <div style={{ minHeight: '100vh', backgroundColor: '#0a0c10', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        <div style={{ textAlign: 'center' }}>
-          <div style={{ fontSize: '24px', color: '#58a6ff', marginBottom: '16px' }}>Loading...</div>
+      <div className="min-h-screen bg-dark-bg-primary flex items-center justify-center">
+        <div className="text-center">
+          <div className="text-2xl text-primary-400 mb-4">Loading...</div>
         </div>
       </div>
     );
   }
 
   return (
-    <div style={{ minHeight: '100vh', backgroundColor: '#0a0c10' }}>
+    <div className="min-h-screen bg-dark-bg-primary page-content">
       {/* Header - Sticky below fixed navbar */}
-      <div style={{ backgroundColor: '#0d1117', borderBottom: '1px solid #30363d', position: 'sticky', top: '80px', zIndex: 40 }}>
-        <div style={{ maxWidth: '80rem', margin: '0 auto', padding: '1rem 1.5rem' }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-              <div style={{ display: 'flex', alignItems: 'center' }}>
-                <BeakerIcon style={{ height: '2rem', width: '2rem', color: '#58a6ff', marginRight: '0.75rem' }} />
+      <div className="bg-dark-surface border-b border-dark-border sticky top-[var(--navbar-height)] z-40">
+        <div className="page-shell py-4">
+
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <div className="flex items-center">
+                <BeakerIcon className="h-8 w-8 text-primary-400 mr-3" />
                 <div>
-                  <h1 style={{ fontSize: '1.875rem', fontWeight: 'bold', color: '#f0f6fc', margin: 0 }}>AI Sandbox</h1>
-                  <p style={{ fontSize: '0.875rem', color: '#8b949e', margin: 0 }}>Test and experiment with AI models</p>
+                  <h1 className="text-3xl font-bold text-dark-text-primary">AI Sandbox</h1>
+                  <p className="text-sm text-dark-text-muted">Test and experiment with AI models</p>
                 </div>
               </div>
 
               {/* Model Selector */}
-              <div style={{ position: 'relative' }}>
+              <div className="relative">
                 <Button
                   variant="outline"
                   onClick={() => setShowModelSelector(!showModelSelector)}
-                  style={{ minWidth: '12rem' }}
+                  className="min-w-48"
                 >
-                  <div style={{ display: 'flex', alignItems: 'center', width: '100%' }}>
+                  <div className="flex items-center w-full">
                     {selectedModel && (
                       <>
                         {React.createElement(getCategoryIcon(selectedModel.category), { 
-                          style: { height: '1rem', width: '1rem', marginRight: '0.5rem' }
+                          className: 'h-4 w-4 mr-2'
                         })}
-                        <div style={{ textAlign: 'left', flex: 1 }}>
-                          <div style={{ fontWeight: 500 }}>{selectedModel.name}</div>
-                          <div style={{ fontSize: '0.75rem', color: '#8b949e' }}>{selectedModel.provider}</div>
+                        <div className="text-left flex-1">
+                          <div className="font-medium">{selectedModel.name}</div>
+                          <div className="text-xs text-dark-text-muted">{selectedModel.provider}</div>
                         </div>
                       </>
                     )}
-                    <ChevronDownIcon style={{ height: '1rem', width: '1rem', marginLeft: '0.5rem' }} />
+                    <ChevronDownIcon className="h-4 w-4 ml-2" />
                   </div>
                 </Button>
 
                 {/* Model Dropdown */}
                 {showModelSelector && (
-                  <div style={{ 
-                    position: 'absolute', 
-                    top: '100%', 
-                    left: 0, 
-                    marginTop: '0.5rem', 
-                    width: '24rem', 
-                    backgroundColor: '#161b22', 
-                    border: '1px solid #30363d',
-                    borderRadius: '0.5rem',
-                    boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.3)',
-                    zIndex: 50
-                  }}>
-                    <div style={{ padding: '1rem' }}>
+                  <div className="absolute top-full left-0 mt-2 w-96 bg-dark-surface border border-dark-border rounded-lg shadow-xl z-50">
+                    <div className="p-4">
                       <Input
                         type="text"
                         placeholder="Search models..."
                         value={modelSearch}
                         onChange={(e) => setModelSearch(e.target.value)}
                         icon={MagnifyingGlassIcon}
-                        style={{ marginBottom: '1rem' }}
+                        className="mb-4"
                       />
                       
-                      <div style={{ maxHeight: '16rem', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                      <div className="max-h-64 overflow-y-auto flex flex-col gap-2">
                         {filteredModels.map((model) => {
                           const IconComponent = getCategoryIcon(model.category);
                           return (
@@ -361,52 +428,36 @@ const Sandbox = () => {
                                 setShowModelSelector(false);
                                 setModelSearch('');
                               }}
-                              style={{
-                                width: '100%',
-                                padding: '0.75rem',
-                                borderRadius: '0.5rem',
-                                textAlign: 'left',
-                                border: selectedModel?.id === model.id ? '1px solid #58a6ff' : '1px solid transparent',
-                                backgroundColor: selectedModel?.id === model.id ? 'rgba(88, 166, 255, 0.1)' : 'transparent',
-                                cursor: 'pointer',
-                                transition: 'all 0.2s',
-                                color: '#f0f6fc'
-                              }}
-                              onMouseEnter={(e) => {
-                                if (selectedModel?.id !== model.id) {
-                                  e.target.style.backgroundColor = '#30363d';
-                                }
-                              }}
-                              onMouseLeave={(e) => {
-                                if (selectedModel?.id !== model.id) {
-                                  e.target.style.backgroundColor = 'transparent';
-                                }
-                              }}
+                              className={`w-full p-3 rounded-lg text-left border cursor-pointer transition-all duration-200 text-dark-text-primary ${
+                                selectedModel?.id === model.id
+                                  ? 'border-primary-400 bg-primary-400/10'
+                                  : 'border-transparent hover:bg-dark-border'
+                              }`}
                             >
-                              <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
-                                <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.75rem', flex: 1 }}>
-                                  <IconComponent style={{ height: '1.25rem', width: '1.25rem', color: '#8b949e', marginTop: '0.125rem' }} />
-                                  <div style={{ flex: 1 }}>
-                                    <div style={{ display: 'flex', alignItems: 'center' }}>
-                                      <h4 style={{ fontWeight: 500, margin: 0, color: '#f0f6fc' }}>{model.name}</h4>
+                              <div className="flex items-start justify-between">
+                                <div className="flex items-start gap-3 flex-1">
+                                  <IconComponent className="h-5 w-5 text-dark-text-muted mt-0.5" />
+                                  <div className="flex-1">
+                                    <div className="flex items-center">
+                                      <h4 className="font-medium text-dark-text-primary">{model.name}</h4>
                                       {model.isPopular && (
-                                        <Badge variant="accent" size="sm" style={{ marginLeft: '0.5rem' }}>
-                                          <FireIcon style={{ height: '0.75rem', width: '0.75rem', marginRight: '0.25rem' }} />
+                                        <Badge variant="accent" size="sm" className="ml-2">
+                                          <FireIcon className="h-3 w-3 mr-1" />
                                           Popular
                                         </Badge>
                                       )}
                                       {model.isFree && (
-                                        <Badge variant="success" size="sm" style={{ marginLeft: '0.5rem' }}>
+                                        <Badge variant="success" size="sm" className="ml-2">
                                           Free
                                         </Badge>
                                       )}
                                     </div>
-                                    <p style={{ fontSize: '0.875rem', color: '#8b949e', margin: '0.25rem 0 0 0' }}>{model.description}</p>
-                                    <div style={{ display: 'flex', alignItems: 'center', marginTop: '0.5rem', fontSize: '0.75rem', color: '#8b949e' }}>
+                                    <p className="text-sm text-dark-text-muted mt-1">{model.description}</p>
+                                    <div className="flex items-center mt-2 text-xs text-dark-text-muted">
                                       <span>{model.provider}</span>
                                       {model.contextLength && (
                                         <>
-                                          <span style={{ margin: '0 0.5rem' }}>•</span>
+                                          <span className="mx-2">•</span>
                                           <span>{model.contextLength} context</span>
                                         </>
                                       )}
@@ -425,53 +476,29 @@ const Sandbox = () => {
             </div>
 
             {/* Usage Stats & Controls */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+            <div className="flex items-center gap-4">
               {/* View Mode Toggle */}
-              <div style={{ display: 'flex', backgroundColor: '#161b22', borderRadius: '0.5rem', padding: '0.25rem' }}>
+              <div className="flex bg-dark-surface rounded-lg p-1">
                 <button
                   onClick={() => setViewMode('split')}
-                  style={{
-                    padding: '0.5rem',
-                    borderRadius: '0.375rem',
-                    transition: 'all 0.2s',
-                    backgroundColor: viewMode === 'split' ? '#58a6ff' : 'transparent',
-                    color: viewMode === 'split' ? '#fff' : '#8b949e',
-                    border: 'none',
-                    cursor: 'pointer'
-                  }}
+                  className={`p-2 rounded-md transition-all duration-200 border-none cursor-pointer ${viewMode === 'split' ? 'bg-primary-400 text-white' : 'text-dark-text-muted'}`}
                   title="Split View"
                 >
-                  <Squares2X2Icon style={{ height: '1rem', width: '1rem' }} />
+                  <Squares2X2Icon className="h-4 w-4" />
                 </button>
                 <button
                   onClick={() => setViewMode('input')}
-                  style={{
-                    padding: '0.5rem',
-                    borderRadius: '0.375rem',
-                    transition: 'all 0.2s',
-                    backgroundColor: viewMode === 'input' ? '#58a6ff' : 'transparent',
-                    color: viewMode === 'input' ? '#fff' : '#8b949e',
-                    border: 'none',
-                    cursor: 'pointer'
-                  }}
+                  className={`p-2 rounded-md transition-all duration-200 border-none cursor-pointer ${viewMode === 'input' ? 'bg-primary-400 text-white' : 'text-dark-text-muted'}`}
                   title="Input Focus"
                 >
-                  <DocumentTextIcon style={{ height: '1rem', width: '1rem' }} />
+                  <DocumentTextIcon className="h-4 w-4" />
                 </button>
                 <button
                   onClick={() => setViewMode('output')}
-                  style={{
-                    padding: '0.5rem',
-                    borderRadius: '0.375rem',
-                    transition: 'all 0.2s',
-                    backgroundColor: viewMode === 'output' ? '#58a6ff' : 'transparent',
-                    color: viewMode === 'output' ? '#fff' : '#8b949e',
-                    border: 'none',
-                    cursor: 'pointer'
-                  }}
+                  className={`p-2 rounded-md transition-all duration-200 border-none cursor-pointer ${viewMode === 'output' ? 'bg-primary-400 text-white' : 'text-dark-text-muted'}`}
                   title="Output Focus"
                 >
-                  <EyeIcon style={{ height: '1rem', width: '1rem' }} />
+                  <EyeIcon className="h-4 w-4" />
                 </button>
               </div>
 
@@ -479,20 +506,16 @@ const Sandbox = () => {
               <Button 
                 onClick={runTest}
                 disabled={isRunning || !selectedModel}
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '0.5rem'
-                }}
+                className="flex items-center gap-2"
               >
                 {isRunning ? (
                   <>
-                    <ArrowPathIcon style={{ height: '1rem', width: '1rem', animation: 'spin 1s linear infinite' }} />
+                    <ArrowPathIcon className="h-4 w-4 animate-spin" />
                     Running...
                   </>
                 ) : (
                   <>
-                    <PlayIcon style={{ height: '1rem', width: '1rem' }} />
+                    <PlayIcon className="h-4 w-4" />
                     Run Test
                   </>
                 )}
@@ -502,13 +525,9 @@ const Sandbox = () => {
                 <Button 
                   variant="outline"
                   onClick={stopTest}
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '0.5rem'
-                  }}
+                  className="flex items-center gap-2"
                 >
-                  <StopIcon style={{ height: '1rem', width: '1rem' }} />
+                  <StopIcon className="h-4 w-4" />
                   Stop
                 </Button>
               )}
@@ -518,11 +537,11 @@ const Sandbox = () => {
       </div>
 
       {/* Main Content */}
-      <div style={{ maxWidth: '80rem', margin: '0 auto', padding: '1.5rem' }}>
-        <div style={{ display: 'grid', gridTemplateColumns: viewMode === 'split' ? '1fr 1fr' : (viewMode === 'input' ? '1fr' : '1fr'), gap: '1.5rem', minHeight: 'calc(100vh - 200px)' }}>
+      <div className="page-shell py-6">
+        <div className={`grid gap-6 min-h-[calc(100vh-200px)] ${viewMode === 'split' ? 'grid-cols-[repeat(auto-fit,minmax(320px,1fr))]' : 'grid-cols-1'}`}>
           {/* Input Section */}
           {(viewMode === 'split' || viewMode === 'input') && (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+            <div className="flex flex-col gap-4">
               <InputPanel
                 model={selectedModel}
                 inputData={inputData}
@@ -532,20 +551,20 @@ const Sandbox = () => {
                 isLoading={isRunning}
               />
               
-              <div style={{ display: 'flex', gap: '0.5rem' }}>
+              <div className="flex gap-2">
                 <Button 
                   onClick={runTest}
                   disabled={isRunning || !inputData.trim()}
-                  style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}
+                  className="flex-1 flex items-center justify-center gap-2"
                 >
                   {isRunning ? (
                     <>
-                      <ArrowPathIcon style={{ height: '1rem', width: '1rem', animation: 'spin 1s linear infinite' }} />
+                      <ArrowPathIcon className="h-4 w-4 animate-spin" />
                       Running...
                     </>
                   ) : (
                     <>
-                      <PlayIcon style={{ height: '1rem', width: '1rem' }} />
+                      <PlayIcon className="h-4 w-4" />
                       Run Test
                     </>
                   )}
@@ -553,9 +572,9 @@ const Sandbox = () => {
                 <Button 
                   variant="outline"
                   onClick={clearInput}
-                  style={{ padding: '0.5rem 1rem' }}
+                  className="px-4 py-2"
                 >
-                  <TrashIcon style={{ height: '1rem', width: '1rem' }} />
+                  <TrashIcon className="h-4 w-4" />
                 </Button>
               </div>
             </div>
@@ -563,10 +582,10 @@ const Sandbox = () => {
 
           {/* Output Section */}
           {(viewMode === 'split' || viewMode === 'output') && (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingBottom: '0.5rem', borderBottom: '1px solid #30363d' }}>
-                <h2 style={{ fontSize: '1.125rem', fontWeight: '600', color: '#f0f6fc', margin: 0 }}>Output</h2>
-                <div style={{ display: 'flex', gap: '0.5rem' }}>
+            <div className="flex flex-col gap-4">
+              <div className="flex items-center justify-between pb-2 border-b border-dark-border">
+                <h2 className="text-lg font-semibold text-dark-text-primary">Output</h2>
+                <div className="flex gap-2">
                   <Button 
                     variant="ghost"
                     size="sm"
@@ -574,7 +593,7 @@ const Sandbox = () => {
                     disabled={!outputData}
                     title="Copy to clipboard"
                   >
-                    <DocumentDuplicateIcon style={{ height: '1rem', width: '1rem' }} />
+                    <DocumentDuplicateIcon className="h-4 w-4" />
                   </Button>
                   <Button 
                     variant="ghost"
@@ -583,7 +602,7 @@ const Sandbox = () => {
                     disabled={!outputData}
                     title="Clear output"
                   >
-                    <TrashIcon style={{ height: '1rem', width: '1rem' }} />
+                    <TrashIcon className="h-4 w-4" />
                   </Button>
                 </div>
               </div>
@@ -601,10 +620,10 @@ const Sandbox = () => {
 
         {/* History Panel */}
         {showHistoryPanel && (
-          <div style={{ marginTop: '2rem', padding: '1.5rem', backgroundColor: '#0d1117', borderRadius: '0.5rem', border: '1px solid #30363d' }}>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' }}>
-              <h3 style={{ fontSize: '1.125rem', fontWeight: '600', color: '#f0f6fc', margin: 0, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                <ClockIcon style={{ height: '1.25rem', width: '1.25rem' }} />
+          <div className="mt-8 p-6 bg-dark-surface rounded-lg border border-dark-border">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold text-dark-text-primary flex items-center gap-2">
+                <ClockIcon className="h-5 w-5" />
                 Test History
               </h3>
               <Badge size="sm">
@@ -613,44 +632,28 @@ const Sandbox = () => {
             </div>
 
             {testHistory.length === 0 ? (
-              <div style={{ textAlign: 'center', padding: '2rem' }}>
-                <ClockIcon style={{ height: '2rem', width: '2rem', color: '#8b949e', margin: '0 auto 0.5rem' }} />
-                <p style={{ fontSize: '0.875rem', color: '#8b949e', margin: 0 }}>No test history yet</p>
+              <div className="text-center p-8">
+                <ClockIcon className="h-8 w-8 text-dark-text-muted mx-auto mb-2" />
+                <p className="text-sm text-dark-text-muted">No test history yet</p>
               </div>
             ) : (
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(250px, 1fr))', gap: '1rem' }}>
+              <div className="grid grid-cols-[repeat(auto-fill,minmax(250px,1fr))] gap-4">
                 {testHistory.map((item) => (
                   <div
                     key={item.id}
                     onClick={() => loadHistoryItem(item)}
-                    style={{
-                      padding: '0.75rem',
-                      borderRadius: '0.375rem',
-                      border: selectedHistoryItem?.id === item.id ? '1px solid #58a6ff' : '1px solid #30363d',
-                      backgroundColor: selectedHistoryItem?.id === item.id ? 'rgba(88, 166, 255, 0.1)' : '#161b22',
-                      cursor: 'pointer',
-                      transition: 'all 0.2s'
-                    }}
-                    onMouseEnter={(e) => {
-                      if (selectedHistoryItem?.id !== item.id) {
-                        e.currentTarget.style.borderColor = '#8b949e';
-                      }
-                    }}
-                    onMouseLeave={(e) => {
-                      if (selectedHistoryItem?.id !== item.id) {
-                        e.currentTarget.style.borderColor = '#30363d';
-                      }
-                    }}
+                    className={`p-3 rounded-md border cursor-pointer transition-all duration-200 ${
+                      selectedHistoryItem?.id === item.id
+                        ? 'border-primary-400 bg-primary-400/10'
+                        : 'border-dark-border bg-dark-surface hover:border-dark-text-muted'
+                    }`}
                   >
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                        <div style={{
-                          width: '0.5rem',
-                          height: '0.5rem',
-                          borderRadius: '50%',
-                          backgroundColor: item.status === 'completed' ? '#3fb950' : item.status === 'failed' ? '#f85149' : '#8b949e'
-                        }} />
-                        <span style={{ fontSize: '0.875rem', fontWeight: '500', color: '#f0f6fc' }}>
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="flex items-center gap-2">
+                        <div className={`w-2 h-2 rounded-full ${
+                          item.status === 'completed' ? 'bg-green-500' : item.status === 'failed' ? 'bg-red-500' : 'bg-dark-text-muted'
+                        }`} />
+                        <span className="text-sm font-medium text-dark-text-primary">
                           {item.modelName}
                         </span>
                       </div>
@@ -661,17 +664,17 @@ const Sandbox = () => {
                           e.stopPropagation();
                           deleteHistoryItem(item.id);
                         }}
-                        style={{ padding: '0.25rem' }}
+                        className="p-1"
                       >
-                        <XMarkIcon style={{ height: '0.75rem', width: '0.75rem' }} />
+                        <XMarkIcon className="h-3 w-3" />
                       </Button>
                     </div>
                     
-                    <p style={{ fontSize: '0.875rem', color: '#8b949e', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                    <p className="text-sm text-dark-text-muted truncate">
                       {item.input}
                     </p>
                     
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: '0.5rem', fontSize: '0.75rem', color: '#8b949e' }}>
+                    <div className="flex items-center justify-between mt-2 text-xs text-dark-text-muted">
                       <span>{new Date(item.timestamp).toLocaleDateString()}</span>
                       {item.tokensUsed && (
                         <span>{item.tokensUsed} tokens</span>
@@ -683,7 +686,7 @@ const Sandbox = () => {
             )}
 
             {testHistory.length > 0 && (
-              <div style={{ marginTop: '1rem', paddingTop: '1rem', borderTop: '1px solid #30363d' }}>
+              <div className="mt-4 pt-4 border-t border-dark-border">
                 <Button
                   variant="outline"
                   size="sm"
@@ -692,9 +695,9 @@ const Sandbox = () => {
                     setSelectedHistoryItem(null);
                     localStorage.removeItem('sandbox-history');
                   }}
-                  style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}
+                  className="w-full flex items-center justify-center gap-2"
                 >
-                  <TrashIcon style={{ height: '1rem', width: '1rem' }} />
+                  <TrashIcon className="h-4 w-4" />
                   Clear History
                 </Button>
               </div>
@@ -702,12 +705,6 @@ const Sandbox = () => {
           </div>
         )}
       </div>
-
-      <style>{`
-        @keyframes spin {
-          to { transform: rotate(360deg); }
-        }
-      `}</style>
     </div>
   );
 };

@@ -6,18 +6,15 @@ import {
   CurrencyDollarIcon,
   ClockIcon,
   ArrowTrendingUpIcon,
-  ArrowTopRightOnSquareIcon,
   ArrowPathIcon,
   AdjustmentsHorizontalIcon,
   PlayIcon,
-  PlusIcon,
   StarIcon,
   ArrowDownTrayIcon,
   CpuChipIcon,
   ShoppingCartIcon,
   CreditCardIcon,
   ChevronRightIcon,
-  FireIcon,
   SparklesIcon,
   RocketLaunchIcon,
   TrophyIcon,
@@ -28,9 +25,7 @@ import {
   HeartIcon,
   WalletIcon,
   ShieldCheckIcon,
-  CloudArrowUpIcon,
-  DocumentChartBarIcon,
-  Cog6ToothIcon,
+  LightBulbIcon,
   InformationCircleIcon,
   DocumentTextIcon,
   PhotoIcon,
@@ -47,14 +42,12 @@ import Card from '../../components/ui/Card';
 import Badge from '../../components/ui/Badge';
 import Loading from '../../components/ui/Loading';
 import LineChart from '../../components/charts/LineChart';
-import { useAuth } from '../../contexts/AuthContext';
 import { useWallet } from '../../contexts/WalletContext';
 import { useUser } from '../../contexts/UserContext';
 
 const Dashboard = () => {
   const navigate = useNavigate();
-  const { user, isAuthenticated } = useAuth();
-  const { connected, address, balance, chainId } = useWallet();
+  const { chainId } = useWallet();
   const { profile, purchases, userModels, earnings, rewards, activity, loading: userLoading } = useUser();
 
   // Get network currency based on chainId
@@ -146,10 +139,10 @@ const Dashboard = () => {
   }
 
   return (
-    <div className="min-h-screen bg-dark-surface-primary">
+    <div className="min-h-screen bg-dark-surface-primary page-content">
       {/* Header */}
       <div className="bg-dark-surface-secondary border-b border-dark-surface-elevated">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        <div className="page-shell py-6">
           <div className="flex items-center justify-between">
             <div>
               <h1 className="text-3xl font-bold text-dark-text-primary">
@@ -174,7 +167,7 @@ const Dashboard = () => {
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="page-shell py-8">
         {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           <Card variant="elevated" className="p-6">
@@ -191,7 +184,7 @@ const Dashboard = () => {
                   </Badge>
                 </div>
               </div>
-              <div className="p-3 bg-primary-500/10 rounded-lg">
+              <div className="p-3 bg-primary-500/100/10 rounded-lg">
                 <ChartBarIcon className="h-6 w-6 text-primary-400" />
               </div>
             </div>
@@ -211,8 +204,8 @@ const Dashboard = () => {
                   </Badge>
                 </div>
               </div>
-              <div className="p-3 bg-secondary-500/10 rounded-lg">
-                <BoltSolidIcon className="h-6 w-6 text-secondary-400" />
+              <div className="p-3 bg-dark-surface0/10 rounded-lg">
+                <BoltSolidIcon className="h-6 w-6 text-dark-text-muted" />
               </div>
             </div>
           </Card>
@@ -276,7 +269,7 @@ const Dashboard = () => {
                         className={clsx(
                           'px-3 py-1 rounded-md text-sm transition-all',
                           selectedTimeframe === timeframe
-                            ? 'bg-primary-500 text-white'
+                            ? 'bg-primary-500/100 text-white'
                             : 'text-dark-text-muted hover:text-dark-text-primary'
                         )}
                       >
@@ -351,7 +344,7 @@ const Dashboard = () => {
                         className="flex items-center justify-between p-4 bg-dark-surface-primary rounded-lg border border-dark-surface-elevated"
                       >
                         <div className="flex items-center space-x-4">
-                          <div className="p-2 bg-primary-500/10 rounded-lg">
+                          <div className="p-2 bg-primary-500/100/10 rounded-lg">
                             <CpuChipIcon className="h-5 w-5 text-primary-400" />
                           </div>
                           <div>
@@ -414,10 +407,10 @@ const Dashboard = () => {
                       <div
                         key={model.id}
                         className="p-4 bg-dark-surface-primary rounded-lg border border-dark-surface-elevated hover:border-primary-500/30 transition-all cursor-pointer group"
-                        onClick={() => navigate(`/marketplace/model/${model.id}`)}
+                        onClick={() => navigate(`/marketplace/models/${model.id}`)}
                       >
                         <div className="flex items-start justify-between mb-3">
-                          <div className="p-2 bg-primary-500/10 rounded-lg">
+                          <div className="p-2 bg-primary-500/100/10 rounded-lg">
                             <IconComponent className="h-5 w-5 text-primary-400" />
                           </div>
                           <Badge variant="accent" size="sm">
@@ -582,7 +575,7 @@ const Dashboard = () => {
                   variant="ghost"
                   size="sm"
                   className="w-full mt-4"
-                  onClick={() => navigate('/activity')}
+                  onClick={() => navigate('/dashboard/notifications')}
                 >
                   View All Activity
                   <ChevronRightIcon className="h-4 w-4 ml-1" />
@@ -632,9 +625,9 @@ const Dashboard = () => {
                       <h4 className="font-medium text-dark-text-primary">Upgrade Available</h4>
                       <p className="text-xs text-dark-text-muted">Get unlimited access</p>
                     </div>
-                    <Button size="sm" onClick={() => navigate('/pricing')}>
+                    <Button size="sm" onClick={() => navigate('/marketplace/models')}>
                       <RocketLaunchIcon className="h-4 w-4 mr-1" />
-                      Upgrade
+                      Browse
                     </Button>
                   </div>
                 </div>

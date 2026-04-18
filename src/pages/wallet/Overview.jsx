@@ -53,7 +53,7 @@ const Overview = () => {
       case 'pending':
         return <ClockIcon className="h-4 w-4 text-yellow-500" />;
       default:
-        return <CurrencyDollarIcon className="h-4 w-4 text-secondary-500" />;
+        return <CurrencyDollarIcon className="h-4 w-4 text-dark-text-muted" />;
     }
   };
 
@@ -73,10 +73,10 @@ const Overview = () => {
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-3">
-        <WalletIcon className="h-8 w-8 text-primary-600" />
+        <WalletIcon className="h-8 w-8 text-primary-400" />
         <div>
-          <h1 className="text-2xl font-bold text-secondary-900">Wallet Overview</h1>
-          <p className="text-secondary-600">Manage your earnings and transactions</p>
+          <h1 className="text-2xl font-bold text-dark-text-primary">Wallet Overview</h1>
+          <p className="text-dark-text-tertiary">Manage your earnings and transactions</p>
         </div>
       </div>
 
@@ -88,17 +88,17 @@ const Overview = () => {
         <Card.Content>
           <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
             <div className="text-center">
-              <p className="text-3xl font-bold text-secondary-900">{walletStats.balance}</p>
-              <p className="text-lg text-secondary-600">{walletStats.network}</p>
-              <p className="text-sm text-secondary-500">Current Balance</p>
+              <p className="text-3xl font-bold text-dark-text-primary">{walletStats.balance}</p>
+              <p className="text-lg text-dark-text-tertiary">{walletStats.network}</p>
+              <p className="text-sm text-dark-text-muted">Current Balance</p>
             </div>
             <div className="text-center">
               <p className="text-2xl font-bold text-yellow-600">{walletStats.pendingEarnings}</p>
-              <p className="text-sm text-secondary-500">Pending Earnings</p>
+              <p className="text-sm text-dark-text-muted">Pending Earnings</p>
             </div>
             <div className="text-center">
               <p className="text-2xl font-bold text-green-600">{walletStats.totalEarnings}</p>
-              <p className="text-sm text-secondary-500">Total Earnings</p>
+              <p className="text-sm text-dark-text-muted">Total Earnings</p>
             </div>
             <div className="flex flex-col gap-2">
               <Button className="w-full">
@@ -128,15 +128,15 @@ const Overview = () => {
           <Card.Content>
             <div className="space-y-4">
               {recentTransactions.map(transaction => (
-                <div key={transaction.id} className="flex items-center gap-4 py-3 border-b border-secondary-100 last:border-0">
+                <div key={transaction.id} className="flex items-center gap-4 py-3 border-b border-dark-border last:border-0">
                   <div className="flex-shrink-0">
                     {getTransactionIcon(transaction.type)}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-secondary-900 truncate">
+                    <p className="text-sm font-medium text-dark-text-primary truncate">
                       {transaction.description}
                     </p>
-                    <p className="text-xs text-secondary-600">
+                    <p className="text-xs text-dark-text-tertiary">
                       {transaction.user} • {transaction.time}
                     </p>
                   </div>
@@ -165,13 +165,13 @@ const Overview = () => {
               {portfolioBreakdown.map((item, index) => (
                 <div key={index}>
                   <div className="flex justify-between items-center mb-2">
-                    <span className="text-sm font-medium text-secondary-900">{item.category}</span>
+                    <span className="text-sm font-medium text-dark-text-primary">{item.category}</span>
                     <div className="text-right">
-                      <span className="text-sm font-bold text-secondary-900">{item.amount}</span>
-                      <span className="text-xs text-secondary-600 ml-2">({item.percentage}%)</span>
+                      <span className="text-sm font-bold text-dark-text-primary">{item.amount}</span>
+                      <span className="text-xs text-dark-text-tertiary ml-2">({item.percentage}%)</span>
                     </div>
                   </div>
-                  <div className="w-full bg-secondary-200 rounded-full h-2">
+                  <div className="w-full bg-dark-border rounded-full h-2">
                     <div 
                       className="bg-primary-600 h-2 rounded-full" 
                       style={{ width: `${item.percentage}%` }}

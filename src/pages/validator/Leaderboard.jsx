@@ -46,10 +46,19 @@ const Leaderboard = () => {
               Validator
             </span> Leaderboard
           </h1>
+          <div className="mb-4">
+            <Badge variant="warning">Mock Data Preview</Badge>
+          </div>
           <p className="text-xl text-dark-text-secondary max-w-3xl">
-            Top validators ranked by performance, accuracy, and contributions to the network.
+            Leaderboard values on this page are placeholder preview data until fully contract-backed reputation/ranking aggregation is released.
           </p>
         </div>
+
+        <Card variant="elevated" className="p-6 mb-8 border-yellow-500/30">
+          <p className="text-dark-text-secondary">
+            Live validator reviews are functional. Global ranking and rewards totals shown here are not yet sourced from production analytics.
+          </p>
+        </Card>
 
         {/* Stats */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
@@ -102,7 +111,7 @@ const Leaderboard = () => {
               onClick={() => setTimeFrame(tf)}
               className={`px-6 py-2 rounded-lg font-semibold transition-all ${
                 timeFrame === tf
-                  ? 'bg-primary-500 text-white'
+                  ? 'bg-primary-500/100 text-white'
                   : 'bg-dark-surface text-dark-text-secondary hover:bg-dark-surface-hover'
               }`}
             >
@@ -136,7 +145,7 @@ const Leaderboard = () => {
                         {validator.rank <= 3 && (
                           <TrophyIcon className={`h-5 w-5 ${
                             validator.rank === 1 ? 'text-yellow-400' :
-                            validator.rank === 2 ? 'text-gray-400' :
+                            validator.rank === 2 ? 'text-dark-text-muted' :
                             'text-orange-600'
                           }`} />
                         )}

@@ -807,7 +807,7 @@ const Home = () => {
             {/* Tagline - Positioned below enlarged logo */}
             <p className="text-xl md:text-2xl text-dark-text-secondary mb-4 max-w-3xl mx-auto leading-relaxed">
               The world's first <span className="text-primary-400 font-semibold">decentralized AI marketplace</span>. 
-              Buy, sell, and validate AI models with <span className="text-secondary-400 font-semibold">blockchain security</span>.
+              Buy, sell, and validate AI models with <span className="text-dark-text-muted font-semibold">blockchain security</span>.
             </p>
 
             {/* Trust Badges */}
@@ -1065,7 +1065,7 @@ const Home = () => {
           <div className="space-y-8">
             <Card variant="elevated" className="p-6">
               <div className="flex items-center mb-4">
-                <div className="w-12 h-12 bg-primary-500/20 rounded-lg flex items-center justify-center mr-4">
+                <div className="w-12 h-12 bg-primary-500/100/20 rounded-lg flex items-center justify-center mr-4">
                   <CurrencyDollarIcon className="h-6 w-6 text-primary-400" />
                 </div>
                 <div>
@@ -1206,7 +1206,7 @@ const Home = () => {
                   'group relative overflow-hidden',
                   'bg-gradient-to-br from-gray-900/90 via-gray-800/80 to-gray-900/90',
                   'backdrop-blur-xl',
-                  'border border-gray-700/50',
+                  'border border-dark-border/50',
                   'rounded-2xl p-8',
                   'transition-all duration-500',
                   'hover:scale-105 hover:border-cyan-500/50',
@@ -1245,7 +1245,7 @@ const Home = () => {
                   </h3>
                   
                   {/* Description */}
-                  <p className="text-gray-400 text-sm leading-relaxed group-hover:text-gray-300 transition-colors duration-300">
+                  <p className="text-dark-text-muted text-sm leading-relaxed group-hover:text-dark-text-secondary transition-colors duration-300">
                     {indicator.description}
                   </p>
                 </div>
@@ -1317,7 +1317,7 @@ const Home = () => {
                   'w-3 h-3 rounded-full transition-all duration-300',
                   currentTestimonial === index 
                     ? 'bg-primary-400 scale-125 shadow-[0_0_15px_rgba(59,130,246,0.8)]' 
-                    : 'bg-gray-600 hover:bg-primary-400/60 hover:scale-110'
+                    : 'bg-dark-border-light hover:bg-primary-400/60 hover:scale-110'
                 )}
               />
             ))}

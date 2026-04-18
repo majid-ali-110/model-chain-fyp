@@ -1,6 +1,33 @@
 // Contract addresses for different networks
 // Update these after deploying contracts
 
+export const REQUIRED_CONTRACT_KEYS = [
+  'ModelRegistry',
+  'Marketplace',
+  'Governance',
+  'UserRegistry',
+];
+
+export const NETWORK_CHAIN_IDS = {
+  localhost: 31337,
+  polygonAmoy: 80002,
+  sepolia: 11155111,
+  polygon: 137,
+  mainnet: 1,
+};
+
+// Address management policy for deterministic demos and releases:
+// 1) Every deploy updates all REQUIRED_CONTRACT_KEYS for the target network in one commit.
+// 2) Empty strings are allowed only for intentionally unsupported networks.
+// 3) Any local/Amoy demo run should validate addresses before UI startup.
+// 4) Address changes should include deployment tx hash evidence in PR/release notes.
+export const ADDRESS_MANAGEMENT_POLICY = {
+  requireAllContractsPerNetwork: true,
+  allowEmptyOnlyForUnsupportedNetworks: true,
+  verifyBeforeDemoOn: ['localhost', 'polygonAmoy'],
+  evidenceRequired: ['network', 'deployer', 'transactionHash', 'blockNumber'],
+};
+
 export const CONTRACT_ADDRESSES = {
   // Localhost/Hardhat
   localhost: {
@@ -46,21 +73,70 @@ export const CONTRACT_ADDRESSES = {
 // Alias for backward compatibility
 export const CONTRACTS = CONTRACT_ADDRESSES;
 
+export const getNetworkKeyFromChainId = (chainId) => {
+  const normalizedChainId = Number(chainId);
+
+  switch (normalizedChainId) {
+    case NETWORK_CHAIN_IDS.mainnet:
+      return 'mainnet';
+    case NETWORK_CHAIN_IDS.sepolia:
+      return 'sepolia';
+    case NETWORK_CHAIN_IDS.polygon:
+      return 'polygon';
+    case NETWORK_CHAIN_IDS.polygonAmoy:
+      return 'polygonAmoy';
+    case NETWORK_CHAIN_IDS.localhost:
+    default:
+      return 'localhost';
+  }
+};
+
+const isAddressLike = (value) => /^0x[a-fA-F0-9]{40}$/.test(value) && value !== '0x0000000000000000000000000000000000000000';
+
+export const validateNetworkContracts = (networkKey, { strict = true } = {}) => {
+  const addresses = CONTRACTS[networkKey];
+
+  if (!addresses) {
+    return {
+      ok: false,
+      networkKey,
+      issues: [`Unknown network key: ${networkKey}`],
+      addresses: null,
+    };
+  }
+
+  const issues = [];
+
+  for (const key of REQUIRED_CONTRACT_KEYS) {
+    const value = addresses[key];
+
+    if (!value) {
+      issues.push(`Missing address for ${networkKey}.${key}`);
+      continue;
+    }
+
+    if (!isAddressLike(value)) {
+      issues.push(`Invalid address format for ${networkKey}.${key}: ${value}`);
+    }
+  }
+
+  return {
+    ok: strict ? issues.length === 0 : true,
+    networkKey,
+    issues,
+    addresses,
+  };
+};
+
+export const verifyDeploymentReadiness = (chainId, options = {}) => {
+  const networkKey = getNetworkKeyFromChainId(chainId);
+  return validateNetworkContracts(networkKey, options);
+};
+
 // Get contracts for current network
 export const getContracts = (chainId) => {
-  switch (chainId) {
-    case 1:
-      return CONTRACTS.mainnet;
-    case 11155111:
-      return CONTRACTS.sepolia;
-    case 137:
-      return CONTRACTS.polygon;
-    case 80002:
-      return CONTRACTS.polygonAmoy;
-    case 31337:
-    default:
-      return CONTRACTS.localhost;
-  }
+  const networkKey = getNetworkKeyFromChainId(chainId);
+  return CONTRACTS[networkKey] || CONTRACTS.localhost;
 };
 
 // ABI exports

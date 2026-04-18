@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useReducer, useCallback } from 'react';
 import { ethers } from 'ethers';
-import { CONTRACT_ADDRESSES, MODEL_REGISTRY_ABI, MARKETPLACE_ABI } from '../contracts';
+import { getContracts as getNetworkContracts, MODEL_REGISTRY_ABI, MARKETPLACE_ABI } from '../contracts';
 import { getFromIPFS, parseMetadata } from '../services/ipfs';
 
 // User Context
@@ -78,7 +78,7 @@ const initialUserState = {
 };
 
 // Helper to get contract instances
-const getContracts = async () => {
+const getContractInstances = async () => {
   if (!window.ethereum) {
     throw new Error('No wallet detected');
   }
@@ -87,26 +87,17 @@ const getContracts = async () => {
   const network = await provider.getNetwork();
   const chainId = Number(network.chainId);
   
-  // Map chainId to network name
-  const networkMap = {
-    1: 'mainnet',
-    5: 'goerli',
-    11155111: 'sepolia',
-    31337: 'localhost',
-  };
-  
-  const networkName = networkMap[chainId] || 'localhost';
-  const addresses = CONTRACT_ADDRESSES[networkName];
+  const addresses = getNetworkContracts(chainId);
   
   if (!addresses) {
-    throw new Error(`Unsupported network: ${networkName}`);
+    throw new Error(`Unsupported network: ${chainId}`);
   }
   
   const signer = await provider.getSigner();
   
   return {
-    modelRegistry: new ethers.Contract(addresses.ModelRegistry, MODEL_REGISTRY_ABI, signer),
-    marketplace: new ethers.Contract(addresses.Marketplace, MARKETPLACE_ABI, signer),
+    modelRegistry: new ethers.Contract(addresses.ModelRegistry, MODEL_REGISTRY_ABI.abi, signer),
+    marketplace: new ethers.Contract(addresses.Marketplace, MARKETPLACE_ABI.abi, signer),
     provider,
     signer,
   };
@@ -127,8 +118,8 @@ export const UserProvider = ({ children }) => {
       // Get user's model count from blockchain
       let modelsPublished = 0;
       try {
-        const { modelRegistry } = await getContracts();
-        const totalModels = await modelRegistry.getModelCount();
+        const { modelRegistry } = await getContractInstances();
+        const totalModels = await modelRegistry.getTotalModels();
         
         // Count models owned by this user
         for (let i = 0; i < totalModels; i++) {
@@ -180,15 +171,16 @@ export const UserProvider = ({ children }) => {
 
   const loadPurchases = useCallback(async (walletAddress) => {
     try {
-      const { marketplace, provider } = await getContracts();
+      const { marketplace, provider } = await getContractInstances();
       
-      // Get AccessPurchased events for this user
-      const filter = marketplace.filters.AccessPurchased(null, walletAddress);
+      // Get ModelPurchased events for this user
+      const filter = marketplace.filters.ModelPurchased(null, walletAddress);
       const events = await marketplace.queryFilter(filter);
       
       const purchases = await Promise.all(
         events.map(async (event) => {
-          const { modelId, buyer, price, seller } = event.args;
+          const { modelId, price } = event.args;
+          const listing = await marketplace.getListing(modelId).catch(() => null);
           const block = await provider.getBlock(event.blockNumber);
           
           return {
@@ -199,7 +191,7 @@ export const UserProvider = ({ children }) => {
             purchaseDate: new Date(block.timestamp * 1000).toISOString(),
             status: 'completed',
             txHash: event.transactionHash,
-            seller: seller,
+            seller: listing?.seller || null,
           };
         })
       );
@@ -213,8 +205,8 @@ export const UserProvider = ({ children }) => {
 
   const loadUserModels = useCallback(async (walletAddress) => {
     try {
-      const { modelRegistry } = await getContracts();
-      const totalModels = await modelRegistry.getModelCount();
+      const { modelRegistry } = await getContractInstances();
+      const totalModels = await modelRegistry.getTotalModels();
       
       const userModels = [];
       
@@ -223,12 +215,12 @@ export const UserProvider = ({ children }) => {
         
         if (owner.toLowerCase() === walletAddress.toLowerCase()) {
           const model = await modelRegistry.getModel(i);
-          const metadataURI = model.metadataURI;
+          const metadataHash = model.metadataHash;
           
           // Fetch metadata from IPFS
           let metadata = {};
           try {
-            const data = await getFromIPFS(metadataURI);
+            const data = await getFromIPFS(metadataHash);
             metadata = parseMetadata(data);
           } catch (err) {
             // Fallback if IPFS fetch fails
@@ -240,10 +232,10 @@ export const UserProvider = ({ children }) => {
             name: metadata.name || `Model #${i}`,
             description: metadata.description || '',
             category: metadata.category || 'Other',
-            price: ethers.formatEther(model.price),
+            price: ethers.formatEther(model.price || 0),
             owner: owner,
-            metadataURI,
-            createdAt: new Date(Number(model.timestamp) * 1000).toISOString(),
+            metadataURI: metadataHash,
+            createdAt: new Date(Number(model.createdAt) * 1000).toISOString(),
             downloads: 0,
             rating: metadata.rating || 0,
             image: metadata.image,
@@ -259,10 +251,10 @@ export const UserProvider = ({ children }) => {
 
   const loadEarnings = useCallback(async (walletAddress) => {
     try {
-      const { marketplace, provider } = await getContracts();
+      const { marketplace, provider } = await getContractInstances();
       
-      // Get TransactionCompleted events where user is seller
-      const filter = marketplace.filters.TransactionCompleted(null, walletAddress);
+      // Use purchase events and filter by listing seller
+      const filter = marketplace.filters.ModelPurchased();
       const events = await marketplace.queryFilter(filter);
       
       let total = BigInt(0);
@@ -277,21 +269,25 @@ export const UserProvider = ({ children }) => {
       const breakdown = [];
       
       for (const event of events) {
-        const { modelId, amount } = event.args;
+        const { modelId, price } = event.args;
+        const listing = await marketplace.getListing(modelId).catch(() => null);
+        if (!listing || listing.seller.toLowerCase() !== walletAddress.toLowerCase()) {
+          continue;
+        }
         const block = await provider.getBlock(event.blockNumber);
         const txDate = new Date(block.timestamp * 1000);
         
-        total += amount;
+        total += price;
         
         if (txDate >= thisMonthStart) {
-          thisMonth += amount;
+          thisMonth += price;
         } else if (txDate >= lastMonthStart && txDate <= lastMonthEnd) {
-          lastMonth += amount;
+          lastMonth += price;
         }
         
         breakdown.push({
           modelId: modelId.toString(),
-          amount: ethers.formatEther(amount),
+          amount: ethers.formatEther(price),
           date: txDate.toISOString(),
           txHash: event.transactionHash,
         });
@@ -370,11 +366,11 @@ export const UserProvider = ({ children }) => {
 
   const loadActivity = useCallback(async (walletAddress) => {
     try {
-      const { modelRegistry, marketplace, provider } = await getContracts();
+      const { modelRegistry, marketplace, provider } = await getContractInstances();
       const activities = [];
       
-      // Get model minted events
-      const mintFilter = modelRegistry.filters.ModelMinted(null, walletAddress);
+      // Get model registered events
+      const mintFilter = modelRegistry.filters.ModelRegistered(null, walletAddress);
       const mintEvents = await modelRegistry.queryFilter(mintFilter);
       
       for (const event of mintEvents) {
@@ -393,7 +389,7 @@ export const UserProvider = ({ children }) => {
       }
       
       // Get purchase events (as buyer)
-      const buyFilter = marketplace.filters.AccessPurchased(null, walletAddress);
+      const buyFilter = marketplace.filters.ModelPurchased(null, walletAddress);
       const buyEvents = await marketplace.queryFilter(buyFilter);
       
       for (const event of buyEvents) {
@@ -412,18 +408,22 @@ export const UserProvider = ({ children }) => {
       }
       
       // Get sale events (as seller)
-      const sellFilter = marketplace.filters.TransactionCompleted(null, walletAddress);
+      const sellFilter = marketplace.filters.ModelPurchased();
       const sellEvents = await marketplace.queryFilter(sellFilter);
       
       for (const event of sellEvents) {
         const block = await provider.getBlock(event.blockNumber);
-        const { modelId, amount } = event.args;
+        const { modelId, price } = event.args;
+        const listing = await marketplace.getListing(modelId).catch(() => null);
+        if (!listing || listing.seller.toLowerCase() !== walletAddress.toLowerCase()) {
+          continue;
+        }
         
         activities.push({
           id: `sell-${event.transactionHash}`,
           type: 'sale',
           title: 'Model Sold',
-          description: `You earned ${ethers.formatEther(amount)} ETH from model #${modelId}`,
+          description: `You earned ${ethers.formatEther(price)} ETH from model #${modelId}`,
           icon: 'money',
           timestamp: new Date(block.timestamp * 1000).toISOString(),
           txHash: event.transactionHash,
@@ -450,10 +450,10 @@ export const UserProvider = ({ children }) => {
 
   const purchaseModel = async (modelId, price) => {
     try {
-      const { marketplace } = await getContracts();
+      const { marketplace } = await getContractInstances();
       
       // Call marketplace contract
-      const tx = await marketplace.buyAccess(modelId, {
+      const tx = await marketplace.purchaseModel(modelId, 0, {
         value: ethers.parseEther(price.toString()),
       });
       

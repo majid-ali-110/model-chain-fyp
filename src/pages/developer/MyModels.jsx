@@ -54,12 +54,46 @@ import Loading from '../../components/ui/Loading';
 import { useWallet } from '../../contexts/WalletContext';
 import { useAuth } from '../../contexts/AuthContext';
 import { useUser } from '../../contexts/UserContext';
+import { useModel } from '../../contexts/ModelContext';
+import { useNotification } from '../../contexts/NotificationContext';
+
+const normalizeModel = (model = {}, index = 0) => {
+  const safeStatus = typeof model.status === 'string' && model.status.trim()
+    ? model.status
+    : 'draft';
+
+  return {
+    ...model,
+    id: model.id ?? model.tokenId ?? `model-${index}`,
+    name: typeof model.name === 'string' && model.name.trim() ? model.name : 'Untitled Model',
+    description: typeof model.description === 'string' ? model.description : '',
+    category: typeof model.category === 'string' && model.category.trim() ? model.category : 'other',
+    status: safeStatus,
+    statusLabel: safeStatus.replace(/-/g, ' '),
+    tags: Array.isArray(model.tags) ? model.tags : [],
+    version: typeof model.version === 'string' && model.version.trim() ? model.version : '1.0.0',
+    framework: typeof model.framework === 'string' && model.framework.trim() ? model.framework : 'Unknown',
+    downloads: Number.isFinite(Number(model.downloads)) ? Number(model.downloads) : 0,
+    revenue: Number.isFinite(Number(model.revenue)) ? Number(model.revenue) : 0,
+    rating: Number.isFinite(Number(model.rating)) ? Number(model.rating) : 0,
+    reviews: Number.isFinite(Number(model.reviews)) ? Number(model.reviews) : 0,
+    price: model.price ?? '0',
+    createdAt: model.createdAt || new Date(0).toISOString(),
+    updatedAt: model.updatedAt || model.createdAt || new Date(0).toISOString(),
+    monthlyStats: {
+      growth: Number.isFinite(Number(model?.monthlyStats?.growth)) ? Number(model.monthlyStats.growth) : 0,
+      revenue: Number.isFinite(Number(model?.monthlyStats?.revenue)) ? Number(model.monthlyStats.revenue) : 0,
+    },
+  };
+};
 
 const MyModels = () => {
   const navigate = useNavigate();
   const { connected } = useWallet();
   const { isAuthenticated } = useAuth();
   const { userModels: contextUserModels, earnings } = useUser();
+  const { delistModel, listModelForSale } = useModel();
+  const { showSuccess, showError, showWarning } = useNotification();
   
   const [models, setModels] = useState([]);
   const [filteredModels, setFilteredModels] = useState([]);
@@ -102,7 +136,7 @@ const MyModels = () => {
       await new Promise(resolve => setTimeout(resolve, 300));
 
       // Use models from context (empty if none)
-      const userModels = contextUserModels || [];
+      const userModels = (contextUserModels || []).map((model, index) => normalizeModel(model, index));
       setModels(userModels);
       setFilteredModels(userModels);
       setIsLoading(false);
@@ -118,9 +152,9 @@ const MyModels = () => {
     // Apply search filter
     if (searchQuery) {
       filtered = filtered.filter(model =>
-        model.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        model.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        model.tags.some(tag => tag.toLowerCase().includes(searchQuery.toLowerCase()))
+        (model.name || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+        (model.description || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+        (model.tags || []).some(tag => tag.toLowerCase().includes(searchQuery.toLowerCase()))
       );
     }
 
@@ -161,7 +195,7 @@ const MyModels = () => {
           break;
         case 'updated':
           aValue = new Date(a.updatedAt);
-          bValue = b.updatedAt;
+          bValue = new Date(b.updatedAt);
           break;
         default:
           aValue = new Date(a.createdAt);
@@ -236,7 +270,10 @@ const MyModels = () => {
   };
 
   const formatDate = (dateString) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
+    const date = new Date(dateString);
+    if (Number.isNaN(date.getTime())) return 'N/A';
+
+    return date.toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'short',
       day: 'numeric'
@@ -253,13 +290,88 @@ const MyModels = () => {
   };
 
   // Actions
-  const handleModelAction = (action, modelId) => {
+  const handleModelAction = async (action, modelId) => {
     setActionMenuOpen(null);
-    // TODO: Implement action logic here
+    const model = models.find((m) => m.id === modelId);
+
+    if (!model) {
+      showError('Model not found.', { title: 'Action Failed' });
+      return;
+    }
+
+    try {
+      switch (action) {
+        case 'view':
+          navigate(`/marketplace/models/${modelId}`);
+          break;
+        case 'edit':
+          navigate(`/developer/upload?edit=${modelId}`);
+          break;
+        case 'analytics':
+          navigate(`/developer/analytics/${modelId}`);
+          break;
+        case 'share': {
+          const shareUrl = `${window.location.origin}/marketplace/models/${modelId}`;
+          await navigator.clipboard.writeText(shareUrl);
+          showSuccess('Model link copied to clipboard.', { title: 'Link Copied' });
+          break;
+        }
+        case 'pause': {
+          const result = await delistModel(modelId);
+          if (!result.success) throw new Error(result.error || 'Failed to pause sales');
+          showSuccess('Sales paused (listing removed).', { title: 'Model Updated' });
+          break;
+        }
+        case 'publish': {
+          const result = await listModelForSale(modelId, parseFloat(model.price || '0.001'), 300, 1000);
+          if (!result.success) throw new Error(result.error || 'Failed to publish model');
+          showSuccess('Model listed for sale.', { title: 'Model Published' });
+          break;
+        }
+        case 'delete': {
+          const result = await delistModel(modelId);
+          if (!result.success) throw new Error(result.error || 'Failed to delist model');
+          setModels((prev) => prev.filter((m) => m.id !== modelId));
+          showSuccess('Model removed from your dashboard listing.', { title: 'Model Removed' });
+          break;
+        }
+        default:
+          break;
+      }
+    } catch (error) {
+      showError(error.message || 'Action failed. Please try again.', { title: 'Action Failed' });
+    }
   };
 
-  const handleBulkAction = (action) => {
-    // TODO: Implement bulk action logic
+  const handleBulkAction = async (action) => {
+    if (selectedModels.length === 0) return;
+
+    if (action === 'archive') {
+      showWarning('Archive is currently a local-only marker and not yet on-chain.', { title: 'Not Fully Available' });
+      setSelectedModels([]);
+      return;
+    }
+
+    try {
+      if (action === 'publish') {
+        for (const id of selectedModels) {
+          const model = models.find((m) => m.id === id);
+          await listModelForSale(id, parseFloat(model?.price || '0.001'), 300, 1000);
+        }
+        showSuccess(`Published ${selectedModels.length} model(s).`, { title: 'Bulk Publish Complete' });
+      }
+
+      if (action === 'delete') {
+        for (const id of selectedModels) {
+          await delistModel(id);
+        }
+        setModels((prev) => prev.filter((m) => !selectedModels.includes(m.id)));
+        showSuccess(`Removed ${selectedModels.length} model(s).`, { title: 'Bulk Delete Complete' });
+      }
+    } catch (error) {
+      showError(error.message || 'Bulk action failed.', { title: 'Bulk Action Failed' });
+    }
+
     setSelectedModels([]);
   };
 
@@ -285,7 +397,7 @@ const MyModels = () => {
       <Card className="p-6">
         <div className="flex items-center justify-between">
           <div>
-            <p className="text-sm text-gray-400">Total Models</p>
+            <p className="text-sm text-dark-text-muted">Total Models</p>
             <p className="text-2xl font-bold text-white">{stats.totalModels}</p>
           </div>
           <div className="h-12 w-12 bg-blue-500/20 rounded-lg flex items-center justify-center">
@@ -295,14 +407,14 @@ const MyModels = () => {
         <div className="flex items-center mt-4">
           <ArrowTrendingUpIcon className="h-4 w-4 text-green-400 mr-1" />
           <span className="text-sm text-green-400">+{stats.monthlyGrowth.models}%</span>
-          <span className="text-sm text-gray-400 ml-1">vs last month</span>
+          <span className="text-sm text-dark-text-muted ml-1">vs last month</span>
         </div>
       </Card>
 
       <Card className="p-6">
         <div className="flex items-center justify-between">
           <div>
-            <p className="text-sm text-gray-400">Total Downloads</p>
+            <p className="text-sm text-dark-text-muted">Total Downloads</p>
             <p className="text-2xl font-bold text-white">{formatNumber(stats.totalDownloads)}</p>
           </div>
           <div className="h-12 w-12 bg-green-500/20 rounded-lg flex items-center justify-center">
@@ -312,14 +424,14 @@ const MyModels = () => {
         <div className="flex items-center mt-4">
           <ArrowTrendingUpIcon className="h-4 w-4 text-green-400 mr-1" />
           <span className="text-sm text-green-400">+{stats.monthlyGrowth.downloads}%</span>
-          <span className="text-sm text-gray-400 ml-1">vs last month</span>
+          <span className="text-sm text-dark-text-muted ml-1">vs last month</span>
         </div>
       </Card>
 
       <Card className="p-6">
         <div className="flex items-center justify-between">
           <div>
-            <p className="text-sm text-gray-400">Total Revenue</p>
+            <p className="text-sm text-dark-text-muted">Total Revenue</p>
             <p className="text-2xl font-bold text-white">{formatCurrency(stats.totalRevenue)}</p>
           </div>
           <div className="h-12 w-12 bg-yellow-500/20 rounded-lg flex items-center justify-center">
@@ -329,14 +441,14 @@ const MyModels = () => {
         <div className="flex items-center mt-4">
           <ArrowTrendingUpIcon className="h-4 w-4 text-green-400 mr-1" />
           <span className="text-sm text-green-400">+{stats.monthlyGrowth.revenue}%</span>
-          <span className="text-sm text-gray-400 ml-1">vs last month</span>
+          <span className="text-sm text-dark-text-muted ml-1">vs last month</span>
         </div>
       </Card>
 
       <Card className="p-6">
         <div className="flex items-center justify-between">
           <div>
-            <p className="text-sm text-gray-400">Avg Rating</p>
+            <p className="text-sm text-dark-text-muted">Avg Rating</p>
             <p className="text-2xl font-bold text-white">{stats.avgRating}</p>
           </div>
           <div className="h-12 w-12 bg-purple-500/20 rounded-lg flex items-center justify-center">
@@ -346,7 +458,7 @@ const MyModels = () => {
         <div className="flex items-center mt-4">
           <ArrowTrendingUpIcon className="h-4 w-4 text-green-400 mr-1" />
           <span className="text-sm text-green-400">+{stats.monthlyGrowth.rating}%</span>
-          <span className="text-sm text-gray-400 ml-1">vs last month</span>
+          <span className="text-sm text-dark-text-muted ml-1">vs last month</span>
         </div>
       </Card>
     </div>
@@ -357,11 +469,11 @@ const MyModels = () => {
     <Card className={clsx('mb-6 transition-all duration-200', showFilters ? 'p-6' : 'p-0 h-0 overflow-hidden')}>
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <div>
-          <label className="block text-sm font-medium text-gray-300 mb-2">Category</label>
+          <label className="block text-sm font-medium text-dark-text-secondary mb-2">Category</label>
           <select
             value={selectedCategory}
             onChange={(e) => setSelectedCategory(e.target.value)}
-            className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full bg-dark-surface border border-dark-border rounded-lg px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
           >
             {categories.map((category) => (
               <option key={category.value} value={category.value}>
@@ -372,11 +484,11 @@ const MyModels = () => {
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-300 mb-2">Status</label>
+          <label className="block text-sm font-medium text-dark-text-secondary mb-2">Status</label>
           <select
             value={selectedStatus}
             onChange={(e) => setSelectedStatus(e.target.value)}
-            className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full bg-dark-surface border border-dark-border rounded-lg px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
           >
             {statuses.map((status) => (
               <option key={status.value} value={status.value}>
@@ -387,12 +499,12 @@ const MyModels = () => {
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-300 mb-2">Sort By</label>
+          <label className="block text-sm font-medium text-dark-text-secondary mb-2">Sort By</label>
           <div className="flex gap-2">
             <select
               value={sortBy}
               onChange={(e) => setSortBy(e.target.value)}
-              className="flex-1 bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="flex-1 bg-dark-surface border border-dark-border rounded-lg px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
               {sortOptions.map((option) => (
                 <option key={option.value} value={option.value}>
@@ -402,7 +514,7 @@ const MyModels = () => {
             </select>
             <button
               onClick={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')}
-              className="px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-gray-300 hover:text-white transition-colors"
+              className="px-3 py-2 bg-dark-surface border border-dark-border rounded-lg text-dark-text-secondary hover:text-white transition-colors"
             >
               {sortOrder === 'asc' ? <ArrowUpIcon className="h-4 w-4" /> : <ArrowDownIcon className="h-4 w-4" />}
             </button>
@@ -417,47 +529,47 @@ const MyModels = () => {
     <Card className="overflow-hidden">
       <div className="overflow-x-auto">
         <table className="w-full">
-          <thead className="bg-gray-800/50">
+          <thead className="bg-dark-surface-elevated">
             <tr>
               <th className="px-6 py-3 text-left">
                 <input
                   type="checkbox"
                   checked={selectedModels.length === filteredModels.length && filteredModels.length > 0}
                   onChange={() => selectedModels.length === filteredModels.length ? clearSelection() : selectAllModels()}
-                  className="rounded border-gray-600 bg-gray-700 text-blue-600 focus:ring-blue-500"
+                  className="rounded border-dark-border-light bg-dark-border text-blue-600 focus:ring-blue-500"
                 />
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
+              <th className="px-6 py-3 text-left text-xs font-medium text-dark-text-muted uppercase tracking-wider">
                 Model
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
+              <th className="px-6 py-3 text-left text-xs font-medium text-dark-text-muted uppercase tracking-wider">
                 Status
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
+              <th className="px-6 py-3 text-left text-xs font-medium text-dark-text-muted uppercase tracking-wider">
                 Downloads
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
+              <th className="px-6 py-3 text-left text-xs font-medium text-dark-text-muted uppercase tracking-wider">
                 Revenue
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
+              <th className="px-6 py-3 text-left text-xs font-medium text-dark-text-muted uppercase tracking-wider">
                 Rating
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
+              <th className="px-6 py-3 text-left text-xs font-medium text-dark-text-muted uppercase tracking-wider">
                 Updated
               </th>
-              <th className="px-6 py-3 text-right text-xs font-medium text-gray-400 uppercase tracking-wider">
+              <th className="px-6 py-3 text-right text-xs font-medium text-dark-text-muted uppercase tracking-wider">
                 Actions
               </th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-gray-700">
+          <tbody className="divide-y divide-dark-border">
             {filteredModels.map((model) => {
               const CategoryIcon = getCategoryIcon(model.category);
               return (
                 <tr
                   key={model.id}
                   className={clsx(
-                    'hover:bg-gray-800/50 transition-colors',
+                    'hover:bg-dark-surface-elevated transition-colors',
                     selectedModels.includes(model.id) && 'bg-blue-500/10'
                   )}
                 >
@@ -466,50 +578,50 @@ const MyModels = () => {
                       type="checkbox"
                       checked={selectedModels.includes(model.id)}
                       onChange={() => toggleModelSelection(model.id)}
-                      className="rounded border-gray-600 bg-gray-700 text-blue-600 focus:ring-blue-500"
+                      className="rounded border-dark-border-light bg-dark-border text-blue-600 focus:ring-blue-500"
                     />
                   </td>
                   <td className="px-6 py-4">
                     <div className="flex items-center">
                       <div className="h-10 w-10 flex-shrink-0">
-                        <div className="h-10 w-10 bg-gray-700 rounded-lg flex items-center justify-center">
-                          <CategoryIcon className="h-5 w-5 text-gray-400" />
+                        <div className="h-10 w-10 bg-dark-border rounded-lg flex items-center justify-center">
+                          <CategoryIcon className="h-5 w-5 text-dark-text-muted" />
                         </div>
                       </div>
                       <div className="ml-4">
                         <Link
-                          to={`/marketplace/model/${model.id}`}
+                          to={`/marketplace/models/${model.id}`}
                           className="text-sm font-medium text-white hover:text-blue-400 transition-colors"
                         >
                           {model.name}
                         </Link>
-                        <p className="text-sm text-gray-400 truncate max-w-xs">
+                        <p className="text-sm text-dark-text-muted truncate max-w-xs">
                           {model.description}
                         </p>
                         <div className="flex items-center mt-1">
                           <Badge variant="outline" size="sm" className="mr-2">
                             v{model.version}
                           </Badge>
-                          <span className="text-xs text-gray-500">{model.framework}</span>
+                          <span className="text-xs text-dark-text-muted">{model.framework}</span>
                         </div>
                       </div>
                     </div>
                   </td>
                   <td className="px-6 py-4">
                     <Badge variant={getStatusColor(model.status)}>
-                      {model.status.replace('-', ' ')}
+                      {model.statusLabel}
                     </Badge>
                   </td>
                   <td className="px-6 py-4">
                     <div className="text-sm text-white">{formatNumber(model.downloads)}</div>
-                    <div className="text-xs text-gray-400">
-                      {model.monthlyStats.growth > 0 ? '+' : ''}{model.monthlyStats.growth}% this month
+                    <div className="text-xs text-dark-text-muted">
+                      {model.monthlyStats?.growth > 0 ? '+' : ''}{model.monthlyStats?.growth || 0}% this month
                     </div>
                   </td>
                   <td className="px-6 py-4">
-                    <div className="text-sm text-white">{formatCurrency(model.revenue)}</div>
-                    <div className="text-xs text-gray-400">
-                      {formatCurrency(model.monthlyStats.revenue)} this month
+                    <div className="text-sm text-white">{formatCurrency(model.revenue || 0)}</div>
+                    <div className="text-xs text-dark-text-muted">
+                      {formatCurrency(model.monthlyStats?.revenue || 0)} this month
                     </div>
                   </td>
                   <td className="px-6 py-4">
@@ -517,58 +629,58 @@ const MyModels = () => {
                       <StarSolidIcon className="h-4 w-4 text-yellow-400 mr-1" />
                       <span className="text-sm text-white">{model.rating || 'N/A'}</span>
                       {model.reviews > 0 && (
-                        <span className="text-xs text-gray-400 ml-1">({model.reviews})</span>
+                        <span className="text-xs text-dark-text-muted ml-1">({model.reviews})</span>
                       )}
                     </div>
                   </td>
-                  <td className="px-6 py-4 text-sm text-gray-400">
+                  <td className="px-6 py-4 text-sm text-dark-text-muted">
                     {formatDate(model.updatedAt)}
                   </td>
                   <td className="px-6 py-4 text-right">
                     <div className="relative">
                       <button
                         onClick={() => setActionMenuOpen(actionMenuOpen === model.id ? null : model.id)}
-                        className="text-gray-400 hover:text-white transition-colors"
+                        className="text-dark-text-muted hover:text-white transition-colors"
                       >
                         <EllipsisHorizontalIcon className="h-5 w-5" />
                       </button>
                       
                       {actionMenuOpen === model.id && (
-                        <div className="absolute right-0 mt-2 w-48 bg-gray-800 rounded-lg shadow-xl border border-gray-700 z-10">
+                        <div className="absolute right-0 mt-2 w-48 bg-dark-surface rounded-lg shadow-xl border border-dark-border z-10">
                           <div className="py-1">
                             <button
                               onClick={() => handleModelAction('view', model.id)}
-                              className="w-full text-left px-4 py-2 text-sm text-gray-300 hover:bg-gray-700 hover:text-white flex items-center"
+                              className="w-full text-left px-4 py-2 text-sm text-dark-text-secondary hover:bg-dark-border hover:text-white flex items-center"
                             >
                               <EyeIcon className="h-4 w-4 mr-2" />
                               View Details
                             </button>
                             <button
                               onClick={() => handleModelAction('edit', model.id)}
-                              className="w-full text-left px-4 py-2 text-sm text-gray-300 hover:bg-gray-700 hover:text-white flex items-center"
+                              className="w-full text-left px-4 py-2 text-sm text-dark-text-secondary hover:bg-dark-border hover:text-white flex items-center"
                             >
                               <PencilIcon className="h-4 w-4 mr-2" />
                               Edit Model
                             </button>
                             <button
                               onClick={() => handleModelAction('analytics', model.id)}
-                              className="w-full text-left px-4 py-2 text-sm text-gray-300 hover:bg-gray-700 hover:text-white flex items-center"
+                              className="w-full text-left px-4 py-2 text-sm text-dark-text-secondary hover:bg-dark-border hover:text-white flex items-center"
                             >
                               <ChartBarIcon className="h-4 w-4 mr-2" />
                               Analytics
                             </button>
                             <button
                               onClick={() => handleModelAction('share', model.id)}
-                              className="w-full text-left px-4 py-2 text-sm text-gray-300 hover:bg-gray-700 hover:text-white flex items-center"
+                              className="w-full text-left px-4 py-2 text-sm text-dark-text-secondary hover:bg-dark-border hover:text-white flex items-center"
                             >
                               <ShareIcon className="h-4 w-4 mr-2" />
                               Share
                             </button>
-                            <div className="border-t border-gray-700 my-1"></div>
+                            <div className="border-t border-dark-border my-1"></div>
                             {model.status === 'published' && (
                               <button
                                 onClick={() => handleModelAction('pause', model.id)}
-                                className="w-full text-left px-4 py-2 text-sm text-yellow-400 hover:bg-gray-700 flex items-center"
+                                className="w-full text-left px-4 py-2 text-sm text-yellow-400 hover:bg-dark-border flex items-center"
                               >
                                 <PauseIcon className="h-4 w-4 mr-2" />
                                 Pause Sales
@@ -577,7 +689,7 @@ const MyModels = () => {
                             {model.status === 'draft' && (
                               <button
                                 onClick={() => handleModelAction('publish', model.id)}
-                                className="w-full text-left px-4 py-2 text-sm text-green-400 hover:bg-gray-700 flex items-center"
+                                className="w-full text-left px-4 py-2 text-sm text-green-400 hover:bg-dark-border flex items-center"
                               >
                                 <PlayIcon className="h-4 w-4 mr-2" />
                                 Publish
@@ -585,7 +697,7 @@ const MyModels = () => {
                             )}
                             <button
                               onClick={() => handleModelAction('delete', model.id)}
-                              className="w-full text-left px-4 py-2 text-sm text-red-400 hover:bg-gray-700 hover:text-red-300 flex items-center"
+                              className="w-full text-left px-4 py-2 text-sm text-red-400 hover:bg-dark-border hover:text-red-300 flex items-center"
                             >
                               <TrashIcon className="h-4 w-4 mr-2" />
                               Delete
@@ -613,39 +725,39 @@ const MyModels = () => {
           <Card key={model.id} className="p-6 hover:border-blue-500/30 transition-colors">
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center">
-                <div className="h-12 w-12 bg-gray-700 rounded-lg flex items-center justify-center mr-3">
-                  <CategoryIcon className="h-6 w-6 text-gray-400" />
+                <div className="h-12 w-12 bg-dark-border rounded-lg flex items-center justify-center mr-3">
+                  <CategoryIcon className="h-6 w-6 text-dark-text-muted" />
                 </div>
                 <div>
                   <input
                     type="checkbox"
                     checked={selectedModels.includes(model.id)}
                     onChange={() => toggleModelSelection(model.id)}
-                    className="rounded border-gray-600 bg-gray-700 text-blue-600 focus:ring-blue-500"
+                    className="rounded border-dark-border-light bg-dark-border text-blue-600 focus:ring-blue-500"
                   />
                 </div>
               </div>
               <div className="relative">
                 <button
                   onClick={() => setActionMenuOpen(actionMenuOpen === model.id ? null : model.id)}
-                  className="text-gray-400 hover:text-white transition-colors"
+                  className="text-dark-text-muted hover:text-white transition-colors"
                 >
                   <EllipsisHorizontalIcon className="h-5 w-5" />
                 </button>
                 
                 {actionMenuOpen === model.id && (
-                  <div className="absolute right-0 mt-2 w-48 bg-gray-800 rounded-lg shadow-xl border border-gray-700 z-10">
+                  <div className="absolute right-0 mt-2 w-48 bg-dark-surface rounded-lg shadow-xl border border-dark-border z-10">
                     <div className="py-1">
                       <button
                         onClick={() => handleModelAction('view', model.id)}
-                        className="w-full text-left px-4 py-2 text-sm text-gray-300 hover:bg-gray-700 hover:text-white flex items-center"
+                        className="w-full text-left px-4 py-2 text-sm text-dark-text-secondary hover:bg-dark-border hover:text-white flex items-center"
                       >
                         <EyeIcon className="h-4 w-4 mr-2" />
                         View Details
                       </button>
                       <button
                         onClick={() => handleModelAction('edit', model.id)}
-                        className="w-full text-left px-4 py-2 text-sm text-gray-300 hover:bg-gray-700 hover:text-white flex items-center"
+                        className="w-full text-left px-4 py-2 text-sm text-dark-text-secondary hover:bg-dark-border hover:text-white flex items-center"
                       >
                         <PencilIcon className="h-4 w-4 mr-2" />
                         Edit Model
@@ -658,19 +770,19 @@ const MyModels = () => {
 
             <div className="mb-4">
               <Link
-                to={`/marketplace/model/${model.id}`}
+                to={`/marketplace/models/${model.id}`}
                 className="text-lg font-semibold text-white hover:text-blue-400 transition-colors"
               >
                 {model.name}
               </Link>
-              <p className="text-gray-400 text-sm mt-1 line-clamp-2">
+              <p className="text-dark-text-muted text-sm mt-1 line-clamp-2">
                 {model.description}
               </p>
             </div>
 
             <div className="flex items-center justify-between mb-4">
               <Badge variant={getStatusColor(model.status)}>
-                {model.status.replace('-', ' ')}
+                {model.statusLabel}
               </Badge>
               <Badge variant="outline" size="sm">
                 v{model.version}
@@ -679,36 +791,36 @@ const MyModels = () => {
 
             <div className="grid grid-cols-2 gap-4 mb-4">
               <div>
-                <p className="text-xs text-gray-400">Downloads</p>
+                <p className="text-xs text-dark-text-muted">Downloads</p>
                 <p className="text-sm font-medium text-white">{formatNumber(model.downloads)}</p>
               </div>
               <div>
-                <p className="text-xs text-gray-400">Revenue</p>
+                <p className="text-xs text-dark-text-muted">Revenue</p>
                 <p className="text-sm font-medium text-white">{formatCurrency(model.revenue)}</p>
               </div>
               <div>
-                <p className="text-xs text-gray-400">Rating</p>
+                <p className="text-xs text-dark-text-muted">Rating</p>
                 <div className="flex items-center">
                   <StarSolidIcon className="h-3 w-3 text-yellow-400 mr-1" />
                   <p className="text-sm font-medium text-white">{model.rating || 'N/A'}</p>
                 </div>
               </div>
               <div>
-                <p className="text-xs text-gray-400">Updated</p>
+                <p className="text-xs text-dark-text-muted">Updated</p>
                 <p className="text-sm font-medium text-white">{formatDate(model.updatedAt)}</p>
               </div>
             </div>
 
             <div className="flex items-center justify-between">
               <div className="flex flex-wrap gap-1">
-                {model.tags.slice(0, 2).map((tag) => (
+                {(model.tags || []).slice(0, 2).map((tag) => (
                   <Badge key={tag} variant="secondary" size="sm">
                     {tag}
                   </Badge>
                 ))}
-                {model.tags.length > 2 && (
+                {(model.tags || []).length > 2 && (
                   <Badge variant="secondary" size="sm">
-                    +{model.tags.length - 2}
+                    +{(model.tags || []).length - 2}
                   </Badge>
                 )}
               </div>
@@ -716,13 +828,13 @@ const MyModels = () => {
               <div className="flex items-center space-x-2">
                 <button
                   onClick={() => handleModelAction('view', model.id)}
-                  className="text-gray-400 hover:text-white transition-colors"
+                  className="text-dark-text-muted hover:text-white transition-colors"
                 >
                   <EyeIcon className="h-4 w-4" />
                 </button>
                 <button
                   onClick={() => handleModelAction('edit', model.id)}
-                  className="text-gray-400 hover:text-white transition-colors"
+                  className="text-dark-text-muted hover:text-white transition-colors"
                 >
                   <PencilIcon className="h-4 w-4" />
                 </button>
@@ -748,7 +860,7 @@ const MyModels = () => {
       <div className="flex items-center justify-between mb-8">
         <div>
           <h1 className="text-3xl font-bold text-white mb-2">My Models</h1>
-          <p className="text-gray-400">Manage your published AI models and track performance</p>
+          <p className="text-dark-text-muted">Manage your published AI models and track performance</p>
         </div>
         <Link to="/developer/upload">
           <Button>
@@ -765,13 +877,13 @@ const MyModels = () => {
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center space-x-4">
             <div className="relative">
-              <MagnifyingGlassIcon className="h-5 w-5 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+              <MagnifyingGlassIcon className="h-5 w-5 absolute left-3 top-1/2 transform -translate-y-1/2 text-dark-text-muted" />
               <input
                 type="text"
                 placeholder="Search models..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10 pr-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 w-64"
+                className="pl-10 pr-4 py-2 bg-dark-surface border border-dark-border rounded-lg text-white placeholder-dark-text-muted focus:outline-none focus:ring-2 focus:ring-blue-500 w-64"
               />
             </div>
             
@@ -789,7 +901,7 @@ const MyModels = () => {
             {/* Bulk Actions */}
             {selectedModels.length > 0 && (
               <div className="flex items-center space-x-2 mr-4">
-                <span className="text-sm text-gray-400">{selectedModels.length} selected</span>
+                <span className="text-sm text-dark-text-muted">{selectedModels.length} selected</span>
                 <Button variant="outline" size="sm" onClick={() => handleBulkAction('publish')}>
                   Publish
                 </Button>
@@ -803,12 +915,12 @@ const MyModels = () => {
             )}
 
             {/* View Mode Toggle */}
-            <div className="flex bg-gray-800 rounded-lg p-1">
+            <div className="flex bg-dark-surface rounded-lg p-1">
               <button
                 onClick={() => setViewMode('table')}
                 className={clsx(
                   'p-2 rounded transition-colors',
-                  viewMode === 'table' ? 'bg-blue-600 text-white' : 'text-gray-400 hover:text-white'
+                  viewMode === 'table' ? 'bg-blue-600 text-white' : 'text-dark-text-muted hover:text-white'
                 )}
               >
                 <Bars3Icon className="h-4 w-4" />
@@ -817,7 +929,7 @@ const MyModels = () => {
                 onClick={() => setViewMode('grid')}
                 className={clsx(
                   'p-2 rounded transition-colors',
-                  viewMode === 'grid' ? 'bg-blue-600 text-white' : 'text-gray-400 hover:text-white'
+                  viewMode === 'grid' ? 'bg-blue-600 text-white' : 'text-dark-text-muted hover:text-white'
                 )}
               >
                 <Squares2X2Icon className="h-4 w-4" />
@@ -831,7 +943,7 @@ const MyModels = () => {
 
         {/* Results Summary */}
         <div className="flex items-center justify-between mb-6">
-          <p className="text-gray-400">
+          <p className="text-dark-text-muted">
             Showing {filteredModels.length} of {models.length} models
           </p>
         </div>
@@ -839,9 +951,9 @@ const MyModels = () => {
         {/* Content */}
         {filteredModels.length === 0 ? (
           <Card className="p-12 text-center">
-            <CpuChipIcon className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+            <CpuChipIcon className="h-12 w-12 text-dark-text-muted mx-auto mb-4" />
             <h3 className="text-lg font-medium text-white mb-2">No models found</h3>
-            <p className="text-gray-400 mb-6">
+            <p className="text-dark-text-muted mb-6">
               {models.length === 0 
                 ? "You haven't uploaded any models yet. Get started by uploading your first model."
                 : "No models match your current filters. Try adjusting your search criteria."

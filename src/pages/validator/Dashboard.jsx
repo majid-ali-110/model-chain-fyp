@@ -1,9 +1,11 @@
-import React, { useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import Card from '../../components/ui/Card';
 import Badge from '../../components/ui/Badge';
 import Button from '../../components/ui/Button';
 import Progress from '../../components/ui/Progress';
 import { useWallet } from '../../contexts/WalletContext';
+import { useModel } from '../../contexts/ModelContext';
 import {
   CheckCircleIcon,
   ClockIcon,
@@ -14,8 +16,10 @@ import {
 } from '@heroicons/react/24/outline';
 
 const Dashboard = () => {
+  const navigate = useNavigate();
   const [filter, setFilter] = useState('all');
   const { chainId } = useWallet();
+  const { models, loading, loadModels } = useModel();
 
   // Get network currency based on chainId
   const getNetworkCurrency = (chainId) => {
@@ -25,18 +29,59 @@ const Dashboard = () => {
 
   const currency = getNetworkCurrency(chainId);
 
-  // Stats - would come from blockchain in production
+  const validationRecords = useMemo(() => {
+    try {
+      return JSON.parse(localStorage.getItem('validator_validation_records') || '[]');
+    } catch {
+      return [];
+    }
+  }, [models]);
+
+  const pendingModels = useMemo(() => {
+    const pending = (models || []).filter((m) => m.status === 'pending');
+    return pending.map((m) => ({
+      id: m.id,
+      name: m.name,
+      developer: m.owner ? `${m.owner.slice(0, 6)}...${m.owner.slice(-4)}` : 'Unknown',
+      priority: (m.downloads || 0) > 100 ? 'high' : (m.downloads || 0) > 20 ? 'medium' : 'low',
+      category: m.category,
+      submittedAt: m.updatedAt || m.createdAt,
+    }));
+  }, [models]);
+
+  const filteredPendingModels = useMemo(() => {
+    if (filter !== 'urgent') return pendingModels;
+    return pendingModels.filter((m) => m.priority === 'high');
+  }, [pendingModels, filter]);
+
+  const recentValidations = useMemo(() => {
+    return [...validationRecords]
+      .sort((a, b) => new Date(b.completedAt) - new Date(a.completedAt))
+      .slice(0, 8)
+      .map((v) => ({
+        id: v.id,
+        name: v.modelName,
+        status: v.decision === 'approve' ? 'approved' : 'rejected',
+        completedAt: v.completedAt,
+        earnings: `0 ${currency}`,
+      }));
+  }, [validationRecords, currency]);
+
+  useEffect(() => {
+    loadModels();
+  }, [loadModels]);
+
   const stats = [
     {
       title: 'Models Validated',
-      value: '0',
+      value: validationRecords.length.toString(),
       change: '--',
       icon: CheckCircleIcon,
       color: 'green'
     },
     {
       title: 'Pending Reviews',
-      value: '0',
+      value: pendingModels.length.toString(),
       change: '--',
       icon: ClockIcon,
       color: 'yellow'
@@ -50,21 +95,13 @@ const Dashboard = () => {
     },
     {
       title: 'Accuracy Score',
-      value: '--',
+      value: validationRecords.length > 0
+        ? `${Math.round((validationRecords.filter((v) => v.decision === 'approve').length / validationRecords.length) * 100)}%`
+        : '--',
       change: '--',
       icon: ChartBarIcon,
       color: 'purple'
     }
-  ];
-
-  // Pending models - would come from ModelRegistry contract
-  const pendingModels = [
-    // Empty - will be populated from blockchain
-  ];
-
-  // Recent validations - would come from blockchain events
-  const recentValidations = [
-    // Empty - will be populated from blockchain
   ];
 
   const getPriorityColor = (priority) => {
@@ -88,28 +125,38 @@ const Dashboard = () => {
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-3">
-        <ShieldCheckIcon className="h-8 w-8 text-primary-600" />
+        <ShieldCheckIcon className="h-8 w-8 text-primary-400" />
         <div>
-          <h1 className="text-2xl font-bold text-secondary-900">Validator Dashboard</h1>
-          <p className="text-secondary-600">Review and validate AI models for the marketplace</p>
+          <h1 className="text-2xl font-bold text-dark-text-primary">Validator Dashboard</h1>
+          <p className="text-dark-text-tertiary">Review and validate AI models for the marketplace</p>
         </div>
       </div>
+
+      <Card>
+        <Card.Content className="py-3">
+          <p className="text-sm text-dark-text-tertiary">
+            Queue/review actions are functional. Weekly goals, category distribution, and performance percentages below are sample placeholders.
+          </p>
+        </Card.Content>
+      </Card>
 
       {/* Stats Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {stats.map((stat, index) => {
           const IconComponent = stat.icon;
+          const iconBgMap = { green: 'bg-green-500/10', yellow: 'bg-yellow-500/10', blue: 'bg-blue-500/10', purple: 'bg-purple-500/10' };
+          const iconTextMap = { green: 'text-green-400', yellow: 'text-yellow-400', blue: 'text-blue-400', purple: 'text-purple-400' };
           return (
             <Card key={index}>
               <Card.Content className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm font-medium text-secondary-600">{stat.title}</p>
-                    <p className="text-2xl font-bold text-secondary-900">{stat.value}</p>
-                    <p className="text-sm text-secondary-500">{stat.change}</p>
+                    <p className="text-sm font-medium text-dark-text-tertiary">{stat.title}</p>
+                    <p className="text-2xl font-bold text-dark-text-primary">{stat.value}</p>
+                    <p className="text-sm text-dark-text-muted">{stat.change}</p>
                   </div>
-                  <div className={`p-3 rounded-lg bg-${stat.color}-50`}>
-                    <IconComponent className={`h-6 w-6 text-${stat.color}-600`} />
+                  <div className={`p-3 rounded-lg ${iconBgMap[stat.color] || 'bg-primary-500/10'}`}>
+                    <IconComponent className={`h-6 w-6 ${iconTextMap[stat.color] || 'text-primary-400'}`} />
                   </div>
                 </div>
               </Card.Content>
@@ -144,12 +191,18 @@ const Dashboard = () => {
           </Card.Header>
           <Card.Content>
             <div className="space-y-4">
-              {pendingModels.map(model => (
-                <div key={model.id} className="border border-secondary-200 rounded-lg p-4">
+              {loading && (
+                <p className="text-dark-text-tertiary">Loading queue...</p>
+              )}
+              {!loading && filteredPendingModels.length === 0 && (
+                <p className="text-dark-text-tertiary">No pending models in queue.</p>
+              )}
+              {filteredPendingModels.map(model => (
+                <div key={model.id} className="border border-dark-border rounded-lg p-4">
                   <div className="flex items-start justify-between mb-3">
                     <div>
-                      <h4 className="font-medium text-secondary-900">{model.name}</h4>
-                      <p className="text-sm text-secondary-600">by {model.developer}</p>
+                      <h4 className="font-medium text-dark-text-primary">{model.name}</h4>
+                      <p className="text-sm text-dark-text-tertiary">by {model.developer}</p>
                     </div>
                     <div className="flex gap-2">
                       <Badge variant={getPriorityColor(model.priority)} size="sm">
@@ -162,10 +215,10 @@ const Dashboard = () => {
                   </div>
                   
                   <div className="flex items-center justify-between">
-                    <div className="text-sm text-secondary-600">
+                    <div className="text-sm text-dark-text-tertiary">
                       Submitted: {new Date(model.submittedAt).toLocaleDateString()}
                     </div>
-                    <Button size="sm">
+                    <Button size="sm" onClick={() => navigate(`/validator/review/${model.id}`)}>
                       Review
                     </Button>
                   </div>
@@ -182,8 +235,11 @@ const Dashboard = () => {
           </Card.Header>
           <Card.Content>
             <div className="space-y-4">
+              {recentValidations.length === 0 && (
+                <p className="text-dark-text-tertiary">No completed validations yet.</p>
+              )}
               {recentValidations.map(validation => (
-                <div key={validation.id} className="flex items-center justify-between py-3 border-b border-secondary-100 last:border-0">
+                <div key={validation.id} className="flex items-center justify-between py-3 border-b border-dark-border last:border-0">
                   <div className="flex items-center gap-3">
                     {validation.status === 'approved' ? (
                       <CheckCircleIcon className="h-5 w-5 text-green-500" />
@@ -191,8 +247,8 @@ const Dashboard = () => {
                       <XCircleIcon className="h-5 w-5 text-red-500" />
                     )}
                     <div>
-                      <p className="font-medium text-secondary-900">{validation.name}</p>
-                      <p className="text-sm text-secondary-600">
+                      <p className="font-medium text-dark-text-primary">{validation.name}</p>
+                      <p className="text-sm text-dark-text-tertiary">
                         {new Date(validation.completedAt).toLocaleDateString()}
                       </p>
                     </div>
@@ -201,7 +257,7 @@ const Dashboard = () => {
                     <Badge variant={getStatusColor(validation.status)} size="sm">
                       {validation.status}
                     </Badge>
-                    <p className="text-sm font-medium text-primary-600 mt-1">
+                    <p className="text-sm font-medium text-primary-400 mt-1">
                       {validation.earnings}
                     </p>
                   </div>
@@ -220,7 +276,7 @@ const Dashboard = () => {
         <Card.Content>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div>
-              <h4 className="font-medium text-secondary-900 mb-4">Weekly Goals</h4>
+              <h4 className="font-medium text-dark-text-primary mb-4">Weekly Goals</h4>
               <div className="space-y-3">
                 <div>
                   <div className="flex justify-between text-sm mb-1">
@@ -240,7 +296,7 @@ const Dashboard = () => {
             </div>
             
             <div>
-              <h4 className="font-medium text-secondary-900 mb-4">Category Distribution</h4>
+              <h4 className="font-medium text-dark-text-primary mb-4">Category Distribution</h4>
               <div className="space-y-3">
                 <div>
                   <div className="flex justify-between text-sm mb-1">
@@ -267,7 +323,7 @@ const Dashboard = () => {
             </div>
             
             <div>
-              <h4 className="font-medium text-secondary-900 mb-4">Performance Metrics</h4>
+              <h4 className="font-medium text-dark-text-primary mb-4">Performance Metrics</h4>
               <div className="space-y-3">
                 <div>
                   <div className="flex justify-between text-sm mb-1">
