@@ -81,7 +81,8 @@
   --color-info: #3b82f6;
 }
 
-html, body {
+html,
+body {
   height: 100%;
   margin: 0;
   padding: 0;
@@ -126,7 +127,9 @@ main {
   }
 
   body {
-    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Open Sans', 'Helvetica Neue', sans-serif;
+    font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI",
+      "Roboto", "Oxygen", "Ubuntu", "Cantarell", "Open Sans", "Helvetica Neue",
+      sans-serif;
     background-color: var(--color-dark-bg-primary);
     color: var(--color-dark-text-primary);
     line-height: 1.6;
@@ -134,41 +137,66 @@ main {
     overflow-x: hidden;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
-    background-image: 
-      radial-gradient(circle at 20% 80%, rgba(59, 130, 246, 0.05) 0%, transparent 50%),
-      radial-gradient(circle at 80% 20%, rgba(168, 85, 247, 0.05) 0%, transparent 50%),
-      radial-gradient(circle at 40% 40%, rgba(16, 185, 129, 0.03) 0%, transparent 50%);
+    background-image: radial-gradient(
+        circle at 20% 80%,
+        rgba(59, 130, 246, 0.05) 0%,
+        transparent 50%
+      ),
+      radial-gradient(
+        circle at 80% 20%,
+        rgba(168, 85, 247, 0.05) 0%,
+        transparent 50%
+      ),
+      radial-gradient(
+        circle at 40% 40%,
+        rgba(16, 185, 129, 0.03) 0%,
+        transparent 50%
+      );
   }
 
-  /* Typography Hierarchy */
-  h1, h2, h3, h4, h5, h6 {
+  /* Typography Hierarchy — fluid, responsive sizing via clamp() so
+     headings never overflow on small screens nor look tiny on large ones. */
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
     color: var(--color-dark-text-primary);
     font-weight: 600;
-    line-height: 1.3;
+    line-height: 1.25;
     letter-spacing: -0.025em;
+    text-wrap: balance;
+    overflow-wrap: break-word;
   }
 
   h1 {
-    font-size: 2.5rem;
+    font-size: clamp(1.875rem, 1.35rem + 2.4vw, 2.5rem);
     font-weight: 700;
-    background: linear-gradient(135deg, var(--color-primary-400), var(--color-secondary-400));
-    background-clip: text;
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
   }
 
   h2 {
-    font-size: 2rem;
+    font-size: clamp(1.5rem, 1.2rem + 1.5vw, 2rem);
     font-weight: 600;
   }
 
   h3 {
-    font-size: 1.5rem;
+    font-size: clamp(1.25rem, 1.05rem + 0.9vw, 1.5rem);
     font-weight: 600;
   }
 
   h4 {
-    font-size: 1.25rem;
+    font-size: clamp(1.125rem, 1.02rem + 0.5vw, 1.25rem);
+    font-weight: 600;
+  }
+
+  h5 {
+    font-size: 1.125rem;
+    font-weight: 600;
+  }
+
+  h6 {
+    font-size: 1rem;
     font-weight: 600;
   }
 
@@ -262,7 +290,11 @@ main {
   /* Neon Glow Button Effect */
   .btn-neon {
     position: relative;
-    background: linear-gradient(135deg, var(--color-primary-600), var(--color-secondary-600));
+    background: linear-gradient(
+      135deg,
+      var(--color-primary-600),
+      var(--color-secondary-600)
+    );
     border: 1px solid var(--color-primary-500);
     box-shadow: var(--glow-primary);
     transition: all 0.3s ease;
@@ -318,7 +350,12 @@ main {
 
   /* Gradient Text */
   .gradient-text {
-    background: linear-gradient(135deg, var(--color-primary-400), var(--color-secondary-400), var(--color-accent-400));
+    background: linear-gradient(
+      135deg,
+      var(--color-primary-400),
+      var(--color-secondary-400),
+      var(--color-accent-400)
+    );
     background-clip: text;
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
@@ -347,7 +384,12 @@ main {
 /* Utility Classes */
 @layer utilities {
   .text-gradient {
-    background: linear-gradient(135deg, var(--color-primary-400), var(--color-secondary-400), var(--color-accent-400));
+    background: linear-gradient(
+      135deg,
+      var(--color-primary-400),
+      var(--color-secondary-400),
+      var(--color-accent-400)
+    );
     background-clip: text;
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
@@ -399,7 +441,8 @@ main {
 
   /* Custom gradient animation */
   @keyframes gradient-x {
-    0%, 100% {
+    0%,
+    100% {
       background-size: 200% 200%;
       background-position: left center;
     }
@@ -408,14 +451,15 @@ main {
       background-position: right center;
     }
   }
-  
+
   .animate-gradient-x {
     animation: gradient-x 3s ease infinite;
   }
 
   /* Neon glow pulse animation */
   @keyframes neon-pulse {
-    0%, 100% {
+    0%,
+    100% {
       opacity: 0.4;
       filter: blur(20px);
     }
@@ -426,29 +470,42 @@ main {
   }
 
   @keyframes neon-glow {
-    0%, 100% {
+    0%,
+    100% {
       box-shadow: 0 0 20px rgba(88, 166, 255, 0.3),
-                  0 0 40px rgba(88, 166, 255, 0.2),
-                  0 0 60px rgba(163, 113, 247, 0.1);
+        0 0 40px rgba(88, 166, 255, 0.2), 0 0 60px rgba(163, 113, 247, 0.1);
     }
     50% {
       box-shadow: 0 0 30px rgba(88, 166, 255, 0.5),
-                  0 0 60px rgba(88, 166, 255, 0.3),
-                  0 0 90px rgba(163, 113, 247, 0.2);
+        0 0 60px rgba(88, 166, 255, 0.3), 0 0 90px rgba(163, 113, 247, 0.2);
     }
   }
 
   @keyframes neon-flicker {
-    0%, 100% { opacity: 1; }
-    41% { opacity: 1; }
-    42% { opacity: 0.8; }
-    43% { opacity: 1; }
-    45% { opacity: 0.9; }
-    46% { opacity: 1; }
+    0%,
+    100% {
+      opacity: 1;
+    }
+    41% {
+      opacity: 1;
+    }
+    42% {
+      opacity: 0.8;
+    }
+    43% {
+      opacity: 1;
+    }
+    45% {
+      opacity: 0.9;
+    }
+    46% {
+      opacity: 1;
+    }
   }
 
   @keyframes float-particle {
-    0%, 100% {
+    0%,
+    100% {
       transform: translateY(0px) translateX(0px);
     }
     25% {
@@ -509,7 +566,8 @@ main {
 
   /* Geometric Shape Floating Animation */
   @keyframes geometricFloat {
-    0%, 100% {
+    0%,
+    100% {
       transform: translateY(0px) translateX(0px);
       opacity: 0.4;
     }
@@ -529,7 +587,8 @@ main {
 
   /* Grid Pulse Animation */
   @keyframes gridPulse {
-    0%, 100% {
+    0%,
+    100% {
       opacity: 0.03;
     }
     50% {
@@ -549,20 +608,23 @@ main {
 
   /* Blockchain Node Pulse - Fast & Energetic */
   @keyframes blockPulse {
-    0%, 100% {
+    0%,
+    100% {
       transform: scale(1);
       opacity: 0.8;
-      box-shadow: 0 0 40px currentColor, 0 0 80px currentColor, inset 0 0 20px currentColor;
+      box-shadow: 0 0 40px currentColor, 0 0 80px currentColor,
+        inset 0 0 20px currentColor;
     }
     50% {
       transform: scale(1.2);
       opacity: 1;
-      box-shadow: 0 0 60px currentColor, 0 0 120px currentColor, inset 0 0 30px currentColor;
+      box-shadow: 0 0 60px currentColor, 0 0 120px currentColor,
+        inset 0 0 30px currentColor;
     }
   }
 
   /* PREMIUM HERO ANIMATIONS - Smooth & Elegant */
-  
+
   /* Shooting Stars Effect */
   @keyframes shootingStar1 {
     0% {
@@ -585,7 +647,7 @@ main {
       transform: scale(1);
     }
   }
-  
+
   @keyframes shootingStar2 {
     0% {
       top: 0%;
@@ -607,7 +669,7 @@ main {
       transform: scale(1);
     }
   }
-  
+
   @keyframes shootingStar3 {
     0% {
       top: 50%;
@@ -629,10 +691,11 @@ main {
       transform: scale(1);
     }
   }
-  
+
   /* Floating Geometric Shapes */
   @keyframes floatSlow {
-    0%, 100% {
+    0%,
+    100% {
       transform: translateY(0px) translateX(0px) rotate(0deg);
     }
     25% {
@@ -645,7 +708,7 @@ main {
       transform: translateY(-15px) translateX(5px) rotate(270deg);
     }
   }
-  
+
   /* Expanding Rings */
   @keyframes expandRing {
     0% {
@@ -662,22 +725,23 @@ main {
       opacity: 0;
     }
   }
-  
+
   /* Gradient Shift for Background */
   @keyframes gradient-shift {
-    0%, 100% {
+    0%,
+    100% {
       background-position: 0% 50%;
     }
     50% {
       background-position: 100% 50%;
     }
   }
-  
+
   .animate-gradient-shift {
     background-size: 200% 200%;
     animation: gradient-shift 15s ease infinite;
   }
-  
+
   /* Grid Flow Animation */
   @keyframes grid-flow {
     0% {
@@ -687,10 +751,11 @@ main {
       background-position: 50px 50px;
     }
   }
-  
+
   /* Pulse Slow for Gradient Orbs */
   @keyframes pulse-slow {
-    0%, 100% {
+    0%,
+    100% {
       opacity: 0.4;
       transform: scale(1);
     }
@@ -699,14 +764,15 @@ main {
       transform: scale(1.05);
     }
   }
-  
+
   .animate-pulse-slow {
     animation: pulse-slow 8s ease-in-out infinite;
   }
-  
+
   /* Float Animations - 4 Variations */
   @keyframes float-1 {
-    0%, 100% {
+    0%,
+    100% {
       transform: translate(0, 0);
       opacity: 0.4;
     }
@@ -715,9 +781,10 @@ main {
       opacity: 0.8;
     }
   }
-  
+
   @keyframes float-2 {
-    0%, 100% {
+    0%,
+    100% {
       transform: translate(0, 0);
       opacity: 0.3;
     }
@@ -726,9 +793,10 @@ main {
       opacity: 0.7;
     }
   }
-  
+
   @keyframes float-3 {
-    0%, 100% {
+    0%,
+    100% {
       transform: translate(0, 0);
       opacity: 0.5;
     }
@@ -737,9 +805,10 @@ main {
       opacity: 0.9;
     }
   }
-  
+
   @keyframes float-4 {
-    0%, 100% {
+    0%,
+    100% {
       transform: translate(0, 0);
       opacity: 0.4;
     }
@@ -748,23 +817,23 @@ main {
       opacity: 0.8;
     }
   }
-  
+
   .animate-float-1 {
     animation: float-1 6s ease-in-out infinite;
   }
-  
+
   .animate-float-2 {
     animation: float-2 7s ease-in-out infinite;
   }
-  
+
   .animate-float-3 {
     animation: float-3 5s ease-in-out infinite;
   }
-  
+
   .animate-float-4 {
     animation: float-4 8s ease-in-out infinite;
   }
-  
+
   /* Dash Flow for SVG Lines */
   @keyframes dash-flow {
     0% {
@@ -774,7 +843,7 @@ main {
       stroke-dashoffset: -100;
     }
   }
-  
+
   @keyframes dash-flow-reverse {
     0% {
       stroke-dashoffset: 0;
@@ -783,15 +852,15 @@ main {
       stroke-dashoffset: 100;
     }
   }
-  
+
   .animate-dash-flow {
     animation: dash-flow 8s linear infinite;
   }
-  
+
   .animate-dash-flow-reverse {
     animation: dash-flow-reverse 10s linear infinite;
   }
-  
+
   /* Slow Spin Animations */
   @keyframes spin-slow {
     0% {
@@ -801,7 +870,7 @@ main {
       transform: rotate(360deg);
     }
   }
-  
+
   @keyframes spin-slower {
     0% {
       transform: rotate(0deg);
@@ -810,15 +879,15 @@ main {
       transform: rotate(360deg);
     }
   }
-  
+
   .animate-spin-slow {
     animation: spin-slow 20s linear infinite;
   }
-  
+
   .animate-spin-slower {
     animation: spin-slower 40s linear infinite;
   }
-  
+
   /* Shooting Star Animations - 3 Variations */
   @keyframes shooting-star-1 {
     0% {
@@ -836,7 +905,7 @@ main {
       opacity: 0;
     }
   }
-  
+
   @keyframes shooting-star-2 {
     0% {
       transform: translate(0, 0);
@@ -853,7 +922,7 @@ main {
       opacity: 0;
     }
   }
-  
+
   @keyframes shooting-star-3 {
     0% {
       transform: translate(0, 0);
@@ -870,21 +939,21 @@ main {
       opacity: 0;
     }
   }
-  
+
   .animate-shooting-star-1 {
     animation: shooting-star-1 3s ease-in-out infinite;
   }
-  
+
   .animate-shooting-star-2 {
     animation: shooting-star-2 4s ease-in-out infinite;
     animation-delay: 1s;
   }
-  
+
   .animate-shooting-star-3 {
     animation: shooting-star-3 3.5s ease-in-out infinite;
     animation-delay: 2s;
   }
-  
+
   /* Expanding Ring Animation */
   .animate-expand-ring {
     animation: expandRing 6s ease-out infinite;
@@ -941,17 +1010,20 @@ main {
 
   /* Glowing border pulse */
   @keyframes borderGlow {
-    0%, 100% {
+    0%,
+    100% {
       box-shadow: 0 0 5px rgba(6, 182, 212, 0.3);
     }
     50% {
-      box-shadow: 0 0 20px rgba(6, 182, 212, 0.6), 0 0 30px rgba(6, 182, 212, 0.3);
+      box-shadow: 0 0 20px rgba(6, 182, 212, 0.6),
+        0 0 30px rgba(6, 182, 212, 0.3);
     }
   }
 
   /* Subtle floating animation */
   @keyframes float {
-    0%, 100% {
+    0%,
+    100% {
       transform: translateY(0px);
     }
     50% {
@@ -983,23 +1055,33 @@ main {
 
   /* Neon text glow pulse */
   @keyframes textGlow {
-    0%, 100% {
+    0%,
+    100% {
       text-shadow: 0 0 10px rgba(6, 182, 212, 0.5);
     }
     50% {
-      text-shadow: 0 0 20px rgba(6, 182, 212, 0.8), 0 0 30px rgba(6, 182, 212, 0.6);
+      text-shadow: 0 0 20px rgba(6, 182, 212, 0.8),
+        0 0 30px rgba(6, 182, 212, 0.6);
     }
   }
 
   /* Shake animation for errors */
   @keyframes shake {
-    0%, 100% {
+    0%,
+    100% {
       transform: translateX(0);
     }
-    10%, 30%, 50%, 70%, 90% {
+    10%,
+    30%,
+    50%,
+    70%,
+    90% {
       transform: translateX(-5px);
     }
-    20%, 40%, 60%, 80% {
+    20%,
+    40%,
+    60%,
+    80% {
       transform: translateX(5px);
     }
   }
@@ -1008,92 +1090,27 @@ main {
     animation: shake 0.5s ease-in-out;
   }
 
-  /* Apply animations to common elements */
-  
-  /* Cards get subtle entrance animation */
-  .card, [class*="Card"], div[class*="bg-gray-800"], div[class*="bg-gray-900"] {
-    animation: fadeInScale 0.5s ease-out;
-  }
+  /*
+   * NOTE (UX/a11y audit): The previous version of this file applied
+   * animations and transforms to broad element selectors — every `svg`,
+   * `li`, `input:focus`, `.grid > *`, `[class*="Card"]`, and `h1, h2`.
+   * Those blanket rules caused:
+   *   - Layout shift / CLS (staggered fade-in on every grid + list),
+   *   - Perpetual motion that ignored user intent (infinite input glow,
+   *     8s heading shimmer) — a WCAG 2.2 (2.3.3 / 2.2.2) concern,
+   *   - Unreadable headings (gradient + transparent fill overrode the
+   *     `color` of every h1/h2, hurting contrast),
+   *   - Janky, inconsistent hover (every icon scaled+rotated).
+   * They have been removed. Motion is now OPT-IN via the `.animate-*`
+   * utility classes defined below, applied deliberately per component.
+   */
 
-  /* All links and interactive text */
-  a, button:not(:disabled) {
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  /* Smooth, lightweight transitions on interactive elements only. */
+  a,
+  button:not(:disabled) {
+    transition: color 0.2s ease, background-color 0.2s ease,
+      border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
   }
-
-  /* Hover effects for cards */
-  .card:hover, [class*="Card"]:hover, div[class*="bg-gray-800"]:hover, div[class*="bg-gray-900"]:hover {
-    transform: translateY(-2px);
-    transition: transform 0.3s ease;
-  }
-
-  /* Input fields glow on focus */
-  input:focus, textarea:focus, select:focus {
-    animation: borderGlow 2s ease-in-out infinite;
-  }
-
-  /* Badges pulse subtly */
-  .badge, [class*="Badge"], span[class*="px-3 py-1"] {
-    animation: fadeInScale 0.4s ease-out;
-    transition: transform 0.2s ease;
-  }
-
-  .badge:hover, [class*="Badge"]:hover {
-    transform: scale(1.05);
-  }
-
-  /* Icons rotate in on mount */
-  svg {
-    animation: rotateIn 0.5s ease-out;
-  }
-
-  /* Smooth hover for all icons */
-  svg:hover {
-    transform: scale(1.1) rotate(5deg);
-    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  }
-
-  /* List items slide in */
-  li {
-    animation: slideInLeft 0.4s ease-out;
-  }
-
-  /* Progress bars animate in */
-  [role="progressbar"], .progress, [class*="Progress"] {
-    animation: slideInRight 0.6s ease-out;
-  }
-
-  /* Modal backdrop fade */
-  [class*="fixed inset-0"] {
-    animation: fadeInScale 0.3s ease-out;
-  }
-
-  /* Text gradient shimmer on headings */
-  h1, h2 {
-    background: linear-gradient(90deg, 
-      rgba(6, 182, 212, 1) 0%, 
-      rgba(59, 130, 246, 1) 25%, 
-      rgba(168, 85, 247, 1) 50%,
-      rgba(59, 130, 246, 1) 75%,
-      rgba(6, 182, 212, 1) 100%
-    );
-    background-size: 200% auto;
-    background-clip: text;
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    animation: shimmer 8s linear infinite;
-  }
-
-  /* Stagger animation for grid items */
-  .grid > *, [class*="grid"] > * {
-    animation: fadeInUp 0.5s ease-out backwards;
-  }
-
-  .grid > *:nth-child(1), [class*="grid"] > *:nth-child(1) { animation-delay: 0.05s; }
-  .grid > *:nth-child(2), [class*="grid"] > *:nth-child(2) { animation-delay: 0.1s; }
-  .grid > *:nth-child(3), [class*="grid"] > *:nth-child(3) { animation-delay: 0.15s; }
-  .grid > *:nth-child(4), [class*="grid"] > *:nth-child(4) { animation-delay: 0.2s; }
-  .grid > *:nth-child(5), [class*="grid"] > *:nth-child(5) { animation-delay: 0.25s; }
-  .grid > *:nth-child(6), [class*="grid"] > *:nth-child(6) { animation-delay: 0.3s; }
 
   /* Utility classes for custom animations */
   .animate-fade-in-up {
@@ -1154,13 +1171,21 @@ main {
   }
 
   .custom-scrollbar::-webkit-scrollbar-thumb {
-    background: linear-gradient(180deg, rgba(6, 182, 212, 0.5), rgba(59, 130, 246, 0.5));
+    background: linear-gradient(
+      180deg,
+      rgba(6, 182, 212, 0.5),
+      rgba(59, 130, 246, 0.5)
+    );
     border-radius: 10px;
     transition: background 0.3s ease;
   }
 
   .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-    background: linear-gradient(180deg, rgba(6, 182, 212, 0.8), rgba(59, 130, 246, 0.8));
+    background: linear-gradient(
+      180deg,
+      rgba(6, 182, 212, 0.8),
+      rgba(59, 130, 246, 0.8)
+    );
   }
 
   /* Firefox scrollbar */

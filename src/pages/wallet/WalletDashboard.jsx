@@ -491,13 +491,18 @@ const WalletDashboard = () => {
 
   // Send Modal Component
   const SendModal = () => (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-      <Card className="w-full max-w-md p-6">
+    <div
+      className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50 overflow-y-auto"
+      onClick={(e) => { if (e.target === e.currentTarget) setShowSendModal(false); }}
+    >
+      <Card role="dialog" aria-modal="true" aria-label="Send tokens" className="w-full max-w-md p-6 my-8 max-h-[90vh] overflow-y-auto">
         <div className="flex items-center justify-between mb-6">
           <h3 className="text-lg font-semibold text-white">Send Tokens</h3>
           <button
+            type="button"
+            aria-label="Close dialog"
             onClick={() => setShowSendModal(false)}
-            className="text-dark-text-muted hover:text-white"
+            className="inline-flex h-11 w-11 items-center justify-center -mr-2 text-dark-text-muted hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 rounded-lg"
           >
             <XCircleIcon className="h-6 w-6" />
           </button>
@@ -558,13 +563,18 @@ const WalletDashboard = () => {
 
   // Receive Modal Component
   const ReceiveModal = () => (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-      <Card className="w-full max-w-md p-6">
+    <div
+      className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50 overflow-y-auto"
+      onClick={(e) => { if (e.target === e.currentTarget) setShowReceiveModal(false); }}
+    >
+      <Card role="dialog" aria-modal="true" aria-label="Receive tokens" className="w-full max-w-md p-6 my-8 max-h-[90vh] overflow-y-auto">
         <div className="flex items-center justify-between mb-6">
           <h3 className="text-lg font-semibold text-white">Receive Tokens</h3>
           <button
+            type="button"
+            aria-label="Close dialog"
             onClick={() => setShowReceiveModal(false)}
-            className="text-dark-text-muted hover:text-white"
+            className="inline-flex h-11 w-11 items-center justify-center -mr-2 text-dark-text-muted hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 rounded-lg"
           >
             <XCircleIcon className="h-6 w-6" />
           </button>

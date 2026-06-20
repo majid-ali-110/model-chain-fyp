@@ -188,7 +188,8 @@ const Modal = ({
                 {(showCloseButton && !hideCloseButton) && (
                   <button
                     type="button"
-                    className="absolute top-4 right-4 z-10 rounded-lg p-2 text-dark-text-muted hover:text-dark-text-secondary hover:bg-dark-surface-hover transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-primary-500"
+                    aria-label="Close dialog"
+                    className="absolute top-3 right-3 z-10 inline-flex h-11 w-11 items-center justify-center rounded-lg text-dark-text-muted hover:text-dark-text-secondary hover:bg-dark-surface-hover transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-primary-500"
                     onClick={onClose}
                   >
                     <span className="sr-only">Close</span>
@@ -200,9 +201,6 @@ const Modal = ({
                 <div className="relative">
                   {children}
                 </div>
-
-                {/* Gradient border effect */}
-                <div className="absolute inset-0 rounded-2xl bg-gradient-to-r from-primary-500/20 via-transparent to-secondary-500/20 opacity-0 hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
               </Dialog.Panel>
             </Transition.Child>
           </div>

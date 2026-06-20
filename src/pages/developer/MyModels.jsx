@@ -542,7 +542,7 @@ const MyModels = () => {
   const TableView = () => (
     <Card className="overflow-hidden">
       <div className="overflow-x-auto">
-        <table className="w-full">
+        <table className="w-full min-w-[800px]">
           <thead className="bg-dark-surface-elevated">
             <tr>
               <th className="px-6 py-3 text-left">
@@ -996,8 +996,16 @@ const MyModels = () => {
         )}
         {/* Edit Labels Modal */}
         {labelsModal.open && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
-            <div className="bg-dark-surface border border-dark-border rounded-2xl shadow-2xl w-full max-w-lg mx-4">
+          <div
+            className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-black/60 backdrop-blur-sm p-4"
+            onClick={(e) => { if (e.target === e.currentTarget) setLabelsModal({ open: false, model: null }); }}
+          >
+            <div
+              role="dialog"
+              aria-modal="true"
+              aria-label="Edit class labels"
+              className="bg-dark-surface border border-dark-border rounded-2xl shadow-2xl w-full max-w-lg my-8 max-h-[90vh] overflow-y-auto"
+            >
               {/* Modal header */}
               <div className="flex items-center justify-between px-6 py-4 border-b border-dark-border">
                 <div className="flex items-center gap-2">
@@ -1005,8 +1013,10 @@ const MyModels = () => {
                   <h2 className="text-lg font-semibold text-white">Edit Class Labels</h2>
                 </div>
                 <button
+                  type="button"
+                  aria-label="Close dialog"
                   onClick={() => setLabelsModal({ open: false, model: null })}
-                  className="text-dark-text-muted hover:text-white transition-colors"
+                  className="inline-flex h-11 w-11 items-center justify-center -mr-2 text-dark-text-muted hover:text-white transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 rounded-lg"
                 >
                   <XCircleIcon className="h-5 w-5" />
                 </button>

@@ -432,7 +432,7 @@ const Sandbox = () => {
 
                 {/* Model Dropdown */}
                 {showModelSelector && (
-                  <div className="absolute top-full left-0 mt-2 w-96 bg-dark-surface border border-dark-border rounded-lg shadow-xl z-50">
+                  <div className="absolute top-full left-0 right-0 mt-2 w-full sm:w-96 sm:right-auto max-w-[calc(100vw-2rem)] bg-dark-surface border border-dark-border rounded-lg shadow-xl z-50">
                     <div className="p-4">
                       <Input
                         type="text"
@@ -739,6 +739,7 @@ const Sandbox = () => {
                           e.stopPropagation();
                           deleteHistoryItem(item.id);
                         }}
+                        aria-label="Delete history item"
                         className="p-1"
                       >
                         <XMarkIcon className="h-3 w-3" />

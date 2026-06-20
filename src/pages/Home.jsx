@@ -87,7 +87,7 @@ const Home = () => {
               />
             </div>
 
-            <h1 className="text-4xl md:text-5xl font-bold mb-4">
+            <h1 className="text-gradient text-4xl md:text-5xl font-bold mb-4 pb-1">
               Decentralized AI Marketplace
             </h1>
 

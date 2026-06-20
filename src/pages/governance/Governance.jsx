@@ -935,11 +935,13 @@ const Governance = () => {
               <div className="flex items-center justify-between px-6 py-5 border-b-2 border-dark-border bg-dark-surface/80">
                 <h3 className="text-3xl font-bold text-white">Cast Your Vote</h3>
                 <button
+                  type="button"
+                  aria-label="Close dialog"
                   onClick={() => {
                     setShowVoteModal(false);
                     setSelectedVote(null);
                   }}
-                  className="text-dark-text-muted hover:text-white transition-colors p-2 rounded-lg hover:bg-dark-border"
+                  className="text-dark-text-muted hover:text-white transition-colors p-2 rounded-lg hover:bg-dark-border focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500"
                 >
                   <XCircleIcon className="h-7 w-7" />
                 </button>
@@ -1077,8 +1079,10 @@ const Governance = () => {
                   <h3 className="text-3xl font-bold text-white mb-2">{selectedProposal.title}</h3>
                 </div>
                 <button
+                  type="button"
+                  aria-label="Close dialog"
                   onClick={() => setShowDetailsModal(false)}
-                  className="text-dark-text-muted hover:text-white transition-colors p-2 rounded-lg hover:bg-dark-border ml-4"
+                  className="text-dark-text-muted hover:text-white transition-colors p-2 rounded-lg hover:bg-dark-border ml-4 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500"
                 >
                   <XCircleIcon className="h-7 w-7" />
                 </button>
@@ -1121,8 +1125,10 @@ const Governance = () => {
               <div className="flex items-center justify-between px-6 py-5 border-b-2 border-dark-border bg-dark-surface/80">
                 <h3 className="text-3xl font-bold text-white">Create New Proposal</h3>
                 <button
+                  type="button"
+                  aria-label="Close dialog"
                   onClick={() => setShowCreateModal(false)}
-                  className="text-dark-text-muted hover:text-white transition-colors p-2 rounded-lg hover:bg-dark-border"
+                  className="text-dark-text-muted hover:text-white transition-colors p-2 rounded-lg hover:bg-dark-border focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500"
                 >
                   <XCircleIcon className="h-7 w-7" />
                 </button>
@@ -1206,11 +1212,13 @@ const Governance = () => {
                   {isDelegated ? 'Change Delegation' : 'Delegate Voting Power'}
                 </h3>
                 <button
+                  type="button"
+                  aria-label="Close dialog"
                   onClick={() => {
                     setShowDelegateModal(false);
                     setDelegateAddress('');
                   }}
-                  className="text-dark-text-muted hover:text-white transition-colors"
+                  className="inline-flex h-11 w-11 items-center justify-center -mr-2 text-dark-text-muted hover:text-white transition-colors rounded-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500"
                 >
                   <XCircleIcon className="h-7 w-7" />
                 </button>

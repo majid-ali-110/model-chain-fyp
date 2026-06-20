@@ -64,8 +64,10 @@ const Input = React.forwardRef(({
     outline: 'bg-transparent border-2 border-dark-border text-dark-text-primary'
   };
 
+  const describedById = (error || success || helperText) ? `${inputId}-desc` : undefined;
+
   const baseInputClasses = clsx(
-    'w-full rounded-lg transition-all duration-500 font-medium',
+    'w-full rounded-lg transition-colors duration-200 font-medium',
     'placeholder:text-dark-text-muted',
     'focus:outline-none focus:ring-0',
     'transform-gpu',
@@ -81,9 +83,10 @@ const Input = React.forwardRef(({
     disabled && 'opacity-50 cursor-not-allowed bg-dark-surface/50',
     error && 'border-red-500/70 focus:border-red-400 animate-shake',
     success && 'border-emerald-500/70 focus:border-emerald-400',
-    // Focus glow effects - enhanced
-    !error && !success && focused && 'border-cyan-500/70 shadow-[0_0_25px_rgba(6,182,212,0.4),0_0_40px_rgba(6,182,212,0.2)] animate-border-glow',
-    !error && !success && !focused && 'hover:border-cyan-500/30 hover:shadow-[0_0_10px_rgba(6,182,212,0.2)]',
+    // Focus ring — static (the previous infinite glow animation was a
+    // distracting, motion-accessibility concern).
+    !error && !success && focused && 'border-cyan-500/70 shadow-[0_0_0_3px_rgba(6,182,212,0.25)]',
+    !error && !success && !focused && 'hover:border-cyan-500/30',
     // Floating label spacing
     floating && 'pt-6',
     className
@@ -180,6 +183,8 @@ const Input = React.forwardRef(({
           placeholder={floating ? '' : placeholder}
           disabled={disabled}
           required={required}
+          aria-invalid={error ? true : undefined}
+          aria-describedby={describedById}
           className={baseInputClasses}
           onFocus={handleFocus}
           onBlur={handleBlur}
@@ -208,7 +213,7 @@ const Input = React.forwardRef(({
 
       {/* Helper Text / Error / Success Message */}
       {(error || success || helperText) && (
-        <div className="flex items-start gap-1">
+        <div id={describedById} aria-live="polite" className="flex items-start gap-1">
           {error && (
             <p className="text-sm text-red-400 flex items-center gap-1">
               <ExclamationCircleIcon className="h-4 w-4 flex-shrink-0" />

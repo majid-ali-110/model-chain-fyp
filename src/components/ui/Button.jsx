@@ -106,6 +106,7 @@ const Button = React.forwardRef(({
   return (
     <button
       ref={ref}
+      type="button"
       className={clsx(
         baseClasses,
         variants[variant],
@@ -114,11 +115,13 @@ const Button = React.forwardRef(({
         className
       )}
       disabled={disabled || loading}
+      aria-busy={loading || undefined}
       {...props}
     >
-      {/* Background glow effect - Always on for futuristic look */}
+      {/* Background glow effect - revealed on hover/focus only (was always-on,
+          which added persistent visual noise and extra paint work). */}
       <div className={clsx(
-        'absolute -inset-1 rounded-lg blur-md opacity-40 group-hover:opacity-70 transition-all duration-500 group-hover:blur-xl',
+        'absolute -inset-1 rounded-lg blur-md opacity-0 group-hover:opacity-60 group-focus-visible:opacity-60 transition-all duration-300 group-hover:blur-lg pointer-events-none',
         variant === 'primary' && 'bg-gradient-to-r from-cyan-500 to-blue-500',
         variant === 'secondary' && 'bg-gradient-to-r from-purple-500 to-pink-500',
         variant === 'wallet' && 'bg-gradient-to-r from-emerald-500 to-teal-500',

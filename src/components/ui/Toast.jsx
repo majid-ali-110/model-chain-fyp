@@ -140,7 +140,7 @@ const Toast = ({
     >
       <div
         className={clsx(
-          'min-w-[400px] max-w-md w-full pointer-events-auto backdrop-blur-xl border-2',
+          'w-full max-w-md sm:min-w-[22rem] pointer-events-auto backdrop-blur-xl border-2',
           config.bgColor,
           variants[variant],
           glow && config.glowColor,

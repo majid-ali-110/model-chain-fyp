@@ -98,8 +98,15 @@ export const NotificationProvider = ({ children }) => {
   return (
     <NotificationContext.Provider value={value}>
       {children}
-      {/* Toast Container */}
-      <div className="fixed top-4 left-1/2 transform -translate-x-1/2 z-[200] flex flex-col items-center space-y-3">
+      {/* Toast Container — responsive width so toasts never overflow the
+          viewport on mobile; aria-live announces them to screen readers. */}
+      <div
+        className="fixed top-4 left-1/2 transform -translate-x-1/2 z-[200] flex w-[calc(100%-1.5rem)] max-w-md flex-col items-stretch gap-3 px-0 pointer-events-none"
+        role="region"
+        aria-label="Notifications"
+        aria-live="polite"
+        aria-atomic="false"
+      >
         {notifications.map((notification) => (
           <Toast
             key={notification.id}

@@ -389,6 +389,7 @@ const Settings = () => {
                   variant="ghost"
                   size="sm"
                   onClick={() => revokeSession(session.id)}
+                  aria-label="Revoke session"
                   className="text-red-400 hover:text-red-300"
                 >
                   <XMarkIcon className="h-4 w-4" />
