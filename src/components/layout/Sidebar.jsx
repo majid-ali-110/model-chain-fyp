@@ -21,11 +21,11 @@ import { useWallet } from '../../contexts/WalletContext';
 const Sidebar = ({ isOpen = true, className = '' }) => {
   const location = useLocation();
   const { user: authUser } = useAuth();
-  const { walletProfile } = useWallet();
+  const { profile: walletProfile } = useWallet();
 
   // User data from contexts
   const user = {
-    role: walletProfile?.role || authUser?.role || 'user',
+    role: walletProfile?.role || walletProfile?.primaryRole || authUser?.role || 'buyer',
     name: walletProfile?.displayName || authUser?.displayName || 'User',
   };
 
@@ -35,28 +35,28 @@ const Sidebar = ({ isOpen = true, className = '' }) => {
       href: '/dashboard',
       icon: HomeIcon,
       current: location.pathname.startsWith('/dashboard'),
-      roles: ['user', 'developer', 'validator', 'admin'],
+      roles: ['buyer', 'user', 'developer', 'validator', 'admin'],
     },
     {
       name: 'Marketplace',
       href: '/marketplace',
       icon: ShoppingBagIcon,
       current: location.pathname.startsWith('/marketplace'),
-      roles: ['user', 'developer', 'validator', 'admin'],
+      roles: ['buyer', 'user', 'developer', 'validator', 'admin'],
     },
     {
       name: 'Sandbox',
       href: '/sandbox',
       icon: PlayIcon,
       current: location.pathname.startsWith('/sandbox'),
-      roles: ['user', 'developer', 'validator', 'admin'],
+      roles: ['buyer', 'user', 'developer', 'validator', 'admin'],
     },
     {
       name: 'Wallet',
       href: '/wallet',
       icon: WalletIcon,
       current: location.pathname.startsWith('/wallet'),
-      roles: ['user', 'developer', 'validator', 'admin'],
+      roles: ['buyer', 'user', 'developer', 'validator', 'admin'],
     },
   ];
 
@@ -66,7 +66,6 @@ const Sidebar = ({ isOpen = true, className = '' }) => {
       href: '/developer/models',
       icon: CodeBracketIcon,
       current: location.pathname.startsWith('/developer/models'),
-      badge: '3',
     },
     {
       name: 'Upload Model',
@@ -80,12 +79,6 @@ const Sidebar = ({ isOpen = true, className = '' }) => {
       icon: ChartBarIcon,
       current: location.pathname.startsWith('/developer/analytics'),
     },
-    {
-      name: 'Developer Tools',
-      href: '/developer/tools',
-      icon: CogIcon,
-      current: location.pathname.startsWith('/developer/tools'),
-    },
   ];
 
   const validatorNavigation = [
@@ -97,10 +90,9 @@ const Sidebar = ({ isOpen = true, className = '' }) => {
     },
     {
       name: 'Review Models',
-      href: '/validator/review',
+      href: '/validator/dashboard',
       icon: DocumentTextIcon,
       current: location.pathname.startsWith('/validator/review'),
-      badge: '5',
     },
     {
       name: 'Leaderboard',
@@ -168,7 +160,7 @@ const Sidebar = ({ isOpen = true, className = '' }) => {
           item.current
             ? 'bg-gradient-to-r from-cyan-600/20 to-blue-600/20 text-cyan-400 border border-cyan-500/30 shadow-lg shadow-cyan-500/20'
             : 'text-dark-text-muted hover:text-dark-text-primary hover:bg-dark-surface-elevated border border-transparent hover:border-dark-border/50',
-          'transform hover:scale-[1.02] hover:-translate-y-0.5'
+          'transition-all duration-200 relative overflow-hidden'
         )}
       >
         {item.current && (

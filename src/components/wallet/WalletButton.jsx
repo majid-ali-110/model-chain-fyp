@@ -216,7 +216,7 @@ const WalletButton = ({
           {/* Balance display */}
           {showBalance && !compact && (
             <div className="flex items-center space-x-1 text-xs text-dark-text-secondary">
-              <span>{formatBalance(balance.eth)} ETH</span>
+              <span>{formatBalance(balance.eth)} POL</span>
               <span>•</span>
               <span>${formatBalance(balance.usd)}</span>
               <button
@@ -304,7 +304,7 @@ const WalletButton = ({
                 <div className="flex items-center space-x-2">
                   <div className="text-right">
                     <div className="text-sm font-medium text-dark-text-primary">
-                      {formatBalance(balance.eth)} ETH
+                      {formatBalance(balance.eth)} POL
                     </div>
                     <div className="text-xs text-dark-text-secondary">
                       ${formatBalance(balance.usd)} USD

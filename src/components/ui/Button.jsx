@@ -111,13 +111,6 @@ const Button = React.forwardRef(({
         variants[variant],
         sizes[size],
         glowEffects[variant],
-        'hover:scale-105 active:scale-95 transform',
-        'hover:-translate-y-0.5 active:translate-y-0',
-        // Shimmer effect for all gradient buttons
-        (variant === 'primary' || variant === 'secondary' || variant === 'wallet' || variant === 'success' || variant === 'danger' || variant === 'destructive') && 
-        'before:absolute before:inset-0 before:bg-gradient-to-r before:from-transparent before:via-white/20 before:to-transparent before:translate-x-[-200%] hover:before:translate-x-[200%] before:transition-transform before:duration-1000',
-        // Pulse animation on hover
-        'hover:animate-[pulse_2s_ease-in-out_infinite]',
         className
       )}
       disabled={disabled || loading}

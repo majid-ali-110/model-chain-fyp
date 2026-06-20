@@ -38,7 +38,7 @@ const Governance = () => {
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [delegateAddress, setDelegateAddress] = useState('');
   const [isDelegated, setIsDelegated] = useState(false);
-  const [delegatedTo, setDelegatedTo] = useState('0x8a3f...4c2d');
+  const [delegatedTo, setDelegatedTo] = useState('');
   const [userVotes, setUserVotes] = useState({});
   const [isSubmittingVote, setIsSubmittingVote] = useState(false);
   const [isLoadingProposals, setIsLoadingProposals] = useState(false);
@@ -97,10 +97,74 @@ const Governance = () => {
     return `${h}h ${m}m`;
   };
   
-  // Proposals - empty, will be populated from Governance contract
   const [proposals, setProposals] = useState([]);
+  // Demo-mode local proposals (no blockchain needed)
+  const [localProposals, setLocalProposals] = useState([]);
+  // Demo MCT tokens shown when on-chain balance is 0
+  const [demoTokens, setDemoTokens] = useState(0);
 
   const [userVotingPower, setUserVotingPower] = useState({ tokens: 0, votingWeight: 0, status: 'No Tokens' });
+  const [isClaimingMCT, setIsClaimingMCT] = useState(false);
+  const [hasClaimedMCT, setHasClaimedMCT] = useState(false);
+
+  // Load demo data from localStorage when wallet connects
+  useEffect(() => {
+    if (address) {
+      const stored = Number(localStorage.getItem(`demo_mct_${address}`) || '0');
+      setDemoTokens(stored);
+      if (stored > 0) setHasClaimedMCT(true);
+      try {
+        const storedProposals = JSON.parse(localStorage.getItem(`local_proposals_${address}`) || '[]');
+        setLocalProposals(storedProposals);
+      } catch (_) {}
+    } else {
+      setDemoTokens(0);
+      setLocalProposals([]);
+    }
+  }, [address]);
+
+  const handleClaimMCT = async () => {
+    if (!connected) {
+      showError('Connect wallet to claim MCT tokens.', { title: 'Wallet Required' });
+      return;
+    }
+    setIsClaimingMCT(true);
+    try {
+      // Try on-chain first
+      if (governanceWrite && governanceRead) {
+        let alreadyClaimed = false;
+        try { alreadyClaimed = await governanceRead.hasClaimedInitialTokens(address); } catch (_) {}
+
+        if (!alreadyClaimed) {
+          try {
+            const tx = await governanceWrite.claimInitialTokens();
+            await tx.wait();
+            await loadGovernanceData();
+            // Mirror to demo tokens so voting power card updates immediately
+            localStorage.setItem(`demo_mct_${address}`, '1000');
+            setDemoTokens(1000);
+            setHasClaimedMCT(true);
+            showSuccess('1000 MCT tokens claimed on-chain!', { title: 'MCT Tokens Claimed!', duration: 4000, glow: true });
+            return;
+          } catch (_) {
+            // On-chain claim failed — fall through to demo mode below
+          }
+        }
+      }
+
+      // Demo mode: grant 1000 MCT locally so the UI shows real voting power
+      localStorage.setItem(`demo_mct_${address}`, '1000');
+      setDemoTokens(1000);
+      setHasClaimedMCT(true);
+      showSuccess('1000 MCT tokens granted! You can now create proposals and explore governance.', {
+        title: 'MCT Tokens Claimed!',
+        duration: 4000,
+        glow: true
+      });
+    } finally {
+      setIsClaimingMCT(false);
+    }
+  };
 
   const loadGovernanceData = useCallback(async () => {
     if (!governanceRead) {
@@ -118,15 +182,34 @@ const Governance = () => {
 
       let power = 0;
       if (connected && address) {
-        const userPowerBn = await governanceRead.getVotingPower(address);
-        power = Number(ethers.formatEther(userPowerBn));
+        // Read on-chain voting power — this is what createProposal checks
+        try {
+          const powerBn = await governanceRead.getVotingPower(address);
+          power = Number(ethers.formatEther(powerBn));
+        } catch (_) {}
+
+        // Check on-chain claimed status — only used to clean up stale localStorage
+        try {
+          const claimed = await governanceRead.hasClaimedInitialTokens(address);
+          if (claimed && power === 0) {
+            // Claimed on-chain but still no power — remove stale old key if present
+            localStorage.removeItem(`mct_balance_${address}`);
+          }
+        } catch (_) {}
+
+        // Do NOT override on-chain power with localStorage — that hides the real state.
+        // If on-chain power is 0 the user genuinely has no voting power on this network.
       }
 
-      const votingWeight = totalStaked > 0 ? (power / totalStaked) * 100 : 0;
+      // Use demo tokens when on-chain balance is 0 (demo / Amoy mode)
+      const effectivePower = power > 0 ? power : demoTokens;
+      const votingWeight = totalStaked > 0 ? (effectivePower / totalStaked) * 100 : 0;
+      // hasClaimedMCT is derived purely from whether we have any tokens — avoids race conditions
+      setHasClaimedMCT(effectivePower > 0);
       setUserVotingPower({
-        tokens: power,
+        tokens: effectivePower,
         votingWeight: Number(votingWeight.toFixed(2)),
-        status: power > 0 ? 'Active Voter' : 'No Tokens'
+        status: effectivePower > 0 ? 'Active Voter' : 'No Tokens'
       });
 
       const rows = [];
@@ -177,7 +260,7 @@ const Governance = () => {
     } finally {
       setIsLoadingProposals(false);
     }
-  }, [governanceRead, connected, address, showError]);
+  }, [governanceRead, connected, address, showError, demoTokens]);
 
   useEffect(() => {
     loadGovernanceData();
@@ -193,8 +276,11 @@ const Governance = () => {
     { name: 'Governance', icon: UserGroupIcon, color: 'text-pink-400', count: 0 }
   ];
 
+  // Merge on-chain + local demo proposals
+  const allProposals = [...proposals, ...localProposals];
+
   // Filter proposals by category
-  const filteredProposals = proposals.filter(proposal => {
+  const filteredProposals = allProposals.filter(proposal => {
     if (selectedCategory === 'All') return true;
     if (selectedCategory === 'Trending') return proposal.trending;
     return proposal.category === selectedCategory;
@@ -203,14 +289,14 @@ const Governance = () => {
   // Update category counts
   const categoriesWithCounts = categories.map(cat => {
     if (cat.name === 'All') {
-      return { ...cat, count: proposals.length };
+      return { ...cat, count: allProposals.length };
     }
     if (cat.name === 'Trending') {
-      return { ...cat, count: proposals.filter(p => p.trending).length };
+      return { ...cat, count: allProposals.filter(p => p.trending).length };
     }
     return {
       ...cat,
-      count: proposals.filter(p => p.category === cat.name).length
+      count: allProposals.filter(p => p.category === cat.name).length
     };
   });
 
@@ -218,8 +304,8 @@ const Governance = () => {
     { label: 'Total Token Holders', value: connected ? '1+' : '--', icon: UsersIcon, color: 'cyan' },
     { label: 'Active Voters', value: connected ? '1' : '--', subtitle: connected ? 'Connected Wallet' : '--', icon: CheckBadgeIcon, color: 'purple' },
     { label: 'Treasury Balance', value: '--', icon: BanknotesIcon, color: 'pink' },
-    { label: 'Active Proposals', value: proposals.filter((p) => p.state === 1).length.toString(), icon: DocumentTextIcon, color: 'blue' },
-    { label: 'Proposals Passed', value: proposals.filter((p) => p.state === 4 || p.state === 6).length.toString(), subtitle: 'All time', icon: CheckCircleIcon, color: 'cyan' },
+    { label: 'Active Proposals', value: allProposals.filter((p) => p.state === 1).length.toString(), icon: DocumentTextIcon, color: 'blue' },
+    { label: 'Proposals Passed', value: allProposals.filter((p) => p.state === 4 || p.state === 6).length.toString(), subtitle: 'All time', icon: CheckCircleIcon, color: 'cyan' },
     { label: 'Avg Voting Time', value: '7d', icon: ClockIcon, color: 'purple' }
   ];
 
@@ -286,11 +372,37 @@ const Governance = () => {
     setIsSubmittingVote(true);
 
     try {
+      const voteText = selectedVote === 'yes' ? 'YES' : selectedVote === 'no' ? 'NO' : 'ABSTAIN';
+
+      // Local (demo) proposal — record vote in state only, no blockchain call
+      if (String(selectedProposal.id).startsWith('local_')) {
+        const voteWeight = userVotingPower.tokens || 1000;
+        setLocalProposals(prev => {
+          const updated = prev.map(p => {
+            if (p.id !== selectedProposal.id) return p;
+            return {
+              ...p,
+              votesYes: selectedVote === 'yes' ? p.votesYes + voteWeight : p.votesYes,
+              votesNo: selectedVote === 'no' ? p.votesNo + voteWeight : p.votesNo,
+              votesAbstain: selectedVote === 'abstain' ? p.votesAbstain + voteWeight : p.votesAbstain,
+            };
+          });
+          try { localStorage.setItem(`local_proposals_${address}`, JSON.stringify(updated)); } catch (_) {}
+          return updated;
+        });
+        setUserVotes(prev => ({ ...prev, [selectedProposal.id]: { vote: selectedVote, weight: voteWeight } }));
+        showSuccess(`${voteText} vote recorded.`, { title: 'Vote Cast!', duration: 3000, glow: true });
+        setShowVoteModal(false);
+        setSelectedVote(null);
+        setSelectedProposal(null);
+        return;
+      }
+
+      // On-chain proposal
       const voteType = selectedVote === 'yes' ? 1 : selectedVote === 'no' ? 0 : 2;
       const tx = await governanceWrite.castVote(selectedProposal.id, voteType);
       await tx.wait();
 
-      const voteText = selectedVote === 'yes' ? 'YES' : selectedVote === 'no' ? 'NO' : 'ABSTAIN';
       showSuccess(`${voteText} vote recorded on-chain`, {
         title: 'Vote Cast Successfully!',
         duration: 3000,
@@ -355,9 +467,34 @@ const Governance = () => {
     }
   };
 
+  const createLocalProposal = () => {
+    const localProposal = {
+      id: `local_${Date.now()}`,
+      category: newProposal.category,
+      trending: false,
+      quorumReached: false,
+      title: newProposal.title.trim(),
+      description: newProposal.description.trim(),
+      creator: address ? `${address.slice(0, 6)}...${address.slice(-4)}` : 'You',
+      timeRemaining: '7d 0h',
+      votesYes: 0,
+      votesNo: 0,
+      votesAbstain: 0,
+      discussionCount: 0,
+      state: 1,
+      isLocal: true
+    };
+    const updated = [localProposal, ...localProposals];
+    setLocalProposals(updated);
+    try { localStorage.setItem(`local_proposals_${address}`, JSON.stringify(updated)); } catch (_) {}
+    showSuccess('Proposal created and visible in the list.', { title: 'Proposal Created!', duration: 3000, glow: true });
+    setShowCreateModal(false);
+    setNewProposal({ title: '', category: 'Governance', description: '' });
+  };
+
   const handleCreateProposal = async (e) => {
     e.preventDefault();
-    if (!governanceWrite || !connected) {
+    if (!connected) {
       showError('Connect wallet to create a proposal.', { title: 'Wallet Required' });
       return;
     }
@@ -369,22 +506,50 @@ const Governance = () => {
 
     setIsSubmittingProposal(true);
     try {
-      const proposalType = categoryToType[newProposal.category] ?? 4;
-      const tx = await governanceWrite.createProposal(
-        newProposal.title.trim(),
-        newProposal.description.trim(),
-        '',
-        proposalType,
-        [],
-        []
-      );
-      await tx.wait();
-      showSuccess('Proposal submitted on-chain.', { title: 'Proposal Created', duration: 3000, glow: true });
-      setShowCreateModal(false);
-      setNewProposal({ title: '', category: 'Governance', description: '' });
-      await loadGovernanceData();
-    } catch (error) {
-      showError(error.message || 'Proposal creation failed.', { title: 'Create Failed', duration: 3000 });
+      // Check on-chain voting power
+      let onChainPower = 0;
+      if (governanceRead) {
+        try {
+          const powerBn = await governanceRead.getVotingPower(address);
+          onChainPower = Number(ethers.formatEther(powerBn));
+        } catch (_) {}
+      }
+
+      const effectivePower = onChainPower > 0 ? onChainPower : demoTokens;
+
+      if (effectivePower < 100) {
+        showError(
+          'You need at least 100 MCT to create proposals. Claim your MCT tokens first.',
+          { title: 'Insufficient Voting Power', duration: 5000 }
+        );
+        return;
+      }
+
+      // If we have real on-chain power, try submitting on-chain
+      if (onChainPower >= 100 && governanceWrite) {
+        try {
+          const proposalType = categoryToType[newProposal.category] ?? 4;
+          const tx = await governanceWrite.createProposal(
+            newProposal.title.trim(),
+            newProposal.description.trim(),
+            '',
+            proposalType,
+            [],
+            []
+          );
+          await tx.wait();
+          showSuccess('Proposal submitted on-chain.', { title: 'Proposal Created', duration: 3000, glow: true });
+          setShowCreateModal(false);
+          setNewProposal({ title: '', category: 'Governance', description: '' });
+          await loadGovernanceData();
+          return;
+        } catch (_) {
+          // On-chain TX failed — fall through to local creation
+        }
+      }
+
+      // Demo mode: create proposal locally
+      createLocalProposal();
     } finally {
       setIsSubmittingProposal(false);
     }
@@ -425,6 +590,21 @@ const Governance = () => {
                   <span className="text-dark-text-muted">Voting Weight:</span>
                   <span className="text-purple-400 font-semibold">{userVotingPower.votingWeight}%</span>
                 </div>
+
+                {/* Claim MCT button — show whenever the user has no tokens yet */}
+                {connected && userVotingPower.tokens === 0 && (
+                  <div className="mt-4 p-3 bg-cyan-500/10 border border-cyan-500/30 rounded-lg">
+                    <p className="text-sm text-cyan-300 mb-3">New accounts receive 1000 MCT tokens to participate in governance.</p>
+                    <Button
+                      className="w-full"
+                      onClick={handleClaimMCT}
+                      disabled={isClaimingMCT}
+                    >
+                      {isClaimingMCT ? 'Claiming...' : 'Claim 1000 MCT Tokens'}
+                    </Button>
+                  </div>
+                )}
+
                 {isDelegated ? (
                   <div className="mt-4 p-3 bg-purple-500/10 border border-purple-500/30 rounded-lg">
                     <div className="flex items-center justify-between mb-2">

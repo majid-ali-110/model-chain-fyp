@@ -184,7 +184,7 @@ const Models = () => {
                       return aiImages[hash % aiImages.length];
                     })()}
                     alt={model.name}
-                    className="w-full h-full object-cover transition-transform duration-300 hover:scale-105"
+                    className="w-full h-full object-cover"
                     onError={(e) => {
                       e.target.style.display = 'none';
                       e.target.parentElement.style.background = 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)';
@@ -256,7 +256,7 @@ const Models = () => {
                   
                   <div className="flex items-center justify-between mt-auto">
                     <span className="text-lg font-bold text-primary-500">
-                      {parseFloat(model.price || '0') === 0 ? 'Free' : `${model.price} ETH`}
+                      {parseFloat(model.price || '0') === 0 ? 'Free' : `${model.price} POL`}
                     </span>
                     <div className="flex gap-2">
                       <Link to={`/sandbox?model=${model.id}`}>

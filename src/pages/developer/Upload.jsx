@@ -88,7 +88,7 @@ const Upload = () => {
         throw new Error('Price must be a valid non-negative number');
       }
       if (numericPrice > 0 && numericPrice < 0.001) {
-        throw new Error('Paid listings must be at least 0.001 ETH');
+        throw new Error('Paid listings must be at least 0.001 POL');
       }
 
       // Step 1: Prepare upload payload
@@ -307,7 +307,7 @@ const Upload = () => {
               </div>
               
               <Input
-                label="Price (ETH) *"
+                label="Price (POL) *"
                 type="number"
                 step="0.001"
                 value={formData.price}

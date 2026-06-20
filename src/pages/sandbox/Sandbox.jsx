@@ -54,7 +54,7 @@ import Badge from '../../components/ui/Badge';
 import Input from '../../components/ui/Input';
 import InputPanel from '../../components/sandbox/InputPanel';
 import OutputPanel from '../../components/sandbox/OutputPanel';
-import { runSandboxInference } from '../../services/inference';
+import { runSandboxInference, uploadTokenizerToInferenceServer } from '../../services/inference';
 
 const parseSandboxInput = (value) => {
   const trimmed = value.trim();
@@ -62,48 +62,66 @@ const parseSandboxInput = (value) => {
     return { rawInput: '', features: null };
   }
 
+  // Base64 data URL (image/audio/video) — pass as rawInput, no feature extraction
+  if (trimmed.startsWith('data:')) {
+    return { rawInput: trimmed, features: null };
+  }
+
   try {
     const parsed = JSON.parse(trimmed);
 
     if (Array.isArray(parsed)) {
-      return { rawInput: trimmed, features: parsed.map(Number) };
+      // Filter out nulls (unfilled tabular fields)
+      const nums = parsed.filter(v => v !== null).map(Number);
+      return { rawInput: trimmed, features: nums.length > 0 ? nums : null };
     }
 
     if (Array.isArray(parsed?.features)) {
       return { rawInput: trimmed, features: parsed.features.map(Number) };
     }
 
-    const irisKeys = ['sepal_length', 'sepal_width', 'petal_length', 'petal_width'];
-    if (irisKeys.every((key) => key in parsed)) {
-      return {
-        rawInput: trimmed,
-        features: irisKeys.map((key) => Number(parsed[key])),
-      };
+    // Named-key objects (e.g. {sepal_length: 5.1, ...})
+    const values = Object.values(parsed);
+    if (values.length > 0 && values.every(v => typeof v === 'number' || !isNaN(Number(v)))) {
+      return { rawInput: trimmed, features: values.map(Number) };
     }
   } catch {
     // Non-JSON text will be sent as raw input.
   }
 
+  // CSV fallback (5.1,3.5,1.4,0.2)
+  if (/^[\d.,\s-]+$/.test(trimmed) && trimmed.includes(',')) {
+    const nums = trimmed.split(',').map(v => parseFloat(v.trim())).filter(v => !isNaN(v));
+    if (nums.length > 0) return { rawInput: trimmed, features: nums };
+  }
+
   return { rawInput: trimmed, features: null };
 };
 
-const formatInferenceResult = (result) => {
-  const lines = [];
-
-  lines.push('Prediction completed.');
-  lines.push(`Predicted class: ${String(result.predictedClass)}`);
+const formatInferenceResult = (result, classLabels = []) => {
+  const structured = {
+    type: 'classification',
+    predictedClass: result.predictedClass,
+    predictedLabel: classLabels[result.predictedClass] || null,
+    probabilities: [],
+  };
 
   if (Array.isArray(result?.probabilities?.[0])) {
-    const pretty = result.probabilities[0]
-      .map((value, index) => `class_${index}: ${(Number(value) * 100).toFixed(2)}%`)
-      .join(', ');
-    lines.push(`Class probabilities: ${pretty}`);
+    structured.probabilities = result.probabilities[0].map((value, index) => ({
+      label: classLabels[index] || `class_${index}`,
+      value: Number(value),
+      percent: parseFloat((Number(value) * 100).toFixed(2)),
+    }));
+  } else if (result?.probabilities && !Array.isArray(result.probabilities[0])) {
+    // flat array fallback
+    structured.probabilities = result.probabilities.map((value, index) => ({
+      label: classLabels[index] || `class_${index}`,
+      value: Number(value),
+      percent: parseFloat((Number(value) * 100).toFixed(2)),
+    }));
   }
 
-  lines.push(`Model path used by backend: ${result.modelPath}`);
-  lines.push(`Input features: ${JSON.stringify(result.inputFeatures)}`);
-
-  return lines.join('\n');
+  return JSON.stringify(structured);
 };
 
 const Sandbox = () => {
@@ -115,52 +133,37 @@ const Sandbox = () => {
   const [isRunning, setIsRunning] = useState(false);
   const [currentTest, setCurrentTest] = useState(null);
   const [testHistory, setTestHistory] = useState([]);
-  const [parameters, setParameters] = useState({
-    temperature: 0.7,
-    maxTokens: 150,
-    topP: 1.0,
-    frequencyPenalty: 0.0,
-    presencePenalty: 0.0,
-    streaming: true
-  });
   const [inputData, setInputData] = useState('');
   const [outputData, setOutputData] = useState('');
   const [showHistoryPanel] = useState(true);
   const [selectedHistoryItem, setSelectedHistoryItem] = useState(null);
-  // Usage stats tracked internally (not displayed in UI yet)
-  // eslint-disable-next-line no-unused-vars
-  const [usageStats, setUsageStats] = useState({
-    tokensUsed: 1250,
-    tokenLimit: 5000,
-    requestsUsed: 23,
-    requestLimit: 100
-  });
-  const [viewMode, setViewMode] = useState('split'); // 'split', 'input', 'output'
   const [availableModels, setAvailableModels] = useState([]);
   const [modelSearch, setModelSearch] = useState('');
   const [filteredModels, setFilteredModels] = useState([]);
   const [showModelSelector, setShowModelSelector] = useState(false);
+  const [tokenizerUpload, setTokenizerUpload] = useState({ uploading: false, done: false, error: null });
+  const tokenizerInputRef = useRef(null);
   const outputRef = useRef(null);
+
+  // Whether the last inference failed because no tokenizer was found
+  const needsTokenizer = outputData.includes('TOKENIZER_REQUIRED');
+  // Whether the model expects sequential numeric data, not text
+  const needsNumericInput = outputData.includes('INPUT_FORMAT_ERROR');
+  // Extract the helpful hint from INPUT_FORMAT_ERROR message
+  const inputFormatHint = needsNumericInput
+    ? outputData.replace(/.*INPUT_FORMAT_ERROR:\s*/s, '').replace(/^Error:\s*/i, '').trim()
+    : null;
 
   // Initialize
   useEffect(() => {
-    // Map category to sandbox category
-    const categoryMap = {
-      'Language': 'text',
-      'Computer Vision': 'image',
-      'Audio': 'audio',
-      'Multimodal': 'text',
-      'Time Series': 'text',
-      'Medical': 'text'
-    };
-
     // Convert context models to sandbox compatible format
+    // model.category from blockchain is already 'text','image','audio','video','multimodal','other'
     const sandboxModels = contextModels.map(model => ({
       id: model.id,
       name: model.name,
-      provider: model.owner || 'Unknown',
+      provider: model.developer?.name || model.owner || 'Unknown',
       ipfsHash: model.ipfsHash,
-      category: categoryMap[model.category] || 'text',
+      category: model.category || 'text',
       description: model.description,
       pricing: {
         type: model.price === 0 ? 'free' : 'token',
@@ -173,7 +176,23 @@ const Sandbox = () => {
       accuracy: model.accuracy,
       rating: model.rating,
       downloads: model.downloads,
-      verified: model.verified
+      verified: model.verified,
+      // Use stored inputTypes filtered to valid sandbox types.
+      // When absent fall back to category if valid, else 'text'.
+      inputTypes: (() => {
+        const VALID = ['text', 'image', 'audio', 'video', 'tabular'];
+        if (model.inputTypes?.length > 0) {
+          const f = model.inputTypes.filter(t => VALID.includes(t));
+          if (f.length > 0) return f;
+        }
+        const cat = model.category || 'text';
+        return [VALID.includes(cat) ? cat : 'text'];
+      })(),
+      classLabels: model.classLabels ? model.classLabels.split(',').map(l => l.trim()).filter(Boolean) : [],
+      featureNames: model.featureNames || '',
+      exampleInputs: model.exampleInputs || {},
+      exampleOutputs: model.exampleOutputs || {},
+      inferenceModelKey: model.inferenceModelKey || '',
     }));
 
     // Use context models or show empty state
@@ -253,7 +272,6 @@ const Sandbox = () => {
       modelId: selectedModel.id,
       modelName: selectedModel.name,
       input: inputData,
-      parameters: { ...parameters },
       timestamp: new Date().toISOString(),
       status: 'running'
     });
@@ -265,7 +283,7 @@ const Sandbox = () => {
         selectedModel,
       });
 
-      const formattedOutput = formatInferenceResult(result);
+      const formattedOutput = formatInferenceResult(result, selectedModel?.classLabels || []);
       const executionTime = Math.max(1, Math.round(performance.now() - startedAt));
       const tokensUsed = Math.max(1, Math.ceil(inputData.length / 4));
 
@@ -284,7 +302,6 @@ const Sandbox = () => {
         modelName: selectedModel.name,
         input: inputData,
         output: formattedOutput,
-        parameters: { ...parameters },
         timestamp: new Date().toISOString(),
         status: 'completed',
         tokensUsed,
@@ -292,20 +309,13 @@ const Sandbox = () => {
       };
       setTestHistory(prev => [historyItem, ...prev].slice(0, 50));
 
-      // Update usage stats
-      setUsageStats(prev => ({
-        ...prev,
-        tokensUsed: prev.tokensUsed + tokensUsed,
-        requestsUsed: prev.requestsUsed + 1
-      }));
-
     } catch (error) {
       const friendlyError = error.message?.includes('Failed to fetch')
         ? 'Could not reach inference backend. Start it with: npm run inference:dev'
         : error.message;
 
       console.error('Test error:', error);
-      setOutputData(`Inference failed.\n${friendlyError}\n\nExpected Iris input:\n{"features":[5.1,3.5,1.4,0.2]}`);
+      setOutputData(`Inference failed.\n${friendlyError}`);
       setCurrentTest(prev => ({
         ...prev,
         status: 'failed',
@@ -318,7 +328,6 @@ const Sandbox = () => {
         modelName: selectedModel?.name || 'Unknown model',
         input: inputData,
         output: '',
-        parameters: { ...parameters },
         timestamp: new Date().toISOString(),
         status: 'failed',
       };
@@ -326,7 +335,7 @@ const Sandbox = () => {
     } finally {
       setIsRunning(false);
     }
-  }, [selectedModel, inputData, parameters]);
+  }, [selectedModel, inputData]);
 
   const stopTest = () => {
     setIsRunning(false);
@@ -345,7 +354,24 @@ const Sandbox = () => {
     setSelectedHistoryItem(item);
     setInputData(item.input);
     setOutputData(item.output || '');
-    setParameters(item.parameters || parameters);
+  };
+
+  const handleTokenizerUpload = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const modelKey = selectedModel?.inferenceModelKey;
+    if (!modelKey) {
+      setTokenizerUpload({ uploading: false, done: false, error: 'Model has no inference key. Re-upload the model file first.' });
+      return;
+    }
+    setTokenizerUpload({ uploading: true, done: false, error: null });
+    try {
+      await uploadTokenizerToInferenceServer(modelKey, file);
+      setTokenizerUpload({ uploading: false, done: true, error: null });
+      setOutputData('');
+    } catch (err) {
+      setTokenizerUpload({ uploading: false, done: false, error: err.message });
+    }
   };
 
   const deleteHistoryItem = (id) => {
@@ -477,31 +503,6 @@ const Sandbox = () => {
 
             {/* Usage Stats & Controls */}
             <div className="flex items-center gap-4">
-              {/* View Mode Toggle */}
-              <div className="flex bg-dark-surface rounded-lg p-1">
-                <button
-                  onClick={() => setViewMode('split')}
-                  className={`p-2 rounded-md transition-all duration-200 border-none cursor-pointer ${viewMode === 'split' ? 'bg-primary-400 text-white' : 'text-dark-text-muted'}`}
-                  title="Split View"
-                >
-                  <Squares2X2Icon className="h-4 w-4" />
-                </button>
-                <button
-                  onClick={() => setViewMode('input')}
-                  className={`p-2 rounded-md transition-all duration-200 border-none cursor-pointer ${viewMode === 'input' ? 'bg-primary-400 text-white' : 'text-dark-text-muted'}`}
-                  title="Input Focus"
-                >
-                  <DocumentTextIcon className="h-4 w-4" />
-                </button>
-                <button
-                  onClick={() => setViewMode('output')}
-                  className={`p-2 rounded-md transition-all duration-200 border-none cursor-pointer ${viewMode === 'output' ? 'bg-primary-400 text-white' : 'text-dark-text-muted'}`}
-                  title="Output Focus"
-                >
-                  <EyeIcon className="h-4 w-4" />
-                </button>
-              </div>
-
               {/* Run Button */}
               <Button 
                 onClick={runTest}
@@ -538,16 +539,13 @@ const Sandbox = () => {
 
       {/* Main Content */}
       <div className="page-shell py-6">
-        <div className={`grid gap-6 min-h-[calc(100vh-200px)] ${viewMode === 'split' ? 'grid-cols-[repeat(auto-fit,minmax(320px,1fr))]' : 'grid-cols-1'}`}>
+        <div className="grid gap-6 min-h-[calc(100vh-200px)] grid-cols-[repeat(auto-fit,minmax(320px,1fr))]">
           {/* Input Section */}
-          {(viewMode === 'split' || viewMode === 'input') && (
-            <div className="flex flex-col gap-4">
+          <div className="flex flex-col gap-4">
               <InputPanel
                 model={selectedModel}
                 inputData={inputData}
                 onInputChange={setInputData}
-                parameters={parameters}
-                onParametersChange={setParameters}
                 isLoading={isRunning}
               />
               
@@ -578,11 +576,9 @@ const Sandbox = () => {
                 </Button>
               </div>
             </div>
-          )}
 
           {/* Output Section */}
-          {(viewMode === 'split' || viewMode === 'output') && (
-            <div className="flex flex-col gap-4">
+          <div className="flex flex-col gap-4">
               <div className="flex items-center justify-between pb-2 border-b border-dark-border">
                 <h2 className="text-lg font-semibold text-dark-text-primary">Output</h2>
                 <div className="flex gap-2">
@@ -607,16 +603,95 @@ const Sandbox = () => {
                 </div>
               </div>
               
+              {needsNumericInput && (
+                <div className="rounded-xl border border-blue-500/40 bg-blue-500/10 p-4 mb-2">
+                  <div className="flex items-start gap-3">
+                    <ExclamationTriangleIcon className="h-5 w-5 text-blue-400 mt-0.5 shrink-0" />
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium text-blue-300 mb-1">This model expects numeric sequence data, not text</p>
+                      <p className="text-xs text-blue-200/70 mb-2">{inputFormatHint}</p>
+                      <p className="text-xs text-blue-200/50">Switch to the <strong className="text-blue-200">Features</strong> tab in the input panel to enter comma-separated numbers, or paste a JSON array.</p>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {needsTokenizer && (
+                <div className="rounded-xl border border-amber-500/40 bg-amber-500/10 p-4 mb-2">
+                  <div className="flex items-start gap-3">
+                    <ExclamationTriangleIcon className="h-5 w-5 text-amber-400 mt-0.5 shrink-0" />
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium text-amber-300 mb-1">Tokenizer required</p>
+
+                      <p className="text-xs text-amber-200/70 mb-3">
+                        The model converts text to numbers using a vocabulary that was fixed at training time —
+                        without it, predictions will be wrong. There are <strong className="text-amber-200">two ways</strong> to fix this:
+                      </p>
+
+                      {/* Option 1 */}
+                      <div className="bg-black/20 rounded-lg p-3 mb-2">
+                        <p className="text-xs font-semibold text-amber-200 mb-1">Option 1 — Upload the tokenizer file from the same GitHub repo</p>
+                        <p className="text-xs text-amber-200/60 mb-1">Look for any of these files in the repo:</p>
+                        <div className="flex flex-wrap gap-1 mb-2">
+                          {['tokenizer.json', 'tokenizer.pickle', 'tokenizer.pkl', 'word_index.json', 'vocab.txt'].map(f => (
+                            <code key={f} className="px-1.5 py-0.5 bg-black/30 rounded text-amber-100/80 text-xs">{f}</code>
+                          ))}
+                        </div>
+                        {tokenizerUpload.done ? (
+                          <p className="text-xs text-green-400 font-medium">✓ Tokenizer uploaded — run inference again.</p>
+                        ) : (
+                          <>
+                            <input
+                              ref={tokenizerInputRef}
+                              type="file"
+                              accept=".json,.pickle,.pkl,.txt,application/json,application/octet-stream,text/plain"
+                              className="hidden"
+                              onChange={handleTokenizerUpload}
+                            />
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => tokenizerInputRef.current?.click()}
+                              disabled={tokenizerUpload.uploading}
+                            >
+                              {tokenizerUpload.uploading ? 'Uploading…' : 'Upload tokenizer file'}
+                            </Button>
+                            {tokenizerUpload.error && (
+                              <p className="text-xs text-red-400 mt-2">{tokenizerUpload.error}</p>
+                            )}
+                          </>
+                        )}
+                      </div>
+
+                      {/* Option 2 */}
+                      <div className="bg-black/20 rounded-lg p-3">
+                        <p className="text-xs font-semibold text-amber-200 mb-1">Option 2 — If it's a BERT / DistilBERT / transformer model</p>
+                        <p className="text-xs text-amber-200/60 mb-2">
+                          Transformer models use a <em>standard</em> tokenizer we can apply automatically — no file needed.
+                          Install the <code className="px-1 bg-black/30 rounded">transformers</code> library in the inference server:
+                        </p>
+                        <code className="block text-xs bg-black/40 rounded px-2 py-1.5 text-green-300 font-mono select-all">
+                          pip install transformers
+                        </code>
+                        <p className="text-xs text-amber-200/50 mt-1.5">
+                          Then restart the inference server. The server will auto-detect the architecture (BERT, RoBERTa, etc.)
+                          and apply the correct tokenizer with no extra files.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
               <OutputPanel
                 ref={outputRef}
-                data={outputData}
+                data={(needsTokenizer || needsNumericInput) ? '' : outputData}
                 modelType={selectedModel?.category || 'text'}
                 isLoading={isRunning}
                 testInfo={currentTest}
               />
             </div>
-          )}
-        </div>
+          </div>
 
         {/* History Panel */}
         {showHistoryPanel && (

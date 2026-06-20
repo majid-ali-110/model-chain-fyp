@@ -80,9 +80,9 @@ const ModelGrid = ({
       label: 'Price',
       options: [
         { value: 'free', label: 'Free' },
-        { value: '0-1', label: '0 - 1 ETH' },
-        { value: '1-5', label: '1 - 5 ETH' },
-        { value: '5+', label: '5+ ETH' }
+        { value: '0-1', label: '0 - 1 POL' },
+        { value: '1-5', label: '1 - 5 POL' },
+        { value: '5+', label: '5+ POL' }
       ]
     },
     framework: {

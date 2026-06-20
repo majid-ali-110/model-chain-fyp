@@ -79,9 +79,9 @@ const WalletDashboard = () => {
       '137': { name: 'Polygon', currency: 'POL', isTestnet: false },
       '80002': { name: 'Polygon Amoy', currency: 'POL', isTestnet: true },
       '11155111': { name: 'Sepolia', currency: 'ETH', isTestnet: true },
-      '31337': { name: 'Localhost', currency: 'ETH', isTestnet: true },
+      '31337': { name: 'Localhost', currency: 'POL', isTestnet: true },
     };
-    return networks[chainId] || { name: 'Unknown', currency: 'ETH', isTestnet: true };
+    return networks[chainId] || { name: 'Unknown', currency: 'POL', isTestnet: true };
   };
 
   const networkInfo = getNetworkInfo(chainId);
@@ -355,19 +355,6 @@ const WalletDashboard = () => {
                   <p className="text-white font-medium">
                     {balanceVisible ? `${asset.balance.toFixed(4)} ${asset.symbol}` : '****'}
                   </p>
-                  <div className="flex items-center">
-                    {asset.change24h >= 0 ? (
-                      <ArrowTrendingUpIcon className="h-3 w-3 text-green-400 mr-1" />
-                    ) : (
-                      <ArrowTrendingDownIcon className="h-3 w-3 text-red-400 mr-1" />
-                    )}
-                    <span className={clsx(
-                      'text-sm',
-                      asset.change24h >= 0 ? 'text-green-400' : 'text-red-400'
-                    )}>
-                      {asset.change24h >= 0 ? '+' : ''}{asset.change24h}%
-                    </span>
-                  </div>
                 </div>
               </div>
               
@@ -395,121 +382,6 @@ const WalletDashboard = () => {
             </div>
           );
         })}
-      </div>
-    </Card>
-  );
-
-  // Performance Stats Component
-  const PerformanceStats = () => (
-    <Card className="p-6">
-      <h3 className="text-lg font-semibold text-white mb-4 flex items-center">
-        <ChartBarIcon className="h-5 w-5 mr-2" />
-        Performance
-      </h3>
-      
-      <div className="grid grid-cols-2 gap-4">
-        <div className="p-3 bg-dark-surface-elevated rounded-lg">
-          <p className="text-dark-text-muted text-sm">24h</p>
-          <div className="flex items-center">
-            {walletData.performance.daily >= 0 ? (
-              <ArrowTrendingUpIcon className="h-4 w-4 text-green-400 mr-1" />
-            ) : (
-              <ArrowTrendingDownIcon className="h-4 w-4 text-red-400 mr-1" />
-            )}
-            <span className={clsx(
-              'font-medium',
-              walletData.performance.daily >= 0 ? 'text-green-400' : 'text-red-400'
-            )}>
-              {walletData.performance.daily >= 0 ? '+' : ''}{walletData.performance.daily}%
-            </span>
-          </div>
-        </div>
-        
-        <div className="p-3 bg-dark-surface-elevated rounded-lg">
-          <p className="text-dark-text-muted text-sm">7d</p>
-          <div className="flex items-center">
-            {walletData.performance.weekly >= 0 ? (
-              <ArrowTrendingUpIcon className="h-4 w-4 text-green-400 mr-1" />
-            ) : (
-              <ArrowTrendingDownIcon className="h-4 w-4 text-red-400 mr-1" />
-            )}
-            <span className={clsx(
-              'font-medium',
-              walletData.performance.weekly >= 0 ? 'text-green-400' : 'text-red-400'
-            )}>
-              {walletData.performance.weekly >= 0 ? '+' : ''}{walletData.performance.weekly}%
-            </span>
-          </div>
-        </div>
-        
-        <div className="p-3 bg-dark-surface-elevated rounded-lg">
-          <p className="text-dark-text-muted text-sm">30d</p>
-          <div className="flex items-center">
-            {walletData.performance.monthly >= 0 ? (
-              <ArrowTrendingUpIcon className="h-4 w-4 text-green-400 mr-1" />
-            ) : (
-              <ArrowTrendingDownIcon className="h-4 w-4 text-red-400 mr-1" />
-            )}
-            <span className={clsx(
-              'font-medium',
-              walletData.performance.monthly >= 0 ? 'text-green-400' : 'text-red-400'
-            )}>
-              {walletData.performance.monthly >= 0 ? '+' : ''}{walletData.performance.monthly}%
-            </span>
-          </div>
-        </div>
-        
-        <div className="p-3 bg-dark-surface-elevated rounded-lg">
-          <p className="text-dark-text-muted text-sm">All Time</p>
-          <div className="flex items-center">
-            <ArrowTrendingUpIcon className="h-4 w-4 text-green-400 mr-1" />
-            <span className="font-medium text-green-400">+{walletData.performance.allTime}%</span>
-          </div>
-        </div>
-      </div>
-    </Card>
-  );
-
-  // Staking Info Component
-  const StakingInfo = () => (
-    <Card className="p-6">
-      <div className="flex items-center justify-between mb-4">
-        <h3 className="text-lg font-semibold text-white flex items-center">
-          <TrophyIcon className="h-5 w-5 mr-2" />
-          Staking
-        </h3>
-        <Link to="/staking">
-          <Button variant="outline" size="sm">
-            Manage
-          </Button>
-        </Link>
-      </div>
-      
-      <div className="space-y-4">
-        <div className="p-3 bg-dark-surface-elevated rounded-lg">
-          <p className="text-dark-text-muted text-sm">Total Staked</p>
-          <p className="text-white font-medium">
-            {formatTokens(walletData.staking.totalStaked, 'MCG')}
-          </p>
-        </div>
-        
-        <div className="p-3 bg-dark-surface-elevated rounded-lg">
-          <p className="text-dark-text-muted text-sm">Rewards Earned</p>
-          <p className="text-green-400 font-medium">
-            {formatTokens(walletData.staking.stakingRewards, 'MCG')}
-          </p>
-        </div>
-        
-        <div className="grid grid-cols-2 gap-3">
-          <div className="p-3 bg-dark-surface-elevated rounded-lg">
-            <p className="text-dark-text-muted text-sm">APY</p>
-            <p className="text-white font-medium">{walletData.staking.apy}%</p>
-          </div>
-          <div className="p-3 bg-dark-surface-elevated rounded-lg">
-            <p className="text-dark-text-muted text-sm">Next Reward</p>
-            <p className="text-white font-medium">{walletData.staking.nextReward}</p>
-          </div>
-        </div>
       </div>
     </Card>
   );
@@ -724,7 +596,7 @@ const WalletDashboard = () => {
             <div className="flex items-start">
               <InformationCircleIcon className="h-5 w-5 text-blue-400 mr-2 mt-0.5 flex-shrink-0" />
               <p className="text-sm text-blue-300">
-                Only send MCT, MCG, or ETH tokens to this address. Sending other tokens may result in permanent loss.
+                Only send MCT, MCG, or POL tokens to this address. Sending other tokens may result in permanent loss.
               </p>
             </div>
           </div>
@@ -757,12 +629,6 @@ const WalletDashboard = () => {
         </Link>
       </div>
 
-      <Card className="p-4 mb-6 border-yellow-500/30 bg-yellow-500/10">
-        <p className="text-sm text-yellow-300">
-          Note: Balance and transfers are live. Portfolio performance, staking summary, and transaction analytics cards are placeholder metrics until analytics/staking backends are integrated.
-        </p>
-      </Card>
-
       {/* Main Content */}
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
         {/* Left Column */}
@@ -778,12 +644,6 @@ const WalletDashboard = () => {
         <div className="space-y-6">
           {/* Portfolio Breakdown */}
           <PortfolioBreakdown />
-          
-          {/* Performance Stats */}
-          <PerformanceStats />
-          
-          {/* Staking Info */}
-          <StakingInfo />
           
           {/* Quick Actions */}
           <QuickActions />

@@ -23,7 +23,7 @@ const Dashboard = () => {
 
   // Get network currency based on chainId
   const getNetworkCurrency = (chainId) => {
-    const polygonChains = ['137', '80002', '80001'];
+    const polygonChains = ['137', '80002', '80001', '31337'];
     return polygonChains.includes(chainId) ? 'POL' : 'ETH';
   };
 
@@ -103,6 +103,29 @@ const Dashboard = () => {
       color: 'purple'
     }
   ];
+
+  // Compute real stats for progress card
+  const weekStart = new Date();
+  weekStart.setDate(weekStart.getDate() - 7);
+  weekStart.setHours(0, 0, 0, 0);
+  const weeklyReviewed = validationRecords.filter(v => new Date(v.completedAt) >= weekStart).length;
+  const totalValidated = validationRecords.length;
+  const approvedCount = validationRecords.filter(v => v.decision === 'approve').length;
+  const approvalRate = totalValidated > 0 ? Math.round((approvedCount / totalValidated) * 100) : 0;
+
+  // Category distribution from reviewed models
+  const categoryMap = validationRecords.reduce((acc, v) => {
+    const cat = v.category || 'other';
+    acc[cat] = (acc[cat] || 0) + 1;
+    return acc;
+  }, {});
+  const categoryEntries = Object.entries(categoryMap)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 3)
+    .map(([cat, count]) => ({
+      label: cat.charAt(0).toUpperCase() + cat.slice(1),
+      pct: totalValidated > 0 ? Math.round((count / totalValidated) * 100) : 0
+    }));
 
   const getPriorityColor = (priority) => {
     switch (priority) {
@@ -276,68 +299,58 @@ const Dashboard = () => {
         <Card.Content>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div>
-              <h4 className="font-medium text-dark-text-primary mb-4">Weekly Goals</h4>
+              <h4 className="font-medium text-dark-text-primary mb-4">This Week</h4>
               <div className="space-y-3">
                 <div>
                   <div className="flex justify-between text-sm mb-1">
                     <span>Models Reviewed</span>
-                    <span>12/15</span>
+                    <span>{weeklyReviewed}</span>
                   </div>
-                  <Progress value={80} />
+                  <Progress value={Math.min(weeklyReviewed * 10, 100)} />
                 </div>
                 <div>
                   <div className="flex justify-between text-sm mb-1">
-                    <span>Quality Score</span>
-                    <span>98.5%</span>
+                    <span>Approval Rate</span>
+                    <span>{approvalRate}%</span>
                   </div>
-                  <Progress value={98.5} />
+                  <Progress value={approvalRate} />
                 </div>
               </div>
             </div>
-            
+
             <div>
               <h4 className="font-medium text-dark-text-primary mb-4">Category Distribution</h4>
               <div className="space-y-3">
-                <div>
-                  <div className="flex justify-between text-sm mb-1">
-                    <span>Language Models</span>
-                    <span>45%</span>
+                {categoryEntries.length === 0 ? (
+                  <p className="text-dark-text-tertiary text-sm">No validations yet.</p>
+                ) : categoryEntries.map(({ label, pct }) => (
+                  <div key={label}>
+                    <div className="flex justify-between text-sm mb-1">
+                      <span>{label}</span>
+                      <span>{pct}%</span>
+                    </div>
+                    <Progress value={pct} />
                   </div>
-                  <Progress value={45} />
-                </div>
-                <div>
-                  <div className="flex justify-between text-sm mb-1">
-                    <span>Computer Vision</span>
-                    <span>35%</span>
-                  </div>
-                  <Progress value={35} />
-                </div>
-                <div>
-                  <div className="flex justify-between text-sm mb-1">
-                    <span>Other</span>
-                    <span>20%</span>
-                  </div>
-                  <Progress value={20} />
-                </div>
+                ))}
               </div>
             </div>
-            
+
             <div>
               <h4 className="font-medium text-dark-text-primary mb-4">Performance Metrics</h4>
               <div className="space-y-3">
                 <div>
                   <div className="flex justify-between text-sm mb-1">
-                    <span>Accuracy Rate</span>
-                    <span>98.5%</span>
+                    <span>Approved</span>
+                    <span>{approvedCount}</span>
                   </div>
-                  <Progress value={98.5} />
+                  <Progress value={approvalRate} />
                 </div>
                 <div>
                   <div className="flex justify-between text-sm mb-1">
-                    <span>Response Time</span>
-                    <span>92%</span>
+                    <span>Rejected</span>
+                    <span>{totalValidated - approvedCount}</span>
                   </div>
-                  <Progress value={92} />
+                  <Progress value={totalValidated > 0 ? 100 - approvalRate : 0} />
                 </div>
               </div>
             </div>

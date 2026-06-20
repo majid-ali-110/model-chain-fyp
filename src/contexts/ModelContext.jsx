@@ -6,6 +6,7 @@ import { getContracts } from '../contracts';
 import ModelRegistryABI from '../contracts/abis/ModelRegistry.json';
 import MarketplaceABI from '../contracts/abis/Marketplace.json';
 import { uploadJSON, uploadFile, fetchFromIPFS, uploadModelMetadata, getIPFSUrl } from '../services/ipfs';
+import { uploadModelToInferenceServer } from '../services/inference';
 
 // Model Context
 const ModelContext = createContext();
@@ -36,6 +37,8 @@ const STATUS = {
   2: 'rejected',
   3: 'suspended'
 };
+
+const MODEL_LABEL_OVERRIDES_PREFIX = 'model_labels_override_';
 
 const modelReducer = (state, action) => {
   switch (action.type) {
@@ -171,7 +174,7 @@ export const ModelProvider = ({ children }) => {
     }
   }, [provider, chainId]);
 
-  const loadModels = async () => {
+  const loadModels = useCallback(async () => {
     dispatch({ type: 'SET_LOADING', payload: true });
     
     try {
@@ -200,10 +203,49 @@ export const ModelProvider = ({ children }) => {
             // Use on-chain data if IPFS fails
           }
 
+          // Apply locally saved label overrides so developer edits persist
+          // even when metadata is fetched from a remote IPFS gateway.
+          try {
+            const overrideRaw = localStorage.getItem(
+              `${MODEL_LABEL_OVERRIDES_PREFIX}${modelData.metadataHash}`
+            );
+            if (overrideRaw) {
+              const override = JSON.parse(overrideRaw);
+              metadata = {
+                ...metadata,
+                classLabels: override.classLabels ?? metadata.classLabels,
+                featureNames: override.featureNames ?? metadata.featureNames,
+              };
+            }
+          } catch {
+            // Ignore malformed local overrides
+          }
+
+          // Resolve developer display name from localStorage profile
+          const ownerAddress = modelData.owner;
+          let developerName = `${ownerAddress.slice(0, 6)}...${ownerAddress.slice(-4)}`;
+          let developerAvatar = null;
+          try {
+            const stored = localStorage.getItem(`user_profile_${ownerAddress}`);
+            if (stored) {
+              const p = JSON.parse(stored);
+              if (p.displayName) developerName = p.displayName;
+              if (p.avatar) developerAvatar = p.avatar;
+            }
+          } catch { /* ignore */ }
+
           const model = {
             id: modelData.id.toString(),
             tokenId: modelData.id.toString(),
-            owner: modelData.owner,
+            owner: ownerAddress,
+            developer: {
+              id: ownerAddress,
+              name: developerName,
+              avatar: developerAvatar,
+              verified: modelData.status === 1,
+              reputation: 0,
+              modelCount: 0,
+            },
             name: modelData.name || metadata.name || `Model #${i}`,
             description: metadata.description || '',
             ipfsHash: modelData.ipfsHash,
@@ -228,6 +270,13 @@ export const ModelProvider = ({ children }) => {
             requirements: metadata.requirements || [],
             license: metadata.license || 'MIT',
             imageUrl: metadata.imageUrl ? getIPFSUrl(metadata.imageUrl) : null,
+            // Sandbox / inference fields
+            inputTypes: metadata.inputTypes || [],
+            featureNames: metadata.featureNames || '',
+            classLabels: metadata.classLabels || '',
+            exampleInputs: metadata.exampleInputs || {},
+            exampleOutputs: metadata.exampleOutputs || {},
+            inferenceModelKey: metadata.inferenceModelKey || '',
           };
 
           models.push(model);
@@ -241,7 +290,7 @@ export const ModelProvider = ({ children }) => {
     } catch (error) {
       dispatch({ type: 'SET_ERROR', payload: error.message });
     }
-  };
+  }, [state.contracts]);
 
   const uploadModel = async (modelData) => {
     if (!signer || !connected) {
@@ -256,11 +305,19 @@ export const ModelProvider = ({ children }) => {
         signer
       );
 
-      // 1. Upload model file to IPFS
+      // 1. Upload model file to IPFS + inference server
       let modelFileHash = '';
+      let inferenceModelKey = '';
       if (modelData.file) {
         const fileResult = await uploadFile(modelData.file);
         modelFileHash = fileResult.hash;
+        // Also upload directly to the inference server so the model is
+        // reachable by the Python process even when IPFS is a local mock.
+        try {
+          inferenceModelKey = await uploadModelToInferenceServer(modelData.file);
+        } catch {
+          // Inference server may not be running; non-fatal
+        }
       }
 
       // 2. Upload metadata to IPFS
@@ -278,6 +335,12 @@ export const ModelProvider = ({ children }) => {
         outputFormat: modelData.outputFormat,
         modelSize: modelData.file?.size || 0,
         imageUrl: modelData.imageHash || '',
+        inputTypes: modelData.inputTypes || [],
+        featureNames: modelData.featureNames || '',
+        classLabels: modelData.classLabels || '',
+        exampleInputs: modelData.exampleInputs || {},
+        exampleOutputs: modelData.exampleOutputs || {},
+        inferenceModelKey: inferenceModelKey || '',
       });
 
       // 3. Register model on blockchain
@@ -307,6 +370,18 @@ export const ModelProvider = ({ children }) => {
       });
 
       const tokenId = event ? modelRegistry.interface.parseLog(event).args.tokenId : null;
+
+      // Auto-validate: attempt to mark model as VALIDATED (status=1).
+      // Works when the connected wallet is the contract owner (Hardhat deployer).
+      // Silently skips if wallet lacks owner permission.
+      if (tokenId !== null) {
+        try {
+          const validateTx = await modelRegistry.setModelStatus(tokenId, 1, await buildTransactionOverrides());
+          await validateTx.wait();
+        } catch {
+          // Not the contract owner — model stays PENDING; that's fine
+        }
+      }
 
       // Reload models
       await loadModels();
@@ -450,6 +525,38 @@ export const ModelProvider = ({ children }) => {
     }
   };
 
+  /**
+   * Patch classLabels / featureNames in localStorage (IPFS mock) without a
+   * blockchain transaction.  Used by developers to add human-readable labels
+   * to models that were uploaded before labels were set.
+   */
+  const patchModelLabels = (modelId, classLabels, featureNames) => {
+    const model = state.models.find(m => m.id === modelId || m.tokenId === modelId);
+    if (!model?.metadataHash) return { success: false, error: 'Model or metadataHash not found' };
+
+    const LOCAL_KEY = `ipfs_mock_${model.metadataHash}`;
+    const OVERRIDE_KEY = `${MODEL_LABEL_OVERRIDES_PREFIX}${model.metadataHash}`;
+    try {
+      const raw = localStorage.getItem(LOCAL_KEY);
+      const existing = raw ? JSON.parse(raw) : {};
+      const updated = { ...existing, classLabels, featureNames };
+      localStorage.setItem(LOCAL_KEY, JSON.stringify(updated));
+
+      // Persist label overrides separately so they are reapplied after any
+      // model reload, regardless of IPFS gateway response order.
+      localStorage.setItem(OVERRIDE_KEY, JSON.stringify({ classLabels, featureNames }));
+    } catch {
+      return { success: false, error: 'Failed to update local metadata' };
+    }
+
+    dispatch({
+      type: 'UPDATE_MODEL',
+      payload: { id: modelId, classLabels, featureNames },
+    });
+
+    return { success: true };
+  };
+
   const searchModels = (query) => {
     dispatch({ type: 'SET_SEARCH_QUERY', payload: query });
   };
@@ -530,6 +637,7 @@ export const ModelProvider = ({ children }) => {
     sortModels,
     uploadModel,
     updateModel,
+    patchModelLabels,
     getModelById,
     getFilteredModels,
     loadModels,

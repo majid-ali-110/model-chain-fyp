@@ -17,78 +17,33 @@ const Overview = () => {
   const stats = [
     {
       title: 'Total Users',
-      value: '12,456',
-      change: '+8.2%',
+      value: '—',
       icon: UsersIcon,
       color: 'blue'
     },
     {
       title: 'Active Models',
-      value: '1,847',
-      change: '+15.3%',
+      value: '—',
       icon: CubeIcon,
       color: 'green'
     },
     {
       title: 'Total Volume',
-      value: '245.7 ETH',
-      change: '+22.1%',
+      value: '—',
       icon: CurrencyDollarIcon,
       color: 'purple'
     },
     {
       title: 'Platform Health',
-      value: '99.2%',
-      change: '+0.1%',
+      value: '—',
       icon: ChartBarIcon,
       color: 'green'
     }
   ];
 
-  const alerts = [
-    {
-      id: 1,
-      type: 'warning',
-      message: 'High server load detected on validation nodes',
-      time: '5 minutes ago'
-    },
-    {
-      id: 2,
-      type: 'info',
-      message: 'New model category "Quantum ML" added',
-      time: '2 hours ago'
-    },
-    {
-      id: 3,
-      type: 'error',
-      message: 'Fraudulent model detected and removed',
-      time: '4 hours ago'
-    }
-  ];
+  const alerts = [];
 
-  const recentActivity = [
-    {
-      id: 1,
-      action: 'Model Approved',
-      target: 'GPT-5 Advanced',
-      user: 'alice.eth',
-      time: '10 minutes ago'
-    },
-    {
-      id: 2,
-      action: 'User Suspended',
-      target: 'suspicious.eth',
-      user: 'Admin',
-      time: '1 hour ago'
-    },
-    {
-      id: 3,
-      action: 'Validator Added',
-      target: 'bob.eth',
-      user: 'Admin',
-      time: '3 hours ago'
-    }
-  ];
+  const recentActivity = [];
 
   const systemMetrics = [
     { name: 'API Response Time', value: 95, unit: 'ms' },
@@ -129,10 +84,6 @@ const Overview = () => {
                   <div>
                     <p className="text-sm font-medium text-dark-text-tertiary">{stat.title}</p>
                     <p className="text-2xl font-bold text-dark-text-primary">{stat.value}</p>
-                    <div className="flex items-center gap-1 mt-1">
-                      <ArrowTrendingUpIcon className="h-3 w-3 text-green-400" />
-                      <span className="text-sm text-green-400 font-medium">{stat.change}</span>
-                    </div>
                   </div>
                   <div className={`p-3 rounded-lg ${iconBgMap[stat.color] || 'bg-primary-500/10'}`}>
                     <IconComponent className={`h-6 w-6 ${iconTextMap[stat.color] || 'text-primary-400'}`} />
@@ -150,12 +101,14 @@ const Overview = () => {
           <Card.Header>
             <div className="flex items-center justify-between">
               <Card.Title>System Alerts</Card.Title>
-              <Badge variant="warning">3 Active</Badge>
+              <Badge variant="secondary">No Alerts</Badge>
             </div>
           </Card.Header>
           <Card.Content>
             <div className="space-y-4">
-              {alerts.map(alert => (
+              {alerts.length === 0 ? (
+                <p className="text-sm text-dark-text-secondary py-4 text-center">No active alerts</p>
+              ) : alerts.map(alert => (
                 <div key={alert.id} className="flex items-start gap-3 p-3 border border-dark-border rounded-lg">
                   {getAlertIcon(alert.type)}
                   <div className="flex-1">
@@ -178,7 +131,9 @@ const Overview = () => {
           </Card.Header>
           <Card.Content>
             <div className="space-y-4">
-              {recentActivity.map(activity => (
+              {recentActivity.length === 0 ? (
+                <p className="text-sm text-dark-text-secondary py-4 text-center">No recent activity</p>
+              ) : recentActivity.map(activity => (
                 <div key={activity.id} className="flex items-center justify-between py-3 border-b border-dark-border last:border-0">
                   <div>
                     <p className="text-sm font-medium text-dark-text-primary">

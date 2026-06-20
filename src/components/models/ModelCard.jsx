@@ -36,7 +36,6 @@ const ModelCard = ({
   showActions = true,
   compact = false
 }) => {
-  const [isHovered, setIsHovered] = useState(false);
   const [isFavorited, setIsFavorited] = useState(model?.isFavorited || false);
   const [isImageLoaded, setIsImageLoaded] = useState(false);
 
@@ -48,27 +47,27 @@ const ModelCard = ({
     category: 'Computer Vision',
     subcategory: 'Object Detection',
     price: 0.05,
-    currency: 'ETH',
+    currency: 'POL',
     isPremium: false,
-    rating: 4.8,
-    reviewCount: 124,
-    downloadCount: 1200,
-    viewCount: 5400,
+    rating: 0,
+    reviewCount: 0,
+    downloadCount: 0,
+    viewCount: 0,
     thumbnail: null,
     verified: true,
     featured: false,
     trending: true,
     lastUpdated: '2024-10-01',
-    accuracy: 95.2,
-    inferenceTime: '45ms',
-    modelSize: '125MB',
+    accuracy: 0,
+    inferenceTime: '—',
+    modelSize: '—',
     developer: {
       id: 'dev-123',
-      name: 'AI Research Lab',
+      name: 'Unknown Developer',
       avatar: null,
       verified: true,
-      reputation: 4.9,
-      modelCount: 23
+      reputation: 0,
+      modelCount: 0
     },
     tags: ['pytorch', 'yolo', 'real-time', 'mobile-optimized'],
     license: 'Commercial',
@@ -151,27 +150,14 @@ const ModelCard = ({
   return (
     <div
       className={clsx(
-        'group relative bg-dark-surface-elevated border border-dark-surface-elevated transition-all duration-300 overflow-hidden',
+        'group relative bg-dark-surface-elevated border border-dark-surface-elevated overflow-hidden',
         variants[variant],
-        isHovered && 'transform scale-[1.02] shadow-2xl',
         modelData.featured && 'ring-2 ring-primary-500/50',
         modelData.trending && 'ring-2 ring-accent-500/50',
         compact ? 'max-w-sm' : 'max-w-sm mx-auto',
         className
       )}
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
     >
-      {/* Hover Glow Effect */}
-      {isHovered && (
-        <div className={clsx(
-          'absolute inset-0 rounded-xl blur-xl transition-opacity duration-300',
-          modelData.featured && 'bg-primary-500/20',
-          modelData.trending && 'bg-accent-500/20',
-          !modelData.featured && !modelData.trending && 'bg-secondary-500/20'
-        )} />
-      )}
-
       {/* Content */}
       <div className="relative">
         {/* Thumbnail Section */}
@@ -182,8 +168,7 @@ const ModelCard = ({
                 src={modelData.thumbnail}
                 alt={modelData.name}
                 className={clsx(
-                  'w-full h-full object-cover transition-all duration-300',
-                  isHovered && 'scale-110',
+                  'w-full h-full object-cover',
                   !isImageLoaded && 'opacity-0'
                 )}
                 onLoad={() => setIsImageLoaded(true)}
@@ -232,7 +217,7 @@ const ModelCard = ({
             className={clsx(
               'absolute top-3 right-3 p-2 rounded-full transition-all duration-200',
               'bg-dark-bg-primary/80 backdrop-blur-sm',
-              'hover:bg-dark-bg-primary hover:scale-110',
+              'hover:bg-dark-bg-primary',
               isFavorited && 'text-red-500',
               !isFavorited && 'text-dark-text-muted hover:text-red-400'
             )}
@@ -247,9 +232,8 @@ const ModelCard = ({
           {/* Quick Preview Button */}
           {showActions && (
             <div className={clsx(
-              'absolute inset-0 flex items-center justify-center transition-opacity duration-300',
-              'bg-dark-bg-primary/60 backdrop-blur-sm',
-              isHovered ? 'opacity-100' : 'opacity-0'
+              'absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200',
+              'bg-dark-bg-primary/60 backdrop-blur-sm'
             )}>
               <Button
                 variant="primary"
@@ -442,7 +426,7 @@ const ModelCard = ({
       {/* Loading Shimmer Effect */}
       <div className={clsx(
         'absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent -skew-x-12 transition-transform duration-1000',
-        isHovered ? 'translate-x-full' : '-translate-x-full'
+        '-translate-x-full group-hover:translate-x-full'
       )} />
     </div>
   );

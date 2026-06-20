@@ -105,9 +105,9 @@ const Navbar = () => {
       '137': { name: 'Polygon', currency: 'POL' },
       '80002': { name: 'Polygon Amoy', currency: 'POL' },
       '11155111': { name: 'Sepolia', currency: 'ETH' },
-      '31337': { name: 'Localhost', currency: 'ETH' },
+      '31337': { name: 'Localhost', currency: 'POL' },
     };
-    return networks[chainId] || { name: 'Unknown', currency: 'ETH' };
+    return networks[chainId] || { name: 'Unknown', currency: 'POL' };
   };
 
   const networkInfo = getNetworkInfo(chainId);
@@ -176,11 +176,21 @@ const Navbar = () => {
     },
   ];
 
-  const userNavigation = [
+  const baseUserNavigation = [
     { name: 'Profile', href: '/profile', icon: UserIcon },
     { name: 'Settings', href: '/settings', icon: Cog6ToothIcon },
-    { name: 'My Models', href: '/developer/models', icon: CubeIcon },
     { name: 'Wallet', href: '/wallet', icon: WalletIcon },
+  ];
+
+  const roleNavigation = user.role === 'developer'
+    ? [{ name: 'My Models', href: '/developer/models', icon: CubeIcon }]
+    : user.role === 'validator'
+    ? [{ name: 'Validator Dashboard', href: '/validator/dashboard', icon: ShieldCheckIcon }]
+    : [];
+
+  const userNavigation = [
+    ...baseUserNavigation,
+    ...roleNavigation,
     { name: 'Sign out', href: '#', icon: ArrowRightOnRectangleIcon },
   ];
 
@@ -261,11 +271,11 @@ const Navbar = () => {
             {/* Logo */}
             <div className="flex items-center">
               <Link to="/" className="flex items-center gap-2 group">
-                <div className="relative w-12 h-12 flex items-center justify-center animate-float">
+                <div className="relative w-12 h-12 flex items-center justify-center">
                   <img 
                     src="/modelchainlogo-removebg-preview.png" 
                     alt="ModelChain Logo" 
-                    className="w-full h-full object-contain transition-all duration-500 group-hover:scale-110 group-hover:rotate-12 group-hover:drop-shadow-[0_0_20px_rgba(6,182,212,0.6)]"
+                    className="w-full h-full object-contain"
                     onError={(e) => {
                       e.target.style.display = 'none';
                     }}
@@ -292,7 +302,7 @@ const Navbar = () => {
                     key={item.name}
                     to={item.href}
                     className={clsx(
-                      'group relative inline-flex items-center px-4 py-2 text-sm font-medium rounded-lg transition-all duration-300 transform hover:scale-105 hover:-translate-y-0.5',
+                      'group relative inline-flex items-center px-4 py-2 text-sm font-medium rounded-lg transition-colors',
                       isActive
                         ? 'text-primary-300 bg-primary-500/10 shadow-[0_0_20px_rgba(59,130,246,0.15)]'
                         : 'text-dark-text-muted hover:text-dark-text-primary hover:bg-dark-surface/50'
@@ -359,7 +369,7 @@ const Navbar = () => {
                     type="button"
                     onClick={() => setShowNotifications(!showNotifications)}
                     className={clsx(
-                      'relative z-10 rounded-lg p-2 transition-all focus:outline-none focus:ring-2 focus:ring-primary-500 hover:scale-105 transform',
+                      'relative z-10 rounded-lg p-2 transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500',
                       showNotifications
                         ? 'text-primary-400 bg-dark-surface/80'
                         : 'text-dark-text-primary hover:text-primary-400 hover:bg-dark-surface/80'

@@ -87,9 +87,9 @@ const Settings = () => {
       '137': { name: 'Polygon', currency: 'POL', isTestnet: false },
       '80002': { name: 'Polygon Amoy', currency: 'POL', isTestnet: true },
       '11155111': { name: 'Sepolia', currency: 'ETH', isTestnet: true },
-      '31337': { name: 'Localhost', currency: 'ETH', isTestnet: true },
+      '31337': { name: 'Localhost', currency: 'POL', isTestnet: true },
     };
-    return networks[chainId] || { name: 'Unknown', currency: 'ETH', isTestnet: true };
+    return networks[chainId] || { name: 'Unknown', currency: 'POL', isTestnet: true };
   };
 
   const networkInfo = getNetworkInfo(chainId);
@@ -130,23 +130,17 @@ const Settings = () => {
   const handleSaveAccount = async (e) => {
     e.preventDefault();
     setIsLoading(true);
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 1000));
     setIsLoading(false);
   };
 
   const handleChangePassword = async (e) => {
     e.preventDefault();
     setIsLoading(true);
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 1000));
     setIsLoading(false);
   };
 
   const handleToggle2FA = async () => {
     setIsLoading(true);
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 1000));
     setTwoFactorEnabled(!twoFactorEnabled);
     setIsLoading(false);
   };

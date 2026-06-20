@@ -19,7 +19,7 @@ const MyModels = () => {
 
   // Get network currency based on chainId
   const getNetworkCurrency = (chainId) => {
-    const polygonChains = ['137', '80002', '80001'];
+    const polygonChains = ['137', '80002', '80001', '31337'];
     return polygonChains.includes(chainId) ? 'POL' : 'ETH';
   };
 

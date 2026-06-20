@@ -5,7 +5,6 @@ import {
   BoltIcon,
   CurrencyDollarIcon,
   ClockIcon,
-  ArrowTrendingUpIcon,
   ArrowPathIcon,
   AdjustmentsHorizontalIcon,
   PlayIcon,
@@ -15,8 +14,6 @@ import {
   ShoppingCartIcon,
   CreditCardIcon,
   ChevronRightIcon,
-  SparklesIcon,
-  RocketLaunchIcon,
   TrophyIcon,
   UserGroupIcon,
   CalendarIcon,
@@ -25,17 +22,13 @@ import {
   HeartIcon,
   WalletIcon,
   ShieldCheckIcon,
-  LightBulbIcon,
   InformationCircleIcon,
   DocumentTextIcon,
   PhotoIcon,
   SpeakerWaveIcon,
   VideoCameraIcon
 } from '@heroicons/react/24/outline';
-import { 
-  StarIcon as StarSolidIcon,
-  BoltIcon as BoltSolidIcon
-} from '@heroicons/react/24/solid';
+
 import { clsx } from 'clsx';
 import Button from '../../components/ui/Button';
 import Card from '../../components/ui/Card';
@@ -52,7 +45,7 @@ const Dashboard = () => {
 
   // Get network currency based on chainId
   const getNetworkCurrency = (chainId) => {
-    const polygonChains = ['137', '80002', '80001'];
+    const polygonChains = ['137', '80002', '80001', '31337'];
     return polygonChains.includes(chainId) ? 'POL' : 'ETH';
   };
 
@@ -92,9 +85,6 @@ const Dashboard = () => {
     { date: 'Sun', day: 6, requests: 0, cost: 0 }
   ];
 
-  // Recommendations - empty for now, will be populated from ModelRegistry
-  const recommendations = [];
-
   // Get activity icon
   const getActivityIcon = (type) => {
     switch (type) {
@@ -103,17 +93,6 @@ const Dashboard = () => {
       case 'favorite': return HeartIcon;
       case 'purchase': return ShoppingCartIcon;
       default: return InformationCircleIcon;
-    }
-  };
-
-  // Get model category icon
-  const getCategoryIcon = (category) => {
-    switch (category) {
-      case 'text': return DocumentTextIcon;
-      case 'image': return PhotoIcon;
-      case 'audio': return SpeakerWaveIcon;
-      case 'video': return VideoCameraIcon;
-      default: return CpuChipIcon;
     }
   };
 
@@ -178,10 +157,6 @@ const Dashboard = () => {
                   <p className="text-2xl font-bold text-dark-text-primary">
                     {userStats.totalRequests.toLocaleString()}
                   </p>
-                  <Badge variant="success" size="sm" className="ml-2">
-                    <ArrowTrendingUpIcon className="h-3 w-3 mr-1" />
-                    +12%
-                  </Badge>
                 </div>
               </div>
               <div className="p-3 bg-primary-500/100/10 rounded-lg">
@@ -193,19 +168,15 @@ const Dashboard = () => {
           <Card variant="elevated" className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-dark-text-muted">Tokens Used</p>
+                <p className="text-sm font-medium text-dark-text-muted">Purchased Models</p>
                 <div className="flex items-baseline mt-2">
                   <p className="text-2xl font-bold text-dark-text-primary">
-                    {(userStats.totalTokens / 1000000).toFixed(1)}M
+                    {purchases.length}
                   </p>
-                  <Badge variant="success" size="sm" className="ml-2">
-                    <ArrowTrendingUpIcon className="h-3 w-3 mr-1" />
-                    +8%
-                  </Badge>
                 </div>
               </div>
-              <div className="p-3 bg-dark-surface0/10 rounded-lg">
-                <BoltSolidIcon className="h-6 w-6 text-dark-text-muted" />
+              <div className="p-3 bg-primary-500/10 rounded-lg">
+                <CpuChipIcon className="h-6 w-6 text-primary-400" />
               </div>
             </div>
           </Card>
@@ -216,12 +187,8 @@ const Dashboard = () => {
                 <p className="text-sm font-medium text-dark-text-muted">Total Spent</p>
                 <div className="flex items-baseline mt-2">
                   <p className="text-2xl font-bold text-dark-text-primary">
-                    ${userStats.totalSpent.toFixed(2)}
+                    {earnings.total.toFixed(4)} {currency}
                   </p>
-                  <Badge variant="warning" size="sm" className="ml-2">
-                    <ArrowTrendingUpIcon className="h-3 w-3 mr-1" />
-                    +15%
-                  </Badge>
                 </div>
               </div>
               <div className="p-3 bg-green-500/10 rounded-lg">
@@ -291,26 +258,7 @@ const Dashboard = () => {
                   />
                 </div>
 
-                <div className="grid grid-cols-3 gap-4 mt-6 pt-6 border-t border-dark-surface-elevated">
-                  <div className="text-center">
-                    <p className="text-sm text-dark-text-muted">Avg Daily Requests</p>
-                    <p className="text-xl font-bold text-dark-text-primary mt-1">
-                      {Math.round(usageData.reduce((sum, day) => sum + day.requests, 0) / usageData.length)}
-                    </p>
-                  </div>
-                  <div className="text-center">
-                    <p className="text-sm text-dark-text-muted">Avg Response Time</p>
-                    <p className="text-xl font-bold text-dark-text-primary mt-1">
-                      {userStats.avgResponseTime}s
-                    </p>
-                  </div>
-                  <div className="text-center">
-                    <p className="text-sm text-dark-text-muted">Total Models</p>
-                    <p className="text-xl font-bold text-dark-text-primary mt-1">
-                      {userStats.favoriteModels}
-                    </p>
-                  </div>
-                </div>
+
               </div>
             </Card>
 
@@ -322,8 +270,8 @@ const Dashboard = () => {
                     <CreditCardIcon className="h-5 w-5 mr-2" />
                     Active Subscriptions
                   </h3>
-                  <Button variant="outline" size="sm" onClick={() => navigate('/subscriptions')}>
-                    Manage All
+                  <Button variant="outline" size="sm" onClick={() => navigate('/marketplace/models')}>
+                    Browse More
                     <ChevronRightIcon className="h-4 w-4 ml-1" />
                   </Button>
                 </div>
@@ -386,89 +334,7 @@ const Dashboard = () => {
               </div>
             </Card>
 
-            {/* Personalized Recommendations */}
-            <Card variant="elevated">
-              <div className="p-6">
-                <div className="flex items-center justify-between mb-6">
-                  <h3 className="text-lg font-semibold text-dark-text-primary flex items-center">
-                    <SparklesIcon className="h-5 w-5 mr-2" />
-                    Recommended for You
-                  </h3>
-                  <Button variant="outline" size="sm" onClick={() => navigate('/marketplace/models')}>
-                    Browse All
-                    <ChevronRightIcon className="h-4 w-4 ml-1" />
-                  </Button>
-                </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {recommendations.map((model) => {
-                    const IconComponent = getCategoryIcon(model.category);
-                    return (
-                      <div
-                        key={model.id}
-                        className="p-4 bg-dark-surface-primary rounded-lg border border-dark-surface-elevated hover:border-primary-500/30 transition-all cursor-pointer group"
-                        onClick={() => navigate(`/marketplace/models/${model.id}`)}
-                      >
-                        <div className="flex items-start justify-between mb-3">
-                          <div className="p-2 bg-primary-500/100/10 rounded-lg">
-                            <IconComponent className="h-5 w-5 text-primary-400" />
-                          </div>
-                          <Badge variant="accent" size="sm">
-                            <LightBulbIcon className="h-3 w-3 mr-1" />
-                            Recommended
-                          </Badge>
-                        </div>
-                        
-                        <h4 className="font-medium text-dark-text-primary mb-1 group-hover:text-primary-400 transition-colors">
-                          {model.name}
-                        </h4>
-                        <p className="text-sm text-dark-text-secondary mb-2">
-                          {model.description}
-                        </p>
-                        <p className="text-xs text-primary-400 mb-3 font-medium">
-                          {model.reason}
-                        </p>
-                        
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center">
-                            <div className="flex items-center mr-3">
-                              {[...Array(5)].map((_, i) => (
-                                <StarSolidIcon
-                                  key={i}
-                                  className={clsx(
-                                    'h-3 w-3',
-                                    i < Math.floor(model.rating)
-                                      ? 'text-yellow-400'
-                                      : 'text-dark-surface-elevated'
-                                  )}
-                                />
-                              ))}
-                            </div>
-                            <span className="text-xs text-dark-text-muted">
-                              {model.downloads.toLocaleString()}
-                            </span>
-                          </div>
-                          <span className="text-sm font-medium text-dark-text-primary">
-                            {model.pricing.type === 'free' 
-                              ? 'Free' 
-                              : `$${model.pricing.price}`
-                            }
-                          </span>
-                        </div>
-                        
-                        <div className="flex flex-wrap gap-1 mt-3">
-                          {model.tags.slice(0, 2).map((tag) => (
-                            <Badge key={tag} variant="secondary" size="sm">
-                              {tag}
-                            </Badge>
-                          ))}
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-            </Card>
           </div>
 
           {/* Sidebar */}
@@ -575,7 +441,7 @@ const Dashboard = () => {
                   variant="ghost"
                   size="sm"
                   className="w-full mt-4"
-                  onClick={() => navigate('/dashboard/notifications')}
+                  onClick={() => navigate('/notifications')}
                 >
                   View All Activity
                   <ChevronRightIcon className="h-4 w-4 ml-1" />
@@ -611,26 +477,9 @@ const Dashboard = () => {
                     </Badge>
                   </div>
                   
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm text-dark-text-secondary">Tests Run</span>
-                    <span className="text-sm text-dark-text-primary">
-                      {userStats.testsRun}
-                    </span>
-                  </div>
                 </div>
 
-                <div className="mt-6 p-4 bg-gradient-to-r from-primary-500/10 to-secondary-500/10 border border-primary-500/20 rounded-lg">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <h4 className="font-medium text-dark-text-primary">Upgrade Available</h4>
-                      <p className="text-xs text-dark-text-muted">Get unlimited access</p>
-                    </div>
-                    <Button size="sm" onClick={() => navigate('/marketplace/models')}>
-                      <RocketLaunchIcon className="h-4 w-4 mr-1" />
-                      Browse
-                    </Button>
-                  </div>
-                </div>
+
               </div>
             </Card>
           </div>

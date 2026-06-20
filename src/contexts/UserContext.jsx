@@ -64,7 +64,7 @@ const initialUserState = {
     total: 0,
     thisMonth: 0,
     lastMonth: 0,
-    currency: 'ETH',
+    currency: 'POL',
   },
   rewards: {
     balance: 0,
@@ -187,7 +187,7 @@ export const UserProvider = ({ children }) => {
             id: `${event.transactionHash}-${event.index}`,
             modelId: modelId.toString(),
             price: ethers.formatEther(price),
-            currency: 'ETH',
+            currency: 'POL',
             purchaseDate: new Date(block.timestamp * 1000).toISOString(),
             status: 'completed',
             txHash: event.transactionHash,
@@ -297,7 +297,7 @@ export const UserProvider = ({ children }) => {
         total: parseFloat(ethers.formatEther(total)),
         thisMonth: parseFloat(ethers.formatEther(thisMonth)),
         lastMonth: parseFloat(ethers.formatEther(lastMonth)),
-        currency: 'ETH',
+        currency: 'POL',
         breakdown,
       };
       
@@ -307,7 +307,7 @@ export const UserProvider = ({ children }) => {
         total: 0,
         thisMonth: 0,
         lastMonth: 0,
-        currency: 'ETH',
+        currency: 'POL',
         breakdown: [],
       }});
     }
@@ -400,7 +400,7 @@ export const UserProvider = ({ children }) => {
           id: `buy-${event.transactionHash}`,
           type: 'purchase',
           title: 'Model Purchased',
-          description: `You purchased model #${modelId} for ${ethers.formatEther(price)} ETH`,
+          description: `You purchased model #${modelId} for ${ethers.formatEther(price)} POL`,
           icon: 'shopping',
           timestamp: new Date(block.timestamp * 1000).toISOString(),
           txHash: event.transactionHash,
@@ -423,7 +423,7 @@ export const UserProvider = ({ children }) => {
           id: `sell-${event.transactionHash}`,
           type: 'sale',
           title: 'Model Sold',
-          description: `You earned ${ethers.formatEther(price)} ETH from model #${modelId}`,
+          description: `You earned ${ethers.formatEther(price)} POL from model #${modelId}`,
           icon: 'money',
           timestamp: new Date(block.timestamp * 1000).toISOString(),
           txHash: event.transactionHash,
@@ -463,7 +463,7 @@ export const UserProvider = ({ children }) => {
         id: tx.hash,
         modelId,
         price,
-        currency: 'ETH',
+        currency: 'POL',
         purchaseDate: new Date().toISOString(),
         status: 'completed',
         txHash: tx.hash,
@@ -473,7 +473,7 @@ export const UserProvider = ({ children }) => {
       addActivity({
         type: 'purchase',
         title: 'Model Purchased',
-        description: `You purchased model #${modelId} for ${price} ETH`,
+        description: `You purchased model #${modelId} for ${price} POL`,
         icon: 'shopping',
         txHash: tx.hash,
       });

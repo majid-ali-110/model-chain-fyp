@@ -2,8 +2,8 @@
   "_format": "hh-sol-cache-2",
   "files": {
     "/Users/majidalikhokhar/Work/fyp/model-chain-fyp/contracts/Governance.sol": {
-      "lastModificationDate": 1769901905538,
-      "contentHash": "5300b706c6820afe307c21d9806433b9",
+      "lastModificationDate": 1776646549568,
+      "contentHash": "84475b725b32a8434accaf02f3118d0b",
       "sourceName": "contracts/Governance.sol",
       "solcConfig": {
         "version": "0.8.20",
@@ -919,8 +919,8 @@
       "artifacts": []
     },
     "/Users/majidalikhokhar/Work/fyp/model-chain-fyp/contracts/UserRegistry.sol": {
-      "lastModificationDate": 1769988232420,
-      "contentHash": "54d788f910f07be644c76d6c17bf2a10",
+      "lastModificationDate": 1776646559309,
+      "contentHash": "85b88ebb1b28d1ba0806fbfaf8b4f087",
       "sourceName": "contracts/UserRegistry.sol",
       "solcConfig": {
         "version": "0.8.20",

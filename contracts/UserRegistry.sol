@@ -175,7 +175,7 @@ contract UserRegistry is Ownable, ReentrancyGuard {
                 stakedAmount: msg.value,
                 validationsCount: 0,
                 successfulValidations: 0,
-                isApproved: false
+                isApproved: msg.value >= validatorMinStake
             });
             validatorList.push(msg.sender);
         } else {

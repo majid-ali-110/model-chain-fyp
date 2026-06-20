@@ -171,17 +171,9 @@ const Profile = () => {
   ];
 
   // Handle follow/unfollow
-  const handleFollowToggle = async () => {
-    try {
-      setIsFollowing(!isFollowing);
-      setFollowersCount(prev => isFollowing ? prev - 1 : prev + 1);
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 500));
-    } catch {
-      // Revert on error
-      setIsFollowing(isFollowing);
-      setFollowersCount(prev => isFollowing ? prev + 1 : prev - 1);
-    }
+  const handleFollowToggle = () => {
+    setIsFollowing(!isFollowing);
+    setFollowersCount(prev => isFollowing ? prev - 1 : prev + 1);
   };
 
   // Handle share profile

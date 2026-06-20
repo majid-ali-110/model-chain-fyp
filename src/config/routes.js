@@ -33,7 +33,6 @@ export const ROUTES = {
   // Validator routes (protected, role-based)
   VALIDATOR_DASHBOARD: '/validator/dashboard',
   VALIDATOR_REVIEW: '/validator/review/:modelId',
-  VALIDATOR_LEADERBOARD: '/validator/leaderboard',
   
   // Governance routes
   GOVERNANCE: '/governance',
@@ -104,8 +103,7 @@ export const ROUTE_CONFIG = {
   // Validator routes - validator role required
   VALIDATOR_ROUTES: [
     ROUTES.VALIDATOR_DASHBOARD,
-    ROUTES.VALIDATOR_REVIEW,
-    ROUTES.VALIDATOR_LEADERBOARD
+    ROUTES.VALIDATOR_REVIEW
   ],
   
   // Admin routes - admin role required

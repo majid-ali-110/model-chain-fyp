@@ -66,10 +66,10 @@ const ModelFilters = ({
 
   const priceRanges = [
     { id: 'free', label: 'Free', min: 0, max: 0, count: 1234 },
-    { id: 'low', label: '0.01 - 1 ETH', min: 0.01, max: 1, count: 856 },
-    { id: 'medium', label: '1 - 5 ETH', min: 1, max: 5, count: 423 },
-    { id: 'high', label: '5 - 10 ETH', min: 5, max: 10, count: 167 },
-    { id: 'premium', label: '10+ ETH', min: 10, max: 999, count: 89 }
+    { id: 'low', label: '0.01 - 1 POL', min: 0.01, max: 1, count: 856 },
+    { id: 'medium', label: '1 - 5 POL', min: 1, max: 5, count: 423 },
+    { id: 'high', label: '5 - 10 POL', min: 5, max: 10, count: 167 },
+    { id: 'premium', label: '10+ POL', min: 10, max: 999, count: 89 }
   ];
 
   const blockchainNetworks = [
@@ -367,7 +367,7 @@ const ModelFilters = ({
             {/* Custom Price Range Slider */}
             <div className="pt-2 border-t border-dark-surface-elevated/30">
               <label className="text-sm text-dark-text-primary mb-2 block">
-                Custom Range: {priceRange[0]} - {priceRange[1]} ETH
+                Custom Range: {priceRange[0]} - {priceRange[1]} POL
               </label>
               <input
                 type="range"

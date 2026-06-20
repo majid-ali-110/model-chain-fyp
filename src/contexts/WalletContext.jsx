@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useReducer, useEffect, useCallback } from 'react';
 import { ethers } from 'ethers';
-import { getContracts, USER_REGISTRY_ABI } from '../contracts';
+import { getContracts, USER_REGISTRY_ABI, GOVERNANCE_ABI } from '../contracts';
 import { uploadProfile, fetchFromIPFS } from '../services/ipfs';
 
 // Wallet Context
@@ -259,6 +259,24 @@ export const WalletProvider = ({ children }) => {
 
       // Store in localStorage as backup
       localStorage.setItem(`user_profile_${state.address}`, JSON.stringify(profile));
+
+      // Grant 1000 MCT tokens to every new account
+      localStorage.setItem(`mct_balance_${state.address}`, '1000');
+
+      // Claim initial MCT voting power on-chain (for governance)
+      try {
+        const addresses = getContracts(parseInt(state.chainId || '31337', 10));
+        if (addresses?.Governance && state.signer) {
+          const govContract = new ethers.Contract(addresses.Governance, GOVERNANCE_ABI.abi, state.signer);
+          const hasClaimed = await govContract.hasClaimedInitialTokens(state.address);
+          if (!hasClaimed) {
+            const tx = await govContract.claimInitialTokens();
+            await tx.wait();
+          }
+        }
+      } catch (e) {
+        console.warn('Could not claim initial MCT tokens on-chain (will work after redeployment):', e);
+      }
       
       dispatch({
         type: 'PROFILE_CREATED',

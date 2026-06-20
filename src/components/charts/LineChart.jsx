@@ -451,28 +451,12 @@ const LineChart = ({
               fill={line.color}
               stroke="#1F2937"
               strokeWidth="2"
-              className="cursor-pointer hover:r-6 transition-all duration-200"
+              className="cursor-pointer"
               style={{
                 filter: glowEffect ? `drop-shadow(0 0 6px ${line.color}60)` : 'none'
               }}
               onClick={() => handlePointClick({ ...point, line, lineIndex: index, pointIndex })}
             />
-            
-            {/* Hover effect */}
-            {hoveredPoint && 
-             hoveredPoint.lineIndex === index && 
-             hoveredPoint.pointIndex === pointIndex && (
-              <circle
-                cx={point.x}
-                cy={point.y}
-                r="8"
-                fill="none"
-                stroke={line.color}
-                strokeWidth="2"
-                opacity="0.8"
-                className="animate-pulse"
-              />
-            )}
           </g>
         ))}
       </g>

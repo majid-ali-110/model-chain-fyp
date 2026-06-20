@@ -107,8 +107,25 @@ contract Governance is Ownable, ReentrancyGuard {
     event Staked(address indexed user, uint256 amount, uint256 lockPeriod);
     event Unstaked(address indexed user, uint256 amount);
     event DelegateChanged(address indexed delegator, address indexed toDelegate);
+    event InitialTokensClaimed(address indexed user, uint256 amount);
+
+    // Initial MCT token grant for new accounts
+    uint256 public constant INITIAL_TOKEN_GRANT = 1000 ether;
+    mapping(address => bool) public hasClaimedInitialTokens;
     
     constructor() Ownable(msg.sender) {}
+
+    /**
+     * @dev Claim initial MCT tokens for governance participation.
+     * Every new account can claim once to get 1000 MCT voting power.
+     */
+    function claimInitialTokens() external {
+        require(!hasClaimedInitialTokens[msg.sender], "Already claimed initial tokens");
+        hasClaimedInitialTokens[msg.sender] = true;
+        votingPower[msg.sender] += INITIAL_TOKEN_GRANT;
+        totalStaked += INITIAL_TOKEN_GRANT;
+        emit InitialTokensClaimed(msg.sender, INITIAL_TOKEN_GRANT);
+    }
     
     /**
      * @dev Stake tokens for governance power

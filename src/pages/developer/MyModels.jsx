@@ -92,7 +92,7 @@ const MyModels = () => {
   const { connected } = useWallet();
   const { isAuthenticated } = useAuth();
   const { userModels: contextUserModels, earnings } = useUser();
-  const { delistModel, listModelForSale } = useModel();
+  const { delistModel, listModelForSale, patchModelLabels, getModelById } = useModel();
   const { showSuccess, showError, showWarning } = useNotification();
   
   const [models, setModels] = useState([]);
@@ -107,6 +107,10 @@ const MyModels = () => {
   const [showFilters, setShowFilters] = useState(false);
   const [selectedModels, setSelectedModels] = useState([]);
   const [actionMenuOpen, setActionMenuOpen] = useState(null);
+
+  // Labels edit modal
+  const [labelsModal, setLabelsModal] = useState({ open: false, model: null });
+  const [labelsForm, setLabelsForm] = useState({ classLabels: '', featureNames: '' });
 
   // Stats computed from context
   const stats = {
@@ -307,9 +311,16 @@ const MyModels = () => {
         case 'edit':
           navigate(`/developer/upload?edit=${modelId}`);
           break;
-        case 'analytics':
-          navigate(`/developer/analytics/${modelId}`);
+        case 'edit-labels': {
+          // Get full model (with metadataHash / classLabels) from ModelContext
+          const fullModel = getModelById(modelId) || model;
+          setLabelsForm({
+            classLabels: fullModel.classLabels || '',
+            featureNames: fullModel.featureNames || '',
+          });
+          setLabelsModal({ open: true, model: fullModel });
           break;
+        }
         case 'share': {
           const shareUrl = `${window.location.origin}/marketplace/models/${modelId}`;
           await navigator.clipboard.writeText(shareUrl);
@@ -391,6 +402,29 @@ const MyModels = () => {
     setSelectedModels([]);
   };
 
+  const handleSaveLabels = () => {
+    if (!labelsModal.model) return;
+    const result = patchModelLabels(
+      labelsModal.model.id,
+      labelsForm.classLabels.trim(),
+      labelsForm.featureNames.trim()
+    );
+    if (result.success) {
+      // Also update local display models list
+      setModels(prev =>
+        prev.map(m =>
+          m.id === labelsModal.model.id
+            ? { ...m, classLabels: labelsForm.classLabels.trim(), featureNames: labelsForm.featureNames.trim() }
+            : m
+        )
+      );
+      showSuccess('Class labels saved. They will appear in sandbox results immediately.', { title: 'Labels Updated' });
+    } else {
+      showError(result.error || 'Failed to save labels.', { title: 'Save Failed' });
+    }
+    setLabelsModal({ open: false, model: null });
+  };
+
   // Stats Cards Component
   const StatsCards = () => (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
@@ -404,11 +438,6 @@ const MyModels = () => {
             <CpuChipIcon className="h-6 w-6 text-blue-400" />
           </div>
         </div>
-        <div className="flex items-center mt-4">
-          <ArrowTrendingUpIcon className="h-4 w-4 text-green-400 mr-1" />
-          <span className="text-sm text-green-400">+{stats.monthlyGrowth.models}%</span>
-          <span className="text-sm text-dark-text-muted ml-1">vs last month</span>
-        </div>
       </Card>
 
       <Card className="p-6">
@@ -420,11 +449,6 @@ const MyModels = () => {
           <div className="h-12 w-12 bg-green-500/20 rounded-lg flex items-center justify-center">
             <ArrowDownTrayIcon className="h-6 w-6 text-green-400" />
           </div>
-        </div>
-        <div className="flex items-center mt-4">
-          <ArrowTrendingUpIcon className="h-4 w-4 text-green-400 mr-1" />
-          <span className="text-sm text-green-400">+{stats.monthlyGrowth.downloads}%</span>
-          <span className="text-sm text-dark-text-muted ml-1">vs last month</span>
         </div>
       </Card>
 
@@ -438,11 +462,6 @@ const MyModels = () => {
             <CurrencyDollarIcon className="h-6 w-6 text-yellow-400" />
           </div>
         </div>
-        <div className="flex items-center mt-4">
-          <ArrowTrendingUpIcon className="h-4 w-4 text-green-400 mr-1" />
-          <span className="text-sm text-green-400">+{stats.monthlyGrowth.revenue}%</span>
-          <span className="text-sm text-dark-text-muted ml-1">vs last month</span>
-        </div>
       </Card>
 
       <Card className="p-6">
@@ -454,11 +473,6 @@ const MyModels = () => {
           <div className="h-12 w-12 bg-purple-500/20 rounded-lg flex items-center justify-center">
             <StarIcon className="h-6 w-6 text-purple-400" />
           </div>
-        </div>
-        <div className="flex items-center mt-4">
-          <ArrowTrendingUpIcon className="h-4 w-4 text-green-400 mr-1" />
-          <span className="text-sm text-green-400">+{stats.monthlyGrowth.rating}%</span>
-          <span className="text-sm text-dark-text-muted ml-1">vs last month</span>
         </div>
       </Card>
     </div>
@@ -663,11 +677,11 @@ const MyModels = () => {
                               Edit Model
                             </button>
                             <button
-                              onClick={() => handleModelAction('analytics', model.id)}
+                              onClick={() => handleModelAction('edit-labels', model.id)}
                               className="w-full text-left px-4 py-2 text-sm text-dark-text-secondary hover:bg-dark-border hover:text-white flex items-center"
                             >
-                              <ChartBarIcon className="h-4 w-4 mr-2" />
-                              Analytics
+                              <TagIcon className="h-4 w-4 mr-2" />
+                              Edit Labels
                             </button>
                             <button
                               onClick={() => handleModelAction('share', model.id)}
@@ -761,6 +775,13 @@ const MyModels = () => {
                       >
                         <PencilIcon className="h-4 w-4 mr-2" />
                         Edit Model
+                      </button>
+                      <button
+                        onClick={() => handleModelAction('edit-labels', model.id)}
+                        className="w-full text-left px-4 py-2 text-sm text-dark-text-secondary hover:bg-dark-border hover:text-white flex items-center"
+                      >
+                        <TagIcon className="h-4 w-4 mr-2" />
+                        Edit Labels
                       </button>
                     </div>
                   </div>
@@ -972,6 +993,82 @@ const MyModels = () => {
           <>
             {viewMode === 'table' ? <TableView /> : <GridView />}
           </>
+        )}
+        {/* Edit Labels Modal */}
+        {labelsModal.open && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
+            <div className="bg-dark-surface border border-dark-border rounded-2xl shadow-2xl w-full max-w-lg mx-4">
+              {/* Modal header */}
+              <div className="flex items-center justify-between px-6 py-4 border-b border-dark-border">
+                <div className="flex items-center gap-2">
+                  <TagIcon className="h-5 w-5 text-primary-400" />
+                  <h2 className="text-lg font-semibold text-white">Edit Class Labels</h2>
+                </div>
+                <button
+                  onClick={() => setLabelsModal({ open: false, model: null })}
+                  className="text-dark-text-muted hover:text-white transition-colors"
+                >
+                  <XCircleIcon className="h-5 w-5" />
+                </button>
+              </div>
+
+              {/* Modal body */}
+              <div className="px-6 py-5 space-y-5">
+                <p className="text-sm text-dark-text-muted">
+                  These labels replace raw class numbers (class_0, class_1 …) in sandbox output so buyers see
+                  human-readable results like <span className="text-white font-medium">Has Mask</span> or{' '}
+                  <span className="text-white font-medium">Female</span>.
+                </p>
+
+                <div>
+                  <label className="block text-sm font-medium text-dark-text-secondary mb-1">
+                    Class Labels
+                    <span className="text-dark-text-muted font-normal ml-2">(comma-separated, in class order)</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={labelsForm.classLabels}
+                    onChange={e => setLabelsForm(f => ({ ...f, classLabels: e.target.value }))}
+                    placeholder="e.g. no_mask, has_mask   or   male, female   or   cat, dog, bird"
+                    className="w-full bg-dark-bg-primary border border-dark-border rounded-lg px-3 py-2 text-white placeholder-dark-text-muted focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm"
+                  />
+                  {labelsForm.classLabels && (
+                    <div className="flex flex-wrap gap-1 mt-2">
+                      {labelsForm.classLabels.split(',').map((l, i) => l.trim() && (
+                        <span key={i} className="px-2 py-0.5 rounded bg-primary-500/20 text-primary-300 text-xs font-medium border border-primary-500/30">
+                          {i}: {l.trim()}
+                        </span>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-dark-text-secondary mb-1">
+                    Feature Names
+                    <span className="text-dark-text-muted font-normal ml-2">(optional, for tabular models)</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={labelsForm.featureNames}
+                    onChange={e => setLabelsForm(f => ({ ...f, featureNames: e.target.value }))}
+                    placeholder="e.g. age, income, credit_score"
+                    className="w-full bg-dark-bg-primary border border-dark-border rounded-lg px-3 py-2 text-white placeholder-dark-text-muted focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm"
+                  />
+                </div>
+              </div>
+
+              {/* Modal footer */}
+              <div className="flex items-center justify-end gap-3 px-6 py-4 border-t border-dark-border">
+                <Button variant="outline" onClick={() => setLabelsModal({ open: false, model: null })}>
+                  Cancel
+                </Button>
+                <Button onClick={handleSaveLabels}>
+                  Save Labels
+                </Button>
+              </div>
+            </div>
+          </div>
         )}
     </div>
   );

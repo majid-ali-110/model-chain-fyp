@@ -29,18 +29,14 @@ import ConnectWallet from './pages/ConnectWallet';
 // Marketplace Pages
 import Models from './pages/marketplace/Models';
 import ModelDetail from './pages/marketplace/ModelDetail';
-import Browse from './pages/marketplace/Browse';
-import Categories from './pages/marketplace/Categories';
 
 // Dashboard Pages
 import Dashboard from './pages/dashboard/Dashboard';
-import Overview from './pages/dashboard/Overview';
 import MyModels from './pages/dashboard/MyModels';
 import Notifications from './pages/dashboard/Notifications';
 
 // Developer Pages
 import Upload from './pages/developer/Upload';
-import Analytics from './pages/developer/Analytics';
 import DeveloperMyModels from './pages/developer/MyModels';
 
 // Validator Pages
@@ -54,7 +50,6 @@ import Sandbox from './pages/sandbox/Sandbox';
 import AdminOverview from './pages/admin/Overview';
 
 // Wallet Pages
-import WalletOverview from './pages/wallet/Overview';
 import WalletDashboard from './pages/wallet/WalletDashboard';
 
 // Profile Pages
@@ -65,25 +60,12 @@ import EditProfile from './pages/profile/EditProfile';
 // Legal Pages
 import Terms from './pages/legal/Terms';
 import Privacy from './pages/legal/Privacy';
-import Security from './pages/legal/Security';
 
 // Governance Page
 import Governance from './pages/governance/Governance';
 
-// Documentation Pages
-import ApiDocumentation from './pages/docs/ApiDocumentation';
-import SdkTools from './pages/docs/SdkTools';
-import ValidationGuidelines from './pages/docs/ValidationGuidelines';
-import NodeSetup from './pages/docs/NodeSetup';
-
-// Validator Pages (additional)
-import Leaderboard from './pages/validator/Leaderboard';
-import RewardsProgram from './pages/validator/RewardsProgram';
-
 // Info Pages
-import About from './pages/About';
 import FAQ from './pages/FAQ';
-import { Blog, Careers, Contact, Press, Status, Community, Documentation, Support, DeveloperSupport, CookiePolicy } from './pages/TemplatePagesindex';
 
 import WalletAuthSync from './components/auth/WalletAuthSync';
 
@@ -103,14 +85,12 @@ function App() {
                       {/* Public Routes with Main Layout */}
                       <Route path="/" element={<MainLayout />}>
                         <Route index element={<Home />} />
-                        
+
                         {/* Marketplace Routes */}
                         <Route path="marketplace">
-                          <Route index element={<Browse />} />
+                          <Route index element={<Models />} />
                           <Route path="models" element={<Models />} />
                           <Route path="models/:id" element={<ModelDetail />} />
-                          <Route path="browse" element={<Browse />} />
-                          <Route path="categories" element={<Categories />} />
                         </Route>
 
                         {/* Sandbox Route */}
@@ -135,77 +115,30 @@ function App() {
                         {/* Legal Routes */}
                         <Route path="terms" element={<Terms />} />
                         <Route path="privacy" element={<Privacy />} />
-                        <Route path="cookies" element={<CookiePolicy />} />
-                        <Route path="security" element={<Security />} />
                         <Route path="faq" element={<FAQ />} />
-
-                        {/* Documentation Routes */}
-                        <Route path="docs">
-                          <Route index element={<Documentation />} />
-                          <Route path="api" element={<ApiDocumentation />} />
-                          <Route path="sdk" element={<SdkTools />} />
-                          <Route path="validation" element={<ValidationGuidelines />} />
-                          <Route path="node-setup" element={<NodeSetup />} />
-                        </Route>
-
-                        {/* Company/Info Routes */}
-                        <Route path="about" element={<About />} />
-                        <Route path="blog" element={<Blog />} />
-                        <Route path="careers" element={<Careers />} />
-                        <Route path="contact" element={<Contact />} />
-                        <Route path="press" element={<Press />} />
-                        
-                        {/* Support/Community Routes */}
-                        <Route path="status" element={<Status />} />
-                        <Route path="community" element={<Community />} />
-                        <Route path="support">
-                          <Route index element={<Support />} />
-                          <Route path="developers" element={<DeveloperSupport />} />
-                        </Route>
-
-                        {/* Validator Public Routes */}
-                        <Route path="validator">
-                          <Route path="leaderboard" element={<Leaderboard />} />
-                          <Route path="rewards" element={<RewardsProgram />} />
-                        </Route>
                       </Route>
 
-                      {/* Wallet Connection Route - Clean Layout (No Auth Layout needed) */}
+                      {/* Wallet Connection Route */}
                       <Route path="connect-wallet" element={<ConnectWallet />} />
 
-                      {/* Protected Dashboard Routes - Clean Layout (No Sidebar) */}
+                      {/* Protected Dashboard Routes */}
                       <Route path="/dashboard" element={
                         <ProtectedRoute>
                           <CleanLayout />
                         </ProtectedRoute>
                       }>
                         <Route index element={<Dashboard />} />
-                        <Route path="overview" element={<Overview />} />
                         <Route path="models" element={<MyModels />} />
                       </Route>
 
                       {/* Protected Developer Routes */}
-                      <Route path="/developer" element={<MainLayout />}>
-                        <Route path="models" element={
-                          <ProtectedRoute developerOnly>
-                            <DeveloperMyModels />
-                          </ProtectedRoute>
-                        } />
-                        <Route path="upload" element={
-                          <ProtectedRoute developerOnly>
-                            <Upload />
-                          </ProtectedRoute>
-                        } />
-                        <Route path="analytics" element={
-                          <ProtectedRoute developerOnly>
-                            <Analytics />
-                          </ProtectedRoute>
-                        } />
-                        <Route path="analytics/:modelId" element={
-                          <ProtectedRoute developerOnly>
-                            <Analytics />
-                          </ProtectedRoute>
-                        } />
+                      <Route path="/developer" element={
+                        <ProtectedRoute developerOnly>
+                          <DashboardLayout />
+                        </ProtectedRoute>
+                      }>
+                        <Route path="models" element={<DeveloperMyModels />} />
+                        <Route path="upload" element={<Upload />} />
                       </Route>
 
                       {/* Protected Validator Routes */}
@@ -235,11 +168,6 @@ function App() {
                             <WalletDashboard />
                           </ProtectedRoute>
                         } />
-                        <Route path="overview" element={
-                          <ProtectedRoute>
-                            <WalletOverview />
-                          </ProtectedRoute>
-                        } />
                       </Route>
 
                       {/* 404 Route */}
@@ -254,4 +182,7 @@ function App() {
       </NotificationProvider>
     </ThemeProvider>
   );
-}export default App;
+}
+
+
+export default App;

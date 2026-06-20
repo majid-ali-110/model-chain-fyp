@@ -15,118 +15,7 @@ import Badge from '../../components/ui/Badge';
 
 const Notifications = () => {
   const [filter, setFilter] = useState('all'); // all, unread, read
-  const [notifications, setNotifications] = useState([
-    {
-      id: 1,
-      title: 'New Model Approved',
-      message: 'Your AI model "GPT-Vision-Plus" has been successfully approved and is now live on the marketplace!',
-      time: '5 minutes ago',
-      date: new Date(Date.now() - 5 * 60 * 1000),
-      unread: true,
-      type: 'success',
-      category: 'Models',
-      actionUrl: '/developer/models'
-    },
-    {
-      id: 2,
-      title: 'Governance Proposal Active',
-      message: 'New proposal "Reduce Platform Fees from 3% to 2%" is now live for voting. Your vote matters!',
-      time: '1 hour ago',
-      date: new Date(Date.now() - 60 * 60 * 1000),
-      unread: true,
-      type: 'info',
-      category: 'Governance',
-      actionUrl: '/governance'
-    },
-    {
-      id: 3,
-      title: 'Transaction Completed',
-      message: 'You received 2.5 ETH from model downloads this week. Payment has been processed successfully.',
-      time: '3 hours ago',
-      date: new Date(Date.now() - 3 * 60 * 60 * 1000),
-      unread: false,
-      type: 'success',
-      category: 'Payments',
-      actionUrl: '/wallet'
-    },
-    {
-      id: 4,
-      title: 'Model Update Available',
-      message: 'An important update is available for "Audio Synthesizer X". Update to version 2.1 for improved performance.',
-      time: '6 hours ago',
-      date: new Date(Date.now() - 6 * 60 * 60 * 1000),
-      unread: false,
-      type: 'info',
-      category: 'Updates',
-      actionUrl: '/developer/models'
-    },
-    {
-      id: 5,
-      title: 'New Follower',
-      message: 'Sarah Chen (@sarahdev) started following you. Check out her AI models!',
-      time: '12 hours ago',
-      date: new Date(Date.now() - 12 * 60 * 60 * 1000),
-      unread: false,
-      type: 'info',
-      category: 'Social',
-      actionUrl: '/profile'
-    },
-    {
-      id: 6,
-      title: 'Model Review Received',
-      message: 'Your model "NLP Sentiment Analyzer" received a 5-star review from Marcus Rodriguez.',
-      time: '1 day ago',
-      date: new Date(Date.now() - 24 * 60 * 60 * 1000),
-      unread: false,
-      type: 'success',
-      category: 'Reviews',
-      actionUrl: '/developer/models'
-    },
-    {
-      id: 7,
-      title: 'Security Alert',
-      message: 'New login detected from Chrome on Windows. If this wasn\'t you, please secure your account immediately.',
-      time: '2 days ago',
-      date: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000),
-      unread: false,
-      type: 'warning',
-      category: 'Security',
-      actionUrl: '/settings'
-    },
-    {
-      id: 8,
-      title: 'Staking Rewards',
-      message: 'You earned 0.5 MCT tokens from staking rewards this month. Keep staking to earn more!',
-      time: '3 days ago',
-      date: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000),
-      unread: false,
-      type: 'success',
-      category: 'Rewards',
-      actionUrl: '/wallet'
-    },
-    {
-      id: 9,
-      title: 'Model Download Milestone',
-      message: 'Congratulations! Your model "GPT-Vision-Plus" reached 10,000 downloads. You\'ve earned a "Popular Creator" badge!',
-      time: '1 week ago',
-      date: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000),
-      unread: false,
-      type: 'success',
-      category: 'Achievements',
-      actionUrl: '/profile'
-    },
-    {
-      id: 10,
-      title: 'Platform Maintenance',
-      message: 'Scheduled maintenance on November 10th from 2:00 AM to 4:00 AM UTC. Services may be temporarily unavailable.',
-      time: '1 week ago',
-      date: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000),
-      unread: false,
-      type: 'warning',
-      category: 'System',
-      actionUrl: null
-    }
-  ]);
+  const [notifications, setNotifications] = useState([]);
 
   const filteredNotifications = notifications.filter(n => {
     if (filter === 'unread') return n.unread;
@@ -178,7 +67,7 @@ const Notifications = () => {
     <div className="min-h-screen bg-dark-bg-primary py-8">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-6xl">
         {/* Header */}
-        <div className="mb-8 animate-fade-in-up">
+        <div className="mb-8">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-3">
               <div className="p-3 bg-cyan-500/20 rounded-xl border-2 border-cyan-500/30">
@@ -246,7 +135,7 @@ const Notifications = () => {
                 <Card
                   key={notification.id}
                   className={clsx(
-                    'p-6 transition-all duration-300 hover-lift',
+                    'p-6',
                     notification.unread && 'bg-cyan-500/5 border-cyan-500/30'
                   )}
                   style={{ animationDelay: `${index * 0.05}s` }}

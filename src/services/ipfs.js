@@ -197,6 +197,13 @@ export const uploadModelMetadata = async (metadata) => {
     outputFormat: metadata.outputFormat,
     modelSize: metadata.modelSize,
     performance: metadata.performance || {},
+    // Sandbox / inference fields
+    inputTypes: metadata.inputTypes || [],
+    featureNames: metadata.featureNames || '',
+    classLabels: metadata.classLabels || '',
+    exampleInputs: metadata.exampleInputs || {},
+    exampleOutputs: metadata.exampleOutputs || {},
+    inferenceModelKey: metadata.inferenceModelKey || '',
     createdAt: new Date().toISOString(),
     modelChainVersion: '1.0.0'
   };

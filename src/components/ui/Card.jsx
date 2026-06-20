@@ -20,9 +20,7 @@ const Card = ({
     // Entrance animation
     'animate-fade-in-scale',
     // Hover lift animation - enhanced
-    hover && 'hover:transform hover:scale-[1.03] hover:-translate-y-2 hover-lift',
-    // Hover border glow - enhanced
-    hover && !glow && 'hover:border-dark-border-light hover:shadow-2xl hover:shadow-cyan-500/20',
+    hover && 'hover:border-dark-border-light hover:shadow-lg',
     // Smooth transform origin
     'transform-gpu'
   );
@@ -104,11 +102,6 @@ const Card = ({
       <div className="relative z-10">
         {children}
       </div>
-      
-      {/* Shimmer Effect on Hover */}
-      {hover && (
-        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent translate-x-[-100%] hover:translate-x-[100%] transition-transform duration-700 pointer-events-none" />
-      )}
     </div>
   );
 };

@@ -7,7 +7,8 @@ import {
   ArrowDownTrayIcon,
   ExclamationTriangleIcon,
   CurrencyDollarIcon,
-  ShoppingCartIcon
+  ShoppingCartIcon,
+  BeakerIcon
 } from '@heroicons/react/24/outline';
 import { StarIcon as StarSolidIcon } from '@heroicons/react/24/solid';
 import Button from '../../components/ui/Button';
@@ -17,12 +18,6 @@ import Loading from '../../components/ui/Loading';
 import { useModel } from '../../contexts/ModelContext';
 import { useWallet } from '../../contexts/WalletContext';
 
-const LICENSE_OPTIONS = [
-  { label: 'Personal', value: 0, multiplier: '1x' },
-  { label: 'Commercial', value: 1, multiplier: '3x' },
-  { label: 'Enterprise', value: 2, multiplier: '10x' }
-];
-
 const ModelDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -30,7 +25,6 @@ const ModelDetail = () => {
   const { connected, address } = useWallet();
 
   const [loading, setLoading] = useState(true);
-  const [selectedLicense, setSelectedLicense] = useState(0);
   const [purchasePending, setPurchasePending] = useState(false);
   const [purchaseMessage, setPurchaseMessage] = useState('');
   const [purchaseError, setPurchaseError] = useState('');
@@ -65,7 +59,7 @@ const ModelDetail = () => {
     setPurchaseMessage('');
     setPurchaseError('');
 
-    const result = await purchaseModel(model.id, selectedLicense);
+    const result = await purchaseModel(model.id, 0);
     if (result.success) {
       setPurchaseMessage('Purchase completed successfully. Access granted for this model.');
     } else {
@@ -233,34 +227,11 @@ const ModelDetail = () => {
               <div className="p-6">
                 <h2 className="text-lg font-semibold text-dark-text-primary mb-4">Purchase Access</h2>
 
-                <div className="space-y-3 mb-5">
-                  {LICENSE_OPTIONS.map((license) => (
-                    <label
-                      key={license.value}
-                      className={`flex items-center justify-between p-3 rounded-lg border cursor-pointer ${
-                        selectedLicense === license.value
-                          ? 'border-primary-500 bg-primary-500/100/10'
-                          : 'border-dark-surface-elevated'
-                      }`}
-                    >
-                      <div>
-                        <p className="text-dark-text-primary font-medium">{license.label}</p>
-                        <p className="text-xs text-dark-text-muted">{license.multiplier} pricing multiplier</p>
-                      </div>
-                      <input
-                        type="radio"
-                        checked={selectedLicense === license.value}
-                        onChange={() => setSelectedLicense(license.value)}
-                      />
-                    </label>
-                  ))}
-                </div>
-
                 <div className="mb-5">
-                  <p className="text-sm text-dark-text-muted">Base Price</p>
+                  <p className="text-sm text-dark-text-muted">Price</p>
                   <p className="text-3xl font-bold text-dark-text-primary flex items-center">
                     <CurrencyDollarIcon className="h-6 w-6 mr-1" />
-                    {parseFloat(model.price || '0') > 0 ? `${model.price} ETH` : 'Free'}
+                    {parseFloat(model.price || '0') > 0 ? `${model.price} POL` : 'Free'}
                   </p>
                   <p className="text-xs text-dark-text-muted mt-1">
                     {model.isListed ? 'Listed in marketplace' : 'Not listed yet'}
@@ -277,6 +248,13 @@ const ModelDetail = () => {
                   <ShoppingCartIcon className="h-5 w-5 mr-2" />
                   Purchase Access
                 </Button>
+
+                <Link to={`/sandbox?model=${model.id}`} className="block mt-3">
+                  <Button variant="outline" className="w-full">
+                    <BeakerIcon className="h-5 w-5 mr-2" />
+                    Try in Sandbox
+                  </Button>
+                </Link>
 
                 {!connected && (
                   <p className="text-sm text-dark-text-muted mt-3">
