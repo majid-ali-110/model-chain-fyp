@@ -5,7 +5,6 @@ import {
   ShoppingBagIcon,
   PlayIcon,
   ChartBarIcon,
-  UserGroupIcon,
   CogIcon,
   WalletIcon,
   CodeBracketIcon,
@@ -73,12 +72,6 @@ const Sidebar = ({ isOpen = true, className = '' }) => {
       icon: DocumentTextIcon,
       current: location.pathname === '/developer/upload',
     },
-    {
-      name: 'Analytics',
-      href: '/developer/analytics',
-      icon: ChartBarIcon,
-      current: location.pathname.startsWith('/developer/analytics'),
-    },
   ];
 
   const validatorNavigation = [
@@ -86,46 +79,16 @@ const Sidebar = ({ isOpen = true, className = '' }) => {
       name: 'Validator Dashboard',
       href: '/validator/dashboard',
       icon: ShieldCheckIcon,
-      current: location.pathname.startsWith('/validator/dashboard'),
-    },
-    {
-      name: 'Review Models',
-      href: '/validator/dashboard',
-      icon: DocumentTextIcon,
-      current: location.pathname.startsWith('/validator/review'),
-    },
-    {
-      name: 'Leaderboard',
-      href: '/validator/leaderboard',
-      icon: ChartBarIcon,
-      current: location.pathname.startsWith('/validator/leaderboard'),
+      current: location.pathname.startsWith('/validator'),
     },
   ];
 
   const adminNavigation = [
     {
-      name: 'Admin Dashboard',
-      href: '/admin/dashboard',
+      name: 'Overview',
+      href: '/admin/overview',
       icon: ChartBarIcon,
-      current: location.pathname.startsWith('/admin/dashboard'),
-    },
-    {
-      name: 'User Management',
-      href: '/admin/users',
-      icon: UserGroupIcon,
-      current: location.pathname.startsWith('/admin/users'),
-    },
-    {
-      name: 'Model Management',
-      href: '/admin/models',
-      icon: CodeBracketIcon,
-      current: location.pathname.startsWith('/admin/models'),
-    },
-    {
-      name: 'System Settings',
-      href: '/admin/settings',
-      icon: CogIcon,
-      current: location.pathname.startsWith('/admin/settings'),
+      current: location.pathname.startsWith('/admin'),
     },
   ];
 
@@ -138,9 +101,9 @@ const Sidebar = ({ isOpen = true, className = '' }) => {
     },
     {
       name: 'Help & Support',
-      href: '/support',
+      href: '/faq',
       icon: QuestionMarkCircleIcon,
-      current: location.pathname === '/support',
+      current: location.pathname === '/faq',
     },
   ];
 

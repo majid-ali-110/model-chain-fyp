@@ -254,8 +254,8 @@ const ModelCard = ({
           <div className="space-y-2">
             <div className="flex items-start justify-between">
               <div className="flex-1 min-w-0">
-                <Link 
-                  to={`/models/${modelData.id}`}
+                <Link
+                  to={`/marketplace/models/${modelData.id}`}
                   className="group-hover:text-primary-400 transition-colors"
                 >
                   <h3 className="text-lg font-semibold text-dark-text-primary truncate">

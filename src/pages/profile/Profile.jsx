@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, Link } from 'react-router-dom';
 import {
   UserIcon,
   MapPinIcon,
@@ -14,11 +14,6 @@ import {
   UserMinusIcon,
   ShareIcon,
   CpuChipIcon,
-  DocumentTextIcon,
-  CodeBracketIcon,
-  PhotoIcon,
-  SpeakerWaveIcon,
-  VideoCameraIcon,
   ChartBarIcon,
   ClockIcon,
   TrophyIcon,
@@ -37,9 +32,7 @@ import {
   ChevronDownIcon,
   ChevronUpIcon,
   ArrowTopRightOnSquareIcon,
-  PencilIcon,
-  Cog6ToothIcon,
-  EllipsisHorizontalIcon
+  PencilIcon
 } from '@heroicons/react/24/outline';
 import {
   StarIcon as StarSolidIcon,
@@ -52,10 +45,98 @@ import Button from '../../components/ui/Button';
 import Card from '../../components/ui/Card';
 import Badge from '../../components/ui/Badge';
 import Loading from '../../components/ui/Loading';
-import ModelCard from '../../components/models/ModelCard';
+import { getIPFSUrl } from '../../services/ipfs';
 import { useWallet } from '../../contexts/WalletContext';
 import { useAuth } from '../../contexts/AuthContext';
 import { useUser } from '../../contexts/UserContext';
+import { useNotification } from '../../contexts/NotificationContext';
+
+// Resolve a model image that may be a full URL, an ipfs:// URI, or a bare CID.
+const resolveModelImage = (img) => {
+  if (!img) return '';
+  return /^https?:\/\//.test(img) ? img : getIPFSUrl(img);
+};
+
+const formatModelPrice = (price) => {
+  const value = parseFloat(price);
+  if (!value || Number.isNaN(value)) return 'Free';
+  return `${value.toFixed(4)} POL`;
+};
+
+/**
+ * Card for a model published by the profile owner. Built for showcasing
+ * (the whole card links to the model's detail page) rather than buying — the
+ * marketplace buy-card was the wrong fit and used a mismatched data shape.
+ */
+const PublishedModelCard = ({ model }) => {
+  const [imageOk, setImageOk] = useState(true);
+  const imageUrl = resolveModelImage(model.image);
+  const isFree = !parseFloat(model.price);
+
+  return (
+    <Link
+      to={`/marketplace/models/${model.id}`}
+      className={clsx(
+        'group flex flex-col h-full rounded-xl border border-dark-border bg-dark-surface overflow-hidden',
+        'transition-colors hover:border-primary-500/50',
+        'focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 focus-visible:ring-offset-dark-bg-primary'
+      )}
+    >
+      <div className="relative aspect-video bg-dark-surface-elevated overflow-hidden">
+        {imageUrl && imageOk ? (
+          <img
+            src={imageUrl}
+            alt={model.name}
+            loading="lazy"
+            onError={() => setImageOk(false)}
+            className="w-full h-full object-cover"
+          />
+        ) : (
+          <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-primary-500/15 to-secondary-500/15">
+            <CpuChipIcon className="h-12 w-12 text-primary-400/70" />
+          </div>
+        )}
+        {model.category && (
+          <span className="absolute top-2 left-2 px-2 py-0.5 rounded-md text-xs font-medium capitalize bg-dark-bg-primary/80 text-dark-text-secondary backdrop-blur-sm">
+            {model.category}
+          </span>
+        )}
+      </div>
+
+      <div className="flex flex-col flex-1 p-4">
+        <h3 className="font-semibold text-dark-text-primary truncate group-hover:text-primary-400 transition-colors">
+          {model.name}
+        </h3>
+        <p className="mt-1 text-sm text-dark-text-secondary line-clamp-2 flex-1">
+          {model.description || 'No description provided.'}
+        </p>
+
+        <div className="mt-3 pt-3 border-t border-dark-border flex items-center justify-between gap-2">
+          <span className={clsx('text-sm font-semibold', isFree ? 'text-accent-400' : 'text-primary-400')}>
+            {formatModelPrice(model.price)}
+          </span>
+          <span className="flex items-center gap-3 text-xs text-dark-text-muted">
+            <span className="inline-flex items-center gap-1">
+              <ArrowDownTrayIcon className="h-3.5 w-3.5" />
+              {model.downloads ?? 0}
+            </span>
+            {model.rating > 0 && (
+              <span className="inline-flex items-center gap-1">
+                <StarSolidIcon className="h-3.5 w-3.5 text-yellow-400" />
+                {Number(model.rating).toFixed(1)}
+              </span>
+            )}
+          </span>
+        </div>
+
+        <span className="mt-3 inline-flex items-center gap-1 text-sm font-medium text-primary-400">
+          View details
+          <ArrowTopRightOnSquareIcon className="h-4 w-4" />
+        </span>
+      </div>
+    </Link>
+  );
+};
 
 const Profile = () => {
   const { userId } = useParams();
@@ -63,6 +144,7 @@ const Profile = () => {
   const { connected, address } = useWallet();
   const { isAuthenticated, user } = useAuth();
   const { profile: userProfile, userModels: contextUserModels } = useUser();
+  const { showSuccess } = useNotification();
   
   // State management
   const [profile, setProfile] = useState(null);
@@ -137,17 +219,17 @@ const Profile = () => {
     }
   }, [userId, address, userProfile, user, contextUserModels, connected, isAuthenticated, navigate]);
 
-  // Helper functions - Get category icon
-  const getCategoryIcon = (category) => {
-    switch (category) {
-      case 'text': return DocumentTextIcon;
-      case 'image': return PhotoIcon;
-      case 'audio': return SpeakerWaveIcon;
-      case 'video': return VideoCameraIcon;
-      case 'code': return CodeBracketIcon;
-      default: return CpuChipIcon;
-    }
+  // Format a count as a compact, honest number (e.g. 0, 950, 1.2K, 3.4M).
+  const formatStat = (value) => {
+    const num = Number(value) || 0;
+    if (num >= 1_000_000) return `${(num / 1_000_000).toFixed(1).replace(/\.0$/, '')}M`;
+    if (num >= 1_000) return `${(num / 1_000).toFixed(1).replace(/\.0$/, '')}K`;
+    return num.toLocaleString();
   };
+
+  // Detect whether an avatar value is an image source vs. an emoji/initial.
+  const isImageAvatar = (value) =>
+    typeof value === 'string' && /^(https?:|data:|blob:|\/)/.test(value);
 
   // Tab configuration
   const tabs = [
@@ -176,11 +258,35 @@ const Profile = () => {
     setFollowersCount(prev => isFollowing ? prev - 1 : prev + 1);
   };
 
-  // Handle share profile
-  const handleShare = () => {
+  // Handle share profile — copy link and confirm with a toast so the user
+  // gets clear feedback that the action succeeded.
+  const handleShare = async () => {
     const url = window.location.href;
-    navigator.clipboard.writeText(url);
-    // Show toast notification
+    try {
+      if (navigator.share) {
+        await navigator.share({ title: `${profile?.displayName} on ModelChain`, url });
+        return;
+      }
+      await navigator.clipboard.writeText(url);
+      showSuccess('Profile link copied to clipboard', { title: 'Link copied', duration: 3000 });
+    } catch {
+      // User cancelled the share sheet, or clipboard was unavailable — no-op.
+    }
+  };
+
+  // Keyboard navigation for the tab list (Left/Right/Home/End).
+  const handleTabKeyDown = (event) => {
+    const ids = tabs.map((t) => t.id);
+    const currentIndex = ids.indexOf(activeTab);
+    let nextIndex = null;
+    if (event.key === 'ArrowRight') nextIndex = (currentIndex + 1) % ids.length;
+    else if (event.key === 'ArrowLeft') nextIndex = (currentIndex - 1 + ids.length) % ids.length;
+    else if (event.key === 'Home') nextIndex = 0;
+    else if (event.key === 'End') nextIndex = ids.length - 1;
+    if (nextIndex === null) return;
+    event.preventDefault();
+    setActiveTab(ids[nextIndex]);
+    document.getElementById(`profile-tab-${ids[nextIndex]}`)?.focus();
   };
 
   // Get activity icon
@@ -249,6 +355,7 @@ const Profile = () => {
             <Button
               variant="ghost"
               size="sm"
+              onClick={() => navigate('/profile/edit')}
               className="absolute top-4 right-4 bg-black/50 text-white hover:bg-black/70"
             >
               <PencilIcon className="h-4 w-4 mr-2" />
@@ -263,8 +370,18 @@ const Profile = () => {
             {/* Avatar */}
             <div className="flex items-end space-x-6">
               <div className="relative">
-                <div className="w-32 h-32 sm:w-40 sm:h-40 bg-dark-surface-elevated rounded-full border-4 border-dark-surface-primary flex items-center justify-center text-6xl">
-                  {profile.avatar || <UserSolidIcon className="h-20 w-20 text-dark-text-muted" />}
+                <div className="w-28 h-28 sm:w-40 sm:h-40 bg-dark-surface-elevated rounded-full border-4 border-dark-surface-primary flex items-center justify-center text-6xl overflow-hidden">
+                  {isImageAvatar(profile.avatar) ? (
+                    <img
+                      src={profile.avatar}
+                      alt={`${profile.displayName}'s avatar`}
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <span aria-hidden="true">
+                      {profile.avatar || <UserSolidIcon className="h-20 w-20 text-dark-text-muted" />}
+                    </span>
+                  )}
                 </div>
                 {profile.verified && (
                   <div className="absolute -bottom-1 -right-1 w-8 h-8 bg-primary-500/100 rounded-full flex items-center justify-center border-2 border-dark-surface-primary">
@@ -275,13 +392,13 @@ const Profile = () => {
 
               {/* Profile Actions */}
               <div className="flex-1 flex justify-end pb-4">
-                <div className="flex items-center space-x-3">
+                <div className="flex flex-wrap items-center justify-end gap-2">
                   {!isCurrentUser && (
                     <>
                       <Button
                         variant={isFollowing ? "outline" : "primary"}
                         onClick={handleFollowToggle}
-                        className="min-w-24"
+                        className="min-w-[6rem]"
                       >
                         {isFollowing ? (
                           <>
@@ -295,12 +412,12 @@ const Profile = () => {
                           </>
                         )}
                       </Button>
-                      <Button variant="outline" size="sm">
+                      <Button variant="outline" size="sm" aria-label={`Message ${profile.displayName}`}>
                         <ChatBubbleLeftRightIcon className="h-4 w-4" />
                       </Button>
                     </>
                   )}
-                  
+
                   {isCurrentUser && (
                     <Button
                       variant="outline"
@@ -310,13 +427,9 @@ const Profile = () => {
                       Edit Profile
                     </Button>
                   )}
-                  
-                  <Button variant="ghost" size="sm" onClick={handleShare}>
+
+                  <Button variant="ghost" size="sm" onClick={handleShare} aria-label="Share profile link">
                     <ShareIcon className="h-4 w-4" />
-                  </Button>
-                  
-                  <Button variant="ghost" size="sm">
-                    <EllipsisHorizontalIcon className="h-4 w-4" />
                   </Button>
                 </div>
               </div>
@@ -387,10 +500,10 @@ const Profile = () => {
                         href={profile.website}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="flex items-center hover:text-primary-400 transition-colors"
+                        className="flex items-center min-w-0 max-w-full hover:text-primary-400 transition-colors"
                       >
-                        <LinkIcon className="h-4 w-4 mr-1" />
-                        {profile.website.replace(/^https?:\/\//, '')}
+                        <LinkIcon className="h-4 w-4 mr-1 flex-shrink-0" />
+                        <span className="truncate">{profile.website.replace(/^https?:\/\//, '')}</span>
                       </a>
                     )}
                     
@@ -404,15 +517,15 @@ const Profile = () => {
                   </div>
 
                   {/* Follower Stats */}
-                  <div className="flex items-center space-x-6 mt-4">
-                    <button className="hover:underline">
+                  <div className="flex items-center gap-6 mt-4">
+                    <span>
                       <span className="font-bold text-dark-text-primary">{followingCount.toLocaleString()}</span>
                       <span className="text-dark-text-muted ml-1">Following</span>
-                    </button>
-                    <button className="hover:underline">
+                    </span>
+                    <span>
                       <span className="font-bold text-dark-text-primary">{followersCount.toLocaleString()}</span>
                       <span className="text-dark-text-muted ml-1">Followers</span>
-                    </button>
+                    </span>
                   </div>
                 </div>
 
@@ -432,27 +545,27 @@ const Profile = () => {
                     <div className="text-center">
                       <ArrowDownTrayIcon className="h-6 w-6 text-dark-text-muted mx-auto mb-2" />
                       <p className="text-xl font-bold text-dark-text-primary">
-                        {(profile.stats.totalDownloads / 1000).toFixed(0)}K
+                        {formatStat(profile.stats.totalDownloads)}
                       </p>
                       <p className="text-xs text-dark-text-muted">Downloads</p>
                     </div>
                   </Card>
-                  
+
                   <Card variant="elevated" className="p-4">
                     <div className="text-center">
                       <StarSolidIcon className="h-6 w-6 text-yellow-400 mx-auto mb-2" />
                       <p className="text-xl font-bold text-dark-text-primary">
-                        {profile.stats.averageRating}
+                        {profile.stats.averageRating > 0 ? profile.stats.averageRating.toFixed(1) : '—'}
                       </p>
                       <p className="text-xs text-dark-text-muted">Avg Rating</p>
                     </div>
                   </Card>
-                  
+
                   <Card variant="elevated" className="p-4">
                     <div className="text-center">
                       <EyeIcon className="h-6 w-6 text-accent-400 mx-auto mb-2" />
                       <p className="text-xl font-bold text-dark-text-primary">
-                        {(profile.stats.totalViews / 1000).toFixed(0)}K
+                        {formatStat(profile.stats.totalViews)}
                       </p>
                       <p className="text-xs text-dark-text-muted">Views</p>
                     </div>
@@ -467,25 +580,38 @@ const Profile = () => {
       {/* Content Tabs */}
       <div className="border-b border-dark-surface-elevated">
         <div className="page-shell max-w-4xl">
-          <nav className="flex space-x-8">
+          <nav
+            role="tablist"
+            aria-label="Profile sections"
+            onKeyDown={handleTabKeyDown}
+            className="flex gap-6 sm:gap-8 overflow-x-auto"
+          >
             {tabs.map((tab) => {
               const IconComponent = tab.icon;
+              const selected = activeTab === tab.id;
               return (
                 <button
                   key={tab.id}
+                  id={`profile-tab-${tab.id}`}
+                  role="tab"
+                  type="button"
+                  aria-selected={selected}
+                  aria-controls={`profile-panel-${tab.id}`}
+                  tabIndex={selected ? 0 : -1}
                   onClick={() => setActiveTab(tab.id)}
                   className={clsx(
-                    'flex items-center py-4 px-1 border-b-2 font-medium text-sm transition-colors',
-                    activeTab === tab.id
+                    'flex items-center whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm transition-colors',
+                    'focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:rounded-sm',
+                    selected
                       ? 'border-primary-500 text-primary-400'
                       : 'border-transparent text-dark-text-muted hover:text-dark-text-primary hover:border-dark-surface-elevated'
                   )}
                 >
-                  <IconComponent className="h-4 w-4 mr-2" />
+                  <IconComponent className="h-4 w-4 mr-2 flex-shrink-0" />
                   {tab.name}
                   {tab.count !== undefined && (
-                    <span className="ml-2 bg-dark-surface-elevated text-dark-text-muted px-2 py-1 rounded-full text-xs">
-                      {tab.count}
+                    <span className="ml-2 bg-dark-surface-elevated text-dark-text-muted px-2 py-0.5 rounded-full text-xs">
+                      {tab.count ?? 0}
                     </span>
                   )}
                 </button>
@@ -499,7 +625,7 @@ const Profile = () => {
       <div className="page-shell max-w-4xl py-8">
         {/* Models Tab */}
         {activeTab === 'models' && (
-          <div>
+          <div role="tabpanel" id="profile-panel-models" aria-labelledby="profile-tab-models" tabIndex={0} className="focus:outline-none">
             {userModels.length === 0 ? (
               <div className="text-center py-12">
                 <CpuChipIcon className="h-12 w-12 text-dark-text-muted mx-auto mb-4" />
@@ -507,31 +633,22 @@ const Profile = () => {
                   No models published yet
                 </h3>
                 <p className="text-dark-text-secondary">
-                  {isCurrentUser 
+                  {isCurrentUser
                     ? "Start building and sharing your AI models with the community."
                     : `${profile.displayName} hasn't published any models yet.`
                   }
                 </p>
+                {isCurrentUser && (
+                  <Button onClick={() => navigate('/developer/upload')} className="mt-6">
+                    <CpuChipIcon className="h-4 w-4 mr-2" />
+                    Upload a Model
+                  </Button>
+                )}
               </div>
             ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                 {userModels.map((model) => (
-                  <ModelCard
-                    key={model.id}
-                    model={{
-                      ...model,
-                      provider: profile.displayName,
-                      isHot: model.isHot || false,
-                      isNew: model.isNew || false,
-                      stats: {
-                        rating: model.rating,
-                        reviews: model.reviews,
-                        downloads: model.downloads
-                      }
-                    }}
-                    showBadges={true}
-                    showStats={true}
-                  />
+                  <PublishedModelCard key={model.id} model={model} />
                 ))}
               </div>
             )}
@@ -540,7 +657,7 @@ const Profile = () => {
 
         {/* Reviews Tab */}
         {activeTab === 'reviews' && (
-          <div>
+          <div role="tabpanel" id="profile-panel-reviews" aria-labelledby="profile-tab-reviews" tabIndex={0} className="focus:outline-none">
             {userReviews.length === 0 ? (
               <div className="text-center py-12">
                 <StarIcon className="h-12 w-12 text-dark-text-muted mx-auto mb-4" />
@@ -620,7 +737,7 @@ const Profile = () => {
 
         {/* Activity Tab */}
         {activeTab === 'activity' && (
-          <div>
+          <div role="tabpanel" id="profile-panel-activity" aria-labelledby="profile-tab-activity" tabIndex={0} className="focus:outline-none">
             {userActivity.length === 0 ? (
               <div className="text-center py-12">
                 <ClockIcon className="h-12 w-12 text-dark-text-muted mx-auto mb-4" />

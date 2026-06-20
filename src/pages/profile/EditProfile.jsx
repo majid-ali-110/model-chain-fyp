@@ -97,7 +97,7 @@ const EditProfile = () => {
   };
 
   return (
-    <div className="max-w-3xl mx-auto space-y-6">
+    <div className="max-w-3xl mx-auto w-full px-4 sm:px-6 py-8 space-y-6">
       <div className="flex items-center justify-between">
         <Button variant="ghost" onClick={() => navigate('/profile')}>
           <ArrowLeftIcon className="h-4 w-4 mr-2" />
@@ -151,27 +151,32 @@ const EditProfile = () => {
 
             <Input
               label="Website"
+              type="url"
+              inputMode="url"
               value={form.website}
               onChange={(e) => onChange('website', e.target.value)}
               placeholder="https://your-site.com"
             />
 
             <div>
-              <label className="block text-sm font-medium text-dark-text-secondary mb-2">Bio</label>
+              <label htmlFor="profile-bio" className="block text-sm font-medium text-dark-text-secondary mb-2">Bio</label>
               <textarea
+                id="profile-bio"
                 rows={4}
+                maxLength={500}
                 value={form.bio}
                 onChange={(e) => onChange('bio', e.target.value)}
-                className="w-full bg-dark-surface border border-dark-border rounded-lg px-3 py-2 text-white placeholder-dark-text-muted focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full bg-dark-surface border border-dark-border rounded-lg px-3 py-2 text-white placeholder-dark-text-muted focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                 placeholder="Tell others what you build..."
               />
+              <p className="mt-1 text-xs text-dark-text-muted text-right">{form.bio.length}/500</p>
             </div>
 
-            <div className="flex justify-end gap-3 pt-2">
-              <Button type="button" variant="outline" onClick={() => navigate('/profile')}>
+            <div className="flex flex-col-reverse sm:flex-row sm:justify-end gap-3 pt-2">
+              <Button type="button" variant="outline" onClick={() => navigate('/profile')} className="w-full sm:w-auto">
                 Cancel
               </Button>
-              <Button type="submit" disabled={isSaving}>
+              <Button type="submit" loading={isSaving} disabled={isSaving} className="w-full sm:w-auto">
                 {isSaving ? 'Saving...' : 'Save Profile'}
               </Button>
             </div>
